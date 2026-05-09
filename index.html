@@ -687,6 +687,14 @@ function gameLoop(ts) {
     ctx.fillRect(player.x-40, player.y-10, 80, 20);
   }
 
+  // 调试显示
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, H-55, W, 55);
+  ctx.fillStyle = '#00ff88';
+  ctx.font = '11px Courier New';
+  ctx.fillText(`stepAcc=${stepAcc.toFixed(2)} bgSpeed=${bgSpeed.toFixed(2)} moving=${stepAcc>0.5}`, 8, H-36);
+  ctx.fillText(`smooth=${smoothAcc.toFixed(2)} base=${baseAcc?baseAcc.toFixed(2):'---'} squat=${player.squatting}`, 8, H-16);
+
   ctx.restore();
 
   animId = requestAnimationFrame(gameLoop);
