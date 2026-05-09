@@ -428,10 +428,11 @@ function drawPlayer() {
     ctx.font = 'bold 16px Courier New';
     ctx.fillText('深蹲!', x - 22, y - 22);
   } else {
-    // 跑步姿势（帧动画）
-    const runCycle = Math.floor(Date.now() / 150) % 4;
-    const legOff = [4, 2, 0, 2][runCycle];
-    const armOff = [0, 2, 0, -2][runCycle];
+    // 跑步姿势 / 静止姿势
+    const isMoving = bgSpeed > 0.3;
+    const runCycle = isMoving ? Math.floor(Date.now() / 150) % 4 : 0;
+    const legOff = isMoving ? [4, 2, 0, 2][runCycle] : 0;
+    const armOff = isMoving ? [0, 2, 0, -2][runCycle] : 0;
 
     // 头
     ctx.fillStyle = headColor;
