@@ -3,457 +3,738 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>深蹲计数器</title>
+<title>深蹲跑者</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #0f0f1a;
-    color: #fff;
-    font-family: -apple-system, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
-  }
-  .bg-circle { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.12; pointer-events: none; }
-  .bg-circle-1 { width: 400px; height: 400px; background: #6c63ff; top: -100px; left: -100px; }
-  .bg-circle-2 { width: 300px; height: 300px; background: #ff6584; bottom: -50px; right: -50px; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0a0a0f;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; min-height:100vh;
+  font-family: 'Courier New', monospace;
+  overflow:hidden; touch-action:none;
+}
+canvas { display:block; image-rendering:pixelated; }
 
-  /* ===== 引导页 ===== */
-  #guidePage {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; min-height: 100vh; padding: 24px;
-    gap: 20px; z-index: 1;
-  }
-  .guide-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
-  .guide-subtitle { font-size: 14px; color: #888; text-align: center; line-height: 1.8; }
+/* 覆盖层UI */
+#ui {
+  position:fixed; top:0; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:12px 16px; pointer-events:none; z-index:10;
+}
+.ui-left, .ui-right { display:flex; flex-direction:column; gap:6px; }
 
-  .pose-card {
-    background: #1a1a2e; border-radius: 20px; padding: 20px 24px;
-    border: 1px solid #2a2a3e; width: 100%; max-width: 340px;
-  }
-  .pose-card-title { font-size: 13px; color: #6c63ff; letter-spacing: 2px; margin-bottom: 16px; }
+.hp-bar-wrap { display:flex; align-items:center; gap:6px; }
+.hp-label { font-size:11px; color:#ff6584; letter-spacing:1px; }
+.hp-bar { width:100px; height:8px; background:#2a0a0a; border:1px solid #ff6584; border-radius:2px; overflow:hidden; }
+.hp-fill { height:100%; background:linear-gradient(90deg,#ff4444,#ff6584); transition:width 0.3s; border-radius:2px; }
 
-  /* SVG 姿势图区域 */
-  .pose-figures {
-    display: flex; justify-content: space-around; align-items: flex-end;
-    gap: 8px; margin-bottom: 16px;
-  }
-  .pose-fig { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .pose-fig span { font-size: 11px; color: #666; }
+.score-box { font-size:13px; color:#f59e0b; letter-spacing:1px; }
+.dist-box { font-size:11px; color:#6c63ff; letter-spacing:1px; }
 
-  .pose-steps { display: flex; flex-direction: column; gap: 8px; }
-  .pose-step { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #ccc; line-height: 1.5; }
-  .step-num {
-    min-width: 20px; height: 20px; border-radius: 50%;
-    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-  }
+.phase-box {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  background:rgba(0,0,0,0.7); border:1px solid #6c63ff;
+  border-radius:20px; padding:8px 20px;
+  font-size:13px; color:#a09ff0; letter-spacing:1px;
+  pointer-events:none; z-index:10;
+  transition:opacity 0.3s;
+}
 
-  .guide-tip {
-    background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3);
-    border-radius: 12px; padding: 12px 16px;
-    font-size: 13px; color: #a09ff0; line-height: 1.7;
-    width: 100%; max-width: 340px;
-  }
+/* 全屏覆盖页 */
+.overlay {
+  position:fixed; top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.88);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:20px; z-index:20; padding:24px;
+}
+.overlay.hidden { display:none; }
 
-  .btn-start-guide {
-    width: 100%; max-width: 340px; padding: 16px;
-    border-radius: 50px; border: none;
-    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
-    color: #fff; font-size: 17px; font-weight: 700;
-    box-shadow: 0 4px 24px rgba(108,99,255,0.4);
-    cursor: pointer; letter-spacing: 1px;
-  }
-  .btn-start-guide:active { transform: scale(0.97); }
+.big-title { font-size:28px; color:#6c63ff; letter-spacing:4px; text-shadow:0 0 20px #6c63ff; }
+.big-subtitle { font-size:14px; color:#888; text-align:center; line-height:1.8; }
+.big-score { font-size:48px; color:#f59e0b; font-weight:900; }
+.big-label { font-size:13px; color:#666; letter-spacing:2px; }
 
-  /* ===== 主计数页 ===== */
-  #mainPage { display: none; flex-direction: column; align-items: center; gap: 24px; padding: 32px 20px 40px; z-index: 1; width: 100%; }
+.pixel-btn {
+  padding:14px 40px; border:none; cursor:pointer;
+  background:#6c63ff; color:#fff;
+  font-family:'Courier New',monospace; font-size:16px; letter-spacing:2px;
+  clip-path:polygon(4px 0%,calc(100% - 4px) 0%,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0% calc(100% - 4px),0% 4px);
+  transition:all 0.15s;
+}
+.pixel-btn:active { transform:scale(0.95); background:#8b5cf6; }
+.pixel-btn.red { background:#ff6584; }
 
-  .title { font-size: 16px; color: #aaa; letter-spacing: 4px; }
+.how-to {
+  background:#111; border:1px solid #2a2a3e;
+  border-radius:12px; padding:16px 20px; width:100%; max-width:320px;
+}
+.how-to-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; font-size:13px; color:#ccc; }
+.how-to-row:last-child { margin-bottom:0; }
+.how-icon { font-size:20px; min-width:28px; text-align:center; }
 
-  .count-ring { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
-  .count-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
-  .ring-bg { stroke: #2a2a3e; fill: none; stroke-width: 8; }
-  .ring-progress { stroke: #6c63ff; fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 0.3s ease; }
-  .count-number { font-size: 72px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #6c63ff, #ff6584); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: transform 0.1s; }
-  .count-number.pulse { transform: scale(1.2); }
-  .count-label { font-size: 13px; color: #666; letter-spacing: 2px; text-align: center; }
-
-  .phase-bar {
-    display: flex; align-items: center; gap: 12px;
-    background: #1a1a2e; border-radius: 50px; padding: 10px 20px;
-    border: 1px solid #2a2a3e; font-size: 14px; color: #aaa;
-  }
-  .phase-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: all 0.3s; }
-  .phase-dot.down { background: #ff6584; box-shadow: 0 0 8px #ff6584; }
-  .phase-dot.up { background: #6c63ff; box-shadow: 0 0 8px #6c63ff; }
-  .phase-dot.calib { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; animation: blink 0.6s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-  .status-bar { display: flex; gap: 0; background: #1a1a2e; border-radius: 16px; border: 1px solid #2a2a3e; overflow: hidden; width: 100%; max-width: 320px; }
-  .stat { flex: 1; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-  .stat + .stat { border-left: 1px solid #2a2a3e; }
-  .stat-value { font-size: 22px; font-weight: 700; }
-  .stat-label { font-size: 11px; color: #555; letter-spacing: 1px; }
-
-  .btn-group { display: flex; gap: 12px; width: 100%; max-width: 320px; }
-  .btn { flex: 1; padding: 14px; border-radius: 50px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-  .btn-main { background: linear-gradient(135deg, #6c63ff, #8b5cf6); color: #fff; box-shadow: 0 4px 16px rgba(108,99,255,0.35); }
-  .btn-main:active { transform: scale(0.95); }
-  .btn-reset { background: #1a1a2e; color: #666; border: 1px solid #2a2a3e; }
-  .btn-reset:active { transform: scale(0.95); }
-
-  .feedback-flash { position: fixed; top:0;left:0;right:0;bottom:0; pointer-events:none; opacity:0; transition: opacity 0.1s; background: #6c63ff; }
-  .feedback-flash.show { opacity: 0.07; }
-
-  .history { width: 100%; max-width: 320px; background: #1a1a2e; border-radius: 16px; padding: 14px 16px; border: 1px solid #2a2a3e; display: none; }
-  .history.show { display: block; }
-  .history-title { font-size: 11px; color: #555; letter-spacing: 2px; margin-bottom: 10px; }
-  .history-list { display: flex; gap: 6px; flex-wrap: wrap; }
-  .history-item { background: #0f0f1a; border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #777; border: 1px solid #2a2a3e; }
-
-  .guide-link { font-size: 12px; color: #555; cursor: pointer; text-decoration: underline; }
+/* 像素角色 CSS sprite */
+.pixel-char { image-rendering:pixelated; }
 </style>
 </head>
 <body>
-<div class="bg-circle bg-circle-1"></div>
-<div class="bg-circle bg-circle-2"></div>
-<div class="feedback-flash" id="flash"></div>
 
-<!-- ===== 引导页 ===== -->
-<div id="guidePage">
-  <div class="guide-title">🏋️ 深蹲计数器</div>
-  <div class="guide-subtitle">手握手机，双臂平举<br>系统自动识别深蹲动作</div>
+<canvas id="c"></canvas>
 
-  <div class="pose-card">
-    <div class="pose-card-title">✦ 标准姿势示意</div>
-    <div class="pose-figures">
-      <!-- 站立姿势 SVG -->
-      <div class="pose-fig">
-        <svg width="72" height="110" viewBox="0 0 72 110">
-          <!-- 头 -->
-          <circle cx="36" cy="12" r="9" fill="none" stroke="#6c63ff" stroke-width="2.5"/>
-          <!-- 身体 -->
-          <line x1="36" y1="21" x2="36" y2="62" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 手臂平举 + 手机 -->
-          <line x1="10" y1="38" x2="36" y2="38" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="36" y1="38" x2="62" y2="38" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 手机图标（右手端） -->
-          <rect x="58" y="32" width="10" height="16" rx="2" fill="none" stroke="#ff6584" stroke-width="2"/>
-          <line x1="63" y1="45" x2="63" y2="47" stroke="#ff6584" stroke-width="1.5" stroke-linecap="round"/>
-          <!-- 左腿 -->
-          <line x1="36" y1="62" x2="24" y2="88" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="24" y1="88" x2="18" y2="108" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 右腿 -->
-          <line x1="36" y1="62" x2="48" y2="88" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="48" y1="88" x2="54" y2="108" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-        <span>站立</span>
-      </div>
-
-      <!-- 箭头 -->
-      <svg width="24" height="24" viewBox="0 0 24 24" style="margin-bottom:44px">
-        <path d="M5 12h14M13 6l6 6-6 6" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-
-      <!-- 深蹲姿势 SVG -->
-      <div class="pose-fig">
-        <svg width="72" height="110" viewBox="0 0 72 110">
-          <!-- 头（低一些） -->
-          <circle cx="36" cy="26" r="9" fill="none" stroke="#ff6584" stroke-width="2.5"/>
-          <!-- 身体（前倾） -->
-          <line x1="36" y1="35" x2="33" y2="66" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 手臂平举（随身体，仍保持相对水平） -->
-          <line x1="8" y1="48" x2="33" y2="50" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="33" y1="50" x2="58" y2="48" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 手机 -->
-          <rect x="54" y="42" width="10" height="16" rx="2" fill="none" stroke="#6c63ff" stroke-width="2"/>
-          <line x1="59" y1="55" x2="59" y2="57" stroke="#6c63ff" stroke-width="1.5" stroke-linecap="round"/>
-          <!-- 大腿（弯曲） -->
-          <line x1="33" y1="66" x2="18" y2="82" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="33" y1="66" x2="48" y2="82" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 小腿 -->
-          <line x1="18" y1="82" x2="14" y2="108" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="48" y1="82" x2="52" y2="108" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- 下箭头提示 -->
-          <path d="M36 2 L32 8 L40 8 Z" fill="#f59e0b" opacity="0.8"/>
-        </svg>
-        <span>下蹲</span>
-      </div>
+<!-- UI 覆盖层 -->
+<div id="ui">
+  <div class="ui-left">
+    <div class="hp-bar-wrap">
+      <span class="hp-label">HP</span>
+      <div class="hp-bar"><div class="hp-fill" id="hpFill" style="width:100%"></div></div>
+      <span class="hp-label" id="hpText">3/3</span>
     </div>
-
-    <div class="pose-steps">
-      <div class="pose-step"><div class="step-num">1</div><span>双脚与肩同宽，自然站立</span></div>
-      <div class="pose-step"><div class="step-num">2</div><span>单手握住手机，<strong style="color:#ff6584">双臂向前平举</strong></span></div>
-      <div class="pose-step"><div class="step-num">3</div><span>缓慢下蹲至大腿平行地面，再站起</span></div>
-      <div class="pose-step"><div class="step-num">4</div><span>点「开始」后系统自动校准，<strong style="color:#f59e0b">保持姿势3秒</strong>再蹲</span></div>
-    </div>
+    <div class="dist-box" id="distBox">距离: 0m</div>
   </div>
-
-  <div class="guide-tip">
-    💡 手臂平举时手机近似水平，下蹲时重力Z轴变化最明显，识别最准确。
+  <div class="ui-right">
+    <div class="score-box">⭐ <span id="scoreBox">0</span></div>
+    <div class="dist-box" id="levelBox">Lv.1</div>
   </div>
-
-  <button class="btn-start-guide" onclick="goToMain()">我准备好了，开始！</button>
 </div>
 
-<!-- ===== 主计数页 ===== -->
-<div id="mainPage">
-  <div class="title">🏋️ 深蹲计数</div>
+<div class="phase-box" id="phaseBox">准备好了就开始！</div>
 
-  <div class="count-ring">
-    <svg viewBox="0 0 200 200" width="200" height="200">
-      <circle class="ring-bg" cx="100" cy="100" r="90"/>
-      <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="90"/>
-    </svg>
-    <div style="text-align:center">
-      <div class="count-number" id="countNum">0</div>
-      <div class="count-label">次</div>
-    </div>
+<!-- 开始页 -->
+<div class="overlay" id="startOverlay">
+  <div class="big-title">🏋️ 深蹲跑者</div>
+  <div class="big-subtitle">手机平举，跑步前进<br>遇到障碍——深蹲躲过！</div>
+  <div class="how-to">
+    <div class="how-to-row"><span class="how-icon">🏃</span><span>走动/跑步 → 角色前进</span></div>
+    <div class="how-to-row"><span class="how-icon">🚧</span><span>出现障碍物时屏幕闪烁</span></div>
+    <div class="how-to-row"><span class="how-icon">🏋️</span><span><strong style="color:#ff6584">深蹲</strong> → 角色躲避障碍</span></div>
+    <div class="how-to-row"><span class="how-icon">❤️</span><span>被障碍撞到扣1血，血量为0游戏结束</span></div>
+    <div class="how-to-row"><span class="how-icon">📱</span><span>手机握好，<strong style="color:#6c63ff">双臂平举</strong>开始校准</span></div>
   </div>
+  <button class="pixel-btn" onclick="startGame()">开始游戏</button>
+</div>
 
-  <div class="phase-bar">
-    <div class="phase-dot" id="phaseDot"></div>
-    <span id="phaseText">点开始后保持平举姿势</span>
-  </div>
-
-  <div class="status-bar">
-    <div class="stat">
-      <div class="stat-value" id="targetVal">20</div>
-      <div class="stat-label">目标</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" id="timeVal">0</div>
-      <div class="stat-label">秒</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" id="bestVal">-</div>
-      <div class="stat-label">最佳</div>
-    </div>
-  </div>
-
-  <div class="btn-group">
-    <button class="btn btn-main" id="mainBtn" onclick="toggleStart()">开始</button>
-    <button class="btn btn-reset" onclick="resetAll()">重置</button>
-  </div>
-
-  <div class="history" id="historyBox">
-    <div class="history-title">历史记录</div>
-    <div class="history-list" id="historyList"></div>
-  </div>
-
-  <span class="guide-link" onclick="showGuide()">查看姿势说明</span>
+<!-- 游戏结束页 -->
+<div class="overlay hidden" id="endOverlay">
+  <div class="big-title" style="color:#ff6584">GAME OVER</div>
+  <div class="big-label">本次得分</div>
+  <div class="big-score" id="finalScore">0</div>
+  <div class="big-label">跑了 <span id="finalDist">0</span>m · 蹲了 <span id="finalSquat">0</span>次</div>
+  <button class="pixel-btn" onclick="restartGame()">再来一次</button>
+  <button class="pixel-btn red" onclick="showStart()">返回主页</button>
 </div>
 
 <script>
-// ===== 状态 =====
-let count = 0, target = 20;
-let isRunning = false;
-let timer = null, seconds = 0;
-let history = JSON.parse(localStorage.getItem('squat_v2') || '[]');
+// ===================== 画布设置 =====================
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = Math.min(window.innerWidth, 420);
+const H = window.innerHeight;
+canvas.width = W;
+canvas.height = H;
 
-// 传感器
-let smoothZ = 0;
-let baseZ = null;
+// ===================== 像素绘制工具 =====================
+const PX = 3; // 像素单位大小
+
+function pixelRect(x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x*PX, y*PX, w*PX, h*PX);
+}
+
+function drawText(text, x, y, color='#fff', size=8) {
+  ctx.fillStyle = color;
+  ctx.font = `${size}px 'Courier New'`;
+  ctx.fillText(text, x, y);
+}
+
+// ===================== 游戏状态 =====================
+let gameState = 'start'; // start / calibrating / running / dead
+let score = 0;
+let distance = 0;
+let squatCount = 0;
+let hp = 3; const MAX_HP = 3;
+let level = 1;
+let frameCount = 0;
+let lastTime = 0;
+let animId = null;
+
+// 玩家
+const player = {
+  x: W / 2,
+  y: H * 0.65,
+  w: 18, h: 28,
+  state: 'run',     // run / squat / hit
+  hitTimer: 0,
+  runFrame: 0,
+  runFrameTimer: 0,
+  squatting: false,
+};
+
+// 背景滚动
+let bgOffset = 0;
+let bgSpeed = 0; // 由步频决定
+
+// 障碍物
+let obstacles = [];
+let obstacleTimer = 0;
+let obstacleInterval = 240; // frames
+let warningTimer = 0;
+let warningActive = false;
+
+// 粒子
+let particles = [];
+
+// ===================== 传感器 =====================
+let smoothAcc = 0, baseAcc = null;
 let calibSamples = [];
-let phase = 'idle';   // idle / down / up
-let lastCountTime = 0;
+let sensorPhase = 'idle';
+let lastSquatTime = 0;
 let peakDelta = 0;
-let downStartTime = 0;  // 下蹲开始时间
+let downStartTime = 0;
+let stepAcc = 0;  // 步行加速度（用于驱动速度）
 
-const CALIB_FRAMES = 20;  // 约2秒校准
-const DOWN_THRESH = 2.5;  // 下蹲触发阈值（需要更大幅度）
-const UP_THRESH = 1.0;    // 回位阈值
-const MIN_PEAK = 3.0;     // 最小峰值（走路约1-2，深蹲3+）
-const COOLDOWN = 1500;    // 深蹲最快也要1.5秒，走路步频更快
-const MIN_DOWN_MS = 400;  // 下蹲动作最少持续400ms（过滤走路弹跳）
+const CALIB_N = 20;
+const SQUAT_THRESH = 2.8;
+const SQUAT_UP = 1.0;
+const MIN_PEAK = 3.2;
+const MIN_DOWN_MS = 400;
+const COOLDOWN_MS = 1200;
 
-// DOM
-const countNumEl = document.getElementById('countNum');
-const ringEl = document.getElementById('ringProgress');
-const mainBtnEl = document.getElementById('mainBtn');
-const phaseTextEl = document.getElementById('phaseText');
-const phaseDotEl = document.getElementById('phaseDot');
-const timeValEl = document.getElementById('timeVal');
-const bestValEl = document.getElementById('bestVal');
-const flashEl = document.getElementById('flash');
-
-updateBest();
-renderHistory();
-
-// ===== 页面切换 =====
-function goToMain() {
-  document.getElementById('guidePage').style.display = 'none';
-  document.getElementById('mainPage').style.display = 'flex';
-}
-function showGuide() {
-  if (isRunning) toggleStart();
-  document.getElementById('mainPage').style.display = 'none';
-  document.getElementById('guidePage').style.display = 'flex';
-}
-
-// ===== 传感器 =====
 function handleMotion(e) {
-  if (!isRunning) return;
+  if (gameState !== 'calibrating' && gameState !== 'running') return;
   const acc = e.accelerationIncludingGravity;
   if (!acc) return;
-
-  // 手臂平举时手机近似水平，Z轴 ≈ 重力 ≈ ±9.8
-  // 下蹲时身体降低，但手臂保持平举 → Z轴受力分量因手腕微调会有变化
-  // 更稳定的做法：用合加速度大小的变化
-  const x = acc.x || 0, y = acc.y || 0, z = acc.z || 0;
+  const x = acc.x||0, y = acc.y||0, z = acc.z||0;
   const mag = Math.sqrt(x*x + y*y + z*z);
+  smoothAcc = smoothAcc * 0.8 + mag * 0.2;
 
-  smoothZ = smoothZ * 0.8 + mag * 0.2;
+  // 步行速度：合加速度与基准的偏差越大，说明动作幅度越大
+  if (baseAcc !== null) {
+    stepAcc = Math.abs(smoothAcc - baseAcc);
+  }
 
-  // 校准阶段
-  if (baseZ === null) {
-    calibSamples.push(smoothZ);
-    const n = calibSamples.length;
-    phaseTextEl.textContent = `校准中 ${n}/${CALIB_FRAMES}，保持姿势...`;
-    phaseDotEl.className = 'phase-dot calib';
-    if (n >= CALIB_FRAMES) {
-      baseZ = calibSamples.reduce((a,b)=>a+b,0) / n;
-      phaseTextEl.textContent = '✅ 校准完成，开始蹲！';
-      phaseDotEl.className = 'phase-dot';
+  if (baseAcc === null) {
+    calibSamples.push(smoothAcc);
+    if (calibSamples.length >= CALIB_N) {
+      baseAcc = calibSamples.reduce((a,b)=>a+b,0) / CALIB_N;
+      gameState = 'running';
+      setPhase('🏃 跑起来！遇到障碍记得深蹲！');
+    } else {
+      setPhase(`🔄 校准中 ${calibSamples.length}/${CALIB_N}，保持平举...`);
     }
     return;
   }
 
-  const delta = smoothZ - baseZ;
+  const delta = smoothAcc - baseAcc;
   const now = Date.now();
 
-  if (phase === 'idle') {
-    if (delta > DOWN_THRESH && (now - lastCountTime > COOLDOWN)) {
-      phase = 'down';
+  if (sensorPhase === 'idle') {
+    if (delta > SQUAT_THRESH && (now - lastSquatTime > COOLDOWN_MS)) {
+      sensorPhase = 'down';
       peakDelta = delta;
       downStartTime = now;
-      phaseDotEl.className = 'phase-dot down';
-      phaseTextEl.textContent = '⬇️ 下蹲中...';
     }
-  } else if (phase === 'down') {
+  } else if (sensorPhase === 'down') {
     if (delta > peakDelta) peakDelta = delta;
-    const downDuration = now - downStartTime;
-    // 回位条件：1.峰值够大 2.持续时间够长（过滤走路） 3.delta回落
-    if (delta < UP_THRESH && peakDelta >= MIN_PEAK && downDuration >= MIN_DOWN_MS) {
-      phase = 'idle';
-      lastCountTime = now;
+    const dur = now - downStartTime;
+    if (delta < SQUAT_UP && peakDelta >= MIN_PEAK && dur >= MIN_DOWN_MS) {
+      sensorPhase = 'idle';
+      lastSquatTime = now;
       peakDelta = 0;
-      addCount();
-      phaseDotEl.className = 'phase-dot up';
-      phaseTextEl.textContent = '⬆️ 站起 ✓';
-      setTimeout(() => {
-        if (phase === 'idle') {
-          phaseDotEl.className = 'phase-dot';
-          phaseTextEl.textContent = '等待下一次...';
-        }
-      }, 600);
+      onSquat();
     }
-    // 如果持续时间超过3秒还没回位，可能是误触发，重置
-    if (downDuration > 3000) {
-      phase = 'idle';
-      peakDelta = 0;
-      phaseDotEl.className = 'phase-dot';
-      phaseTextEl.textContent = '等待下一次...';
+    if (dur > 3000) { sensorPhase = 'idle'; peakDelta = 0; }
+  }
+}
+
+function onSquat() {
+  squatCount++;
+  player.squatting = true;
+  player.state = 'squat';
+  setPhase('🏋️ 深蹲！');
+  spawnSquatEffect();
+  setTimeout(() => {
+    player.squatting = false;
+    player.state = 'run';
+    if (gameState === 'running') setPhase('🏃 继续跑！');
+  }, 800);
+}
+
+// ===================== 障碍物 =====================
+const OBS_TYPES = [
+  { name: '石块', color:'#8a7a5a', w:20, h:16, desc:'低障碍', canDuck:true },
+  { name: '尖刺', color:'#cc4444', w:14, h:24, desc:'高障碍', canDuck:true },
+  { name: '怪物', color:'#44aa44', w:22, h:22, desc:'绿怪', canDuck:true },
+];
+
+function spawnObstacle() {
+  const type = OBS_TYPES[Math.floor(Math.random() * OBS_TYPES.length)];
+  // 障碍宽度内随机x，不贴边
+  const margin = 40;
+  const x = margin + Math.random() * (W - margin*2);
+  obstacles.push({
+    x, y: player.y - H * 0.15,
+    w: type.w, h: type.h,
+    color: type.color,
+    name: type.name,
+    speed: 1.5 + level * 0.3,
+    hit: false,
+    frame: 0,
+  });
+  // 提前警告
+  warningActive = true;
+  warningTimer = 90;
+}
+
+function updateObstacles() {
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    o.y += o.speed;
+    o.frame++;
+
+    // 到达玩家位置
+    if (!o.hit && Math.abs(o.y - player.y) < 20 && Math.abs(o.x - player.x) < (o.w/2 + player.w/2) * 0.8) {
+      if (player.squatting) {
+        // 深蹲成功躲过
+        score += 10 * level;
+        spawnScore(o.x, o.y, '+' + (10*level));
+        o.hit = true;
+        setPhase('✅ 躲过了！+' + (10*level));
+        spawnParticles(o.x, o.y, o.color, 12);
+      } else {
+        // 被撞
+        takeHit();
+        o.hit = true;
+        spawnParticles(o.x, o.y, '#ff4444', 16);
+      }
+    }
+
+    // 移出屏幕
+    if (o.y > H + 50 || o.hit) {
+      obstacles.splice(i, 1);
     }
   }
 }
 
-// ===== 计数 =====
-function addCount() {
-  count++;
-  countNumEl.textContent = count;
-  countNumEl.classList.add('pulse');
-  setTimeout(() => countNumEl.classList.remove('pulse'), 150);
-  flashEl.classList.add('show');
-  setTimeout(() => flashEl.classList.remove('show'), 100);
-  if (navigator.vibrate) navigator.vibrate(60);
-  updateRing();
-  if (count >= target) completeSet();
-}
+function drawObstacles() {
+  obstacles.forEach(o => {
+    // 闪烁
+    if (o.hit) return;
+    const pulse = Math.sin(o.frame * 0.15) * 0.15 + 0.85;
+    ctx.globalAlpha = pulse;
 
-function updateRing() {
-  const p = Math.min(count / target, 1);
-  ringEl.style.strokeDashoffset = 565 * (1 - p);
-  ringEl.style.stroke = p >= 1 ? '#ff6584' : p >= 0.6 ? '#f59e0b' : '#6c63ff';
-}
+    // 障碍主体
+    ctx.fillStyle = o.color;
+    ctx.fillRect(o.x - o.w/2, o.y - o.h, o.w, o.h);
 
-// ===== 开始/暂停 =====
-async function toggleStart() {
-  if (!isRunning) {
-    if (typeof DeviceMotionEvent !== 'undefined' &&
-        typeof DeviceMotionEvent.requestPermission === 'function') {
-      try {
-        const perm = await DeviceMotionEvent.requestPermission();
-        if (perm !== 'granted') { phaseTextEl.textContent = '需要传感器权限！'; return; }
-      } catch(e) { phaseTextEl.textContent = '权限获取失败，请重试'; return; }
+    // 像素感描边
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(o.x - o.w/2 + 0.5, o.y - o.h + 0.5, o.w - 1, o.h - 1);
+
+    // 怪物眼睛
+    if (o.name === '怪物') {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(o.x - 6, o.y - o.h + 4, 4, 4);
+      ctx.fillRect(o.x + 2, o.y - o.h + 4, 4, 4);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(o.x - 5, o.y - o.h + 5, 2, 2);
+      ctx.fillRect(o.x + 3, o.y - o.h + 5, 2, 2);
     }
-    isRunning = true;
-    baseZ = null; calibSamples = []; smoothZ = 0; peakDelta = 0; phase = 'idle';
-    mainBtnEl.textContent = '暂停';
-    mainBtnEl.style.background = 'linear-gradient(135deg, #ff6584, #f59e0b)';
-    timer = setInterval(() => { seconds++; timeValEl.textContent = seconds; }, 1000);
-    window.addEventListener('devicemotion', handleMotion);
+    // 尖刺
+    if (o.name === '尖刺') {
+      ctx.fillStyle = '#ff8888';
+      for (let i = 0; i < 3; i++) {
+        const sx = o.x - o.w/2 + 3 + i * 6;
+        ctx.beginPath();
+        ctx.moveTo(sx, o.y - o.h);
+        ctx.lineTo(sx + 3, o.y - o.h - 6);
+        ctx.lineTo(sx + 6, o.y - o.h);
+        ctx.fill();
+      }
+    }
+
+    ctx.globalAlpha = 1;
+
+    // 警告箭头（接近时）
+    if (o.y > player.y - H*0.25 && o.y < player.y - 30) {
+      const alpha = 0.5 + Math.sin(Date.now() * 0.008) * 0.5;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = '18px sans-serif';
+      ctx.fillText('⚠️', o.x - 10, o.y - o.h - 8);
+      ctx.globalAlpha = 1;
+    }
+  });
+}
+
+// ===================== 玩家绘制（像素风） =====================
+function drawPlayer() {
+  const x = player.x;
+  const y = player.y;
+  const squatting = player.squatting;
+  const hit = player.hitTimer > 0;
+
+  // 受伤闪烁
+  if (hit && Math.floor(player.hitTimer / 4) % 2 === 0) return;
+
+  ctx.save();
+
+  // 身体颜色
+  const bodyColor = squatting ? '#6c63ff' : '#4a9eff';
+  const legColor = squatting ? '#4a50cc' : '#2a6ecc';
+  const headColor = '#ffcc88';
+
+  if (squatting) {
+    // 深蹲姿势（压扁）
+    // 头
+    ctx.fillStyle = headColor;
+    ctx.fillRect(x - 7, y - 20, 14, 12);
+    // 身体（压低）
+    ctx.fillStyle = bodyColor;
+    ctx.fillRect(x - 8, y - 10, 16, 8);
+    // 腿（弯曲）
+    ctx.fillStyle = legColor;
+    ctx.fillRect(x - 10, y - 4, 8, 6);
+    ctx.fillRect(x + 2, y - 4, 8, 6);
+    // 手臂（平举）
+    ctx.fillStyle = bodyColor;
+    ctx.fillRect(x - 18, y - 14, 10, 5);
+    ctx.fillRect(x + 8, y - 14, 10, 5);
+    // 深蹲特效光环
+    ctx.strokeStyle = '#6c63ff';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.5 + Math.sin(Date.now()*0.01)*0.3;
+    ctx.beginPath();
+    ctx.ellipse(x, y - 10, 20, 8, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
   } else {
-    isRunning = false;
-    mainBtnEl.textContent = '继续';
-    mainBtnEl.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
-    phaseTextEl.textContent = '已暂停';
-    phaseDotEl.className = 'phase-dot';
-    clearInterval(timer);
-    window.removeEventListener('devicemotion', handleMotion);
+    // 跑步姿势（帧动画）
+    const runCycle = Math.floor(Date.now() / 150) % 4;
+    const legOff = [4, 2, 0, 2][runCycle];
+    const armOff = [0, 2, 0, -2][runCycle];
+
+    // 头
+    ctx.fillStyle = headColor;
+    ctx.fillRect(x - 6, y - 28, 12, 10);
+    // 眼睛
+    ctx.fillStyle = '#333';
+    ctx.fillRect(x + 1, y - 25, 3, 3);
+
+    // 身体
+    ctx.fillStyle = bodyColor;
+    ctx.fillRect(x - 7, y - 18, 14, 12);
+
+    // 手臂
+    ctx.fillStyle = bodyColor;
+    ctx.fillRect(x - 14, y - 18 + armOff, 8, 5);
+    ctx.fillRect(x + 6, y - 18 - armOff, 8, 5);
+
+    // 腿
+    ctx.fillStyle = legColor;
+    ctx.fillRect(x - 8, y - 6, 6, 8 - legOff);
+    ctx.fillRect(x + 2, y - 6, 6, legOff + 2);
+    // 脚
+    ctx.fillStyle = '#664422';
+    ctx.fillRect(x - 10, y + 2 - legOff, 8, 4);
+    ctx.fillRect(x + 2, y + legOff - 2, 8, 4);
+  }
+
+  ctx.restore();
+}
+
+// ===================== 背景（像素跑道） =====================
+function drawBackground() {
+  // 天空渐变
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0a0520');
+  grad.addColorStop(0.5, '#0f0a2a');
+  grad.addColorStop(1, '#1a0f1f');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 星星
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  const stars = [[50,30],[120,80],[200,20],[300,60],[80,120],[350,40],[W-50,90]];
+  stars.forEach(([sx,sy]) => {
+    const tw = (bgOffset * 0.1) % W;
+    ctx.fillRect((sx + tw) % W, sy, 2, 2);
+  });
+
+  // 跑道（两条平行线向前延伸的视角）
+  // 跑道背景
+  const roadW = W * 0.7;
+  const roadX = (W - roadW) / 2;
+  ctx.fillStyle = '#1a1520';
+  ctx.fillRect(roadX, 0, roadW, H);
+
+  // 跑道线（滚动虚线）
+  const lineOffset = bgOffset % 40;
+  ctx.strokeStyle = 'rgba(108,99,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([20, 20]);
+  ctx.lineDashOffset = -lineOffset;
+
+  // 左边线
+  ctx.beginPath();
+  ctx.moveTo(roadX + 2, 0);
+  ctx.lineTo(roadX + 2, H);
+  ctx.stroke();
+  // 右边线
+  ctx.beginPath();
+  ctx.moveTo(roadX + roadW - 2, 0);
+  ctx.lineTo(roadX + roadW - 2, H);
+  ctx.stroke();
+  // 中线
+  ctx.strokeStyle = 'rgba(108,99,255,0.15)';
+  ctx.beginPath();
+  ctx.moveTo(W/2, 0);
+  ctx.lineTo(W/2, H);
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+
+  // 地面
+  ctx.fillStyle = '#2a1f3a';
+  ctx.fillRect(0, player.y + 5, W, H - player.y - 5);
+  // 地面亮线
+  ctx.fillStyle = '#3a2f4a';
+  ctx.fillRect(0, player.y + 5, W, 2);
+}
+
+// ===================== 粒子 =====================
+function spawnParticles(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random()-0.5)*4,
+      vy: (Math.random()-0.5)*4 - 2,
+      color,
+      life: 30 + Math.random()*20,
+      maxLife: 50,
+      size: 2 + Math.random()*3,
+    });
   }
 }
 
-function completeSet() {
-  isRunning = false;
-  clearInterval(timer);
+let scorePopups = [];
+function spawnScore(x, y, text) {
+  scorePopups.push({ x, y, text, life: 60 });
+}
+
+function updateParticles() {
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15;
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+  for (let i = scorePopups.length-1; i >= 0; i--) {
+    const p = scorePopups[i];
+    p.y -= 1; p.life--;
+    if (p.life <= 0) scorePopups.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  });
+  ctx.globalAlpha = 1;
+
+  scorePopups.forEach(p => {
+    ctx.globalAlpha = p.life / 60;
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 14px Courier New';
+    ctx.fillText(p.text, p.x, p.y);
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ===================== 受伤 =====================
+function takeHit() {
+  hp--;
+  player.hitTimer = 60;
+  player.state = 'hit';
+  updateHpUI();
+  setPhase(`💥 被撞了！还剩 ${hp} 血`);
+  // 屏幕震动
+  shakeScreen(8, 20);
+  if (hp <= 0) {
+    setTimeout(gameOver, 500);
+  }
+}
+
+let shakeX = 0, shakeY = 0, shakeDur = 0;
+function shakeScreen(amount, duration) {
+  shakeX = amount; shakeDur = duration;
+}
+
+// ===================== UI更新 =====================
+function updateHpUI() {
+  document.getElementById('hpFill').style.width = (hp/MAX_HP*100)+'%';
+  document.getElementById('hpText').textContent = hp+'/'+MAX_HP;
+  document.getElementById('hpFill').style.background =
+    hp <= 1 ? '#ff2222' : hp <= 2 ? '#ff8844' : 'linear-gradient(90deg,#ff4444,#ff6584)';
+}
+
+function setPhase(text) {
+  document.getElementById('phaseBox').textContent = text;
+}
+
+function updateScoreUI() {
+  document.getElementById('scoreBox').textContent = score;
+  document.getElementById('distBox').textContent = '距离: ' + Math.floor(distance) + 'm';
+  document.getElementById('levelBox').textContent = 'Lv.' + level;
+}
+
+// ===================== 主游戏循环 =====================
+function gameLoop(ts) {
+  if (gameState === 'start' || gameState === 'dead') return;
+
+  const dt = Math.min(ts - lastTime, 50);
+  lastTime = ts;
+  frameCount++;
+
+  // 更新速度（由步行决定）
+  const targetSpeed = Math.min(2 + stepAcc * 1.2, 6);
+  bgSpeed = bgSpeed * 0.9 + targetSpeed * 0.1;
+
+  if (gameState === 'running') {
+    bgOffset += bgSpeed;
+    distance += bgSpeed * 0.05;
+    score += Math.floor(bgSpeed * 0.1);
+
+    // 等级提升
+    level = 1 + Math.floor(distance / 100);
+    obstacleInterval = Math.max(90, 240 - level * 20);
+
+    // 生成障碍
+    obstacleTimer++;
+    if (obstacleTimer >= obstacleInterval) {
+      obstacleTimer = 0;
+      spawnObstacle();
+    }
+
+    // 警告
+    if (warningTimer > 0) warningTimer--;
+    else warningActive = false;
+
+    // 玩家
+    if (player.hitTimer > 0) player.hitTimer--;
+    else if (player.state === 'hit') player.state = 'run';
+  }
+
+  updateObstacles();
+  updateParticles();
+  updateScoreUI();
+
+  // 屏幕抖动
+  if (shakeDur > 0) {
+    shakeX = (Math.random()-0.5) * 8;
+    shakeY = (Math.random()-0.5) * 8;
+    shakeDur--;
+  } else { shakeX = 0; shakeY = 0; }
+
+  // 警告闪红
+  if (warningActive) {
+    const alpha = (Math.sin(Date.now() * 0.015) + 1) * 0.5 * 0.15;
+    ctx.save();
+    ctx.fillStyle = `rgba(255,50,50,${alpha})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  }
+
+  // ===== 绘制 =====
+  ctx.save();
+  ctx.translate(shakeX, shakeY);
+
+  drawBackground();
+  drawObstacles();
+  drawPlayer();
+  drawParticles();
+
+  // 深蹲时的地面特效
+  if (player.squatting) {
+    const glow = ctx.createRadialGradient(player.x, player.y+4, 5, player.x, player.y+4, 40);
+    glow.addColorStop(0, 'rgba(108,99,255,0.4)');
+    glow.addColorStop(1, 'rgba(108,99,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(player.x-40, player.y-10, 80, 20);
+  }
+
+  ctx.restore();
+
+  animId = requestAnimationFrame(gameLoop);
+}
+
+// ===================== 游戏控制 =====================
+async function startGame() {
+  document.getElementById('startOverlay').classList.add('hidden');
+
+  // 请求传感器权限
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const perm = await DeviceMotionEvent.requestPermission();
+      if (perm !== 'granted') { setPhase('需要传感器权限！'); return; }
+    } catch(e) { setPhase('权限获取失败'); return; }
+  }
+
+  resetGameState();
+  gameState = 'calibrating';
+  setPhase('🔄 校准中 0/20，手机平举保持不动...');
+  window.addEventListener('devicemotion', handleMotion);
+  lastTime = performance.now();
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function resetGameState() {
+  score = 0; distance = 0; squatCount = 0;
+  hp = MAX_HP; level = 1; frameCount = 0;
+  bgOffset = 0; bgSpeed = 0;
+  obstacles = []; particles = []; scorePopups = [];
+  obstacleTimer = 0; warningActive = false;
+  player.state = 'run'; player.hitTimer = 0; player.squatting = false;
+  smoothAcc = 0; baseAcc = null; calibSamples = [];
+  sensorPhase = 'idle'; peakDelta = 0; downStartTime = 0; stepAcc = 0;
+  updateHpUI();
+  updateScoreUI();
+}
+
+function gameOver() {
+  gameState = 'dead';
+  cancelAnimationFrame(animId);
   window.removeEventListener('devicemotion', handleMotion);
-  mainBtnEl.textContent = '再来一组';
-  mainBtnEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-  phaseTextEl.textContent = `🎉 完成！共${count}次，${seconds}秒`;
-  phaseDotEl.className = 'phase-dot';
-  if (navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
-  saveHistory();
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalDist').textContent = Math.floor(distance);
+  document.getElementById('finalSquat').textContent = squatCount;
+  document.getElementById('endOverlay').classList.remove('hidden');
 }
 
-function resetAll() {
-  if (count > 0) saveHistory();
-  isRunning = false; count = 0; seconds = 0; phase = 'idle';
-  smoothZ = 0; baseZ = null; calibSamples = []; peakDelta = 0; downStartTime = 0;
-  clearInterval(timer);
+function restartGame() {
+  document.getElementById('endOverlay').classList.add('hidden');
+  startGame();
+}
+
+function showStart() {
+  document.getElementById('endOverlay').classList.add('hidden');
+  document.getElementById('startOverlay').classList.remove('hidden');
+  gameState = 'start';
+  cancelAnimationFrame(animId);
   window.removeEventListener('devicemotion', handleMotion);
-  countNumEl.textContent = '0';
-  timeValEl.textContent = '0';
-  mainBtnEl.textContent = '开始';
-  mainBtnEl.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
-  phaseTextEl.textContent = '点开始后保持平举姿势';
-  phaseDotEl.className = 'phase-dot';
-  ringEl.style.strokeDashoffset = 565;
-  ringEl.style.stroke = '#6c63ff';
+  // 重绘初始画面
+  ctx.clearRect(0,0,W,H);
 }
 
-function saveHistory() {
-  if (count === 0) return;
-  history.unshift({ count, seconds, date: new Date().toLocaleDateString() });
-  history = history.slice(0, 10);
-  localStorage.setItem('squat_v2', JSON.stringify(history));
-  renderHistory(); updateBest();
+// 初始画面
+function spawnSquatEffect() {
+  spawnParticles(player.x, player.y - 10, '#6c63ff', 8);
 }
 
-function updateBest() {
-  if (history.length > 0) bestValEl.textContent = Math.max(...history.map(h => h.count));
-}
-
-function renderHistory() {
-  if (!history.length) return;
-  document.getElementById('historyBox').classList.add('show');
-  document.getElementById('historyList').innerHTML = history.slice(0,5)
-    .map(h => `<div class="history-item">${h.date} · ${h.count}次 · ${h.seconds}s</div>`).join('');
-}
+// 初始渲染
+drawBackground();
 </script>
 </body>
 </html>
