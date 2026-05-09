@@ -400,29 +400,33 @@ function drawPlayer() {
   const headColor = '#ffcc88';
 
   if (squatting) {
-    // 深蹲姿势（压扁）
-    // 头
+    // 深蹲姿势（压扁更多）
+    // 头（压低到脚部附近）
     ctx.fillStyle = headColor;
-    ctx.fillRect(x - 7, y - 20, 14, 12);
-    // 身体（压低）
+    ctx.fillRect(x - 7, y - 14, 14, 11);
+    // 身体（大幅压扁）
     ctx.fillStyle = bodyColor;
-    ctx.fillRect(x - 8, y - 10, 16, 8);
-    // 腿（弯曲）
+    ctx.fillRect(x - 9, y - 5, 18, 7);
+    // 腿（廉降）
     ctx.fillStyle = legColor;
-    ctx.fillRect(x - 10, y - 4, 8, 6);
-    ctx.fillRect(x + 2, y - 4, 8, 6);
+    ctx.fillRect(x - 12, y + 1, 10, 5);
+    ctx.fillRect(x + 2, y + 1, 10, 5);
     // 手臂（平举）
     ctx.fillStyle = bodyColor;
-    ctx.fillRect(x - 18, y - 14, 10, 5);
-    ctx.fillRect(x + 8, y - 14, 10, 5);
-    // 深蹲特效光环
+    ctx.fillRect(x - 22, y - 8, 14, 5);
+    ctx.fillRect(x + 8, y - 8, 14, 5);
+    // 深蹲光环
     ctx.strokeStyle = '#6c63ff';
-    ctx.lineWidth = 2;
-    ctx.globalAlpha = 0.5 + Math.sin(Date.now()*0.01)*0.3;
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.7 + Math.sin(Date.now()*0.02)*0.3;
     ctx.beginPath();
-    ctx.ellipse(x, y - 10, 20, 8, 0, 0, Math.PI*2);
+    ctx.ellipse(x, y + 2, 28, 10, 0, 0, Math.PI*2);
     ctx.stroke();
     ctx.globalAlpha = 1;
+    // 大字提示
+    ctx.fillStyle = '#6c63ff';
+    ctx.font = 'bold 16px Courier New';
+    ctx.fillText('深蹲!', x - 22, y - 22);
   } else {
     // 跑步姿势（帧动画）
     const runCycle = Math.floor(Date.now() / 150) % 4;
@@ -613,10 +617,10 @@ function gameLoop(ts) {
   lastTime = ts;
   frameCount++;
 
-  // 速度完全由步行驱动：stepAcc>0.5才开始动，静止时快速减速到0
-  const moving = stepAcc > 0.5;
-  const targetSpeed = moving ? Math.min(1.5 + stepAcc * 1.5, 7) : 0;
-  bgSpeed = moving ? bgSpeed * 0.85 + targetSpeed * 0.15 : bgSpeed * 0.88;
+  // 速度完全由步行驱动：stepAcc>2.2才开始动，静止时快速减速到0
+  const moving = stepAcc > 2.2;
+  const targetSpeed = moving ? Math.min(0.8 + (stepAcc - 2.2) * 2.0, 7) : 0;
+  bgSpeed = moving ? bgSpeed * 0.85 + targetSpeed * 0.15 : bgSpeed * 0.85;
   if (bgSpeed < 0.05) bgSpeed = 0;
 
   if (gameState === 'running') {
@@ -626,7 +630,7 @@ function gameLoop(ts) {
 
     // 提示静止状态
     if (bgSpeed < 0.1 && !warningActive && !player.squatting && sensorPhase === 'idle') {
-      setPhase('🚶 走动起来让角色前进！');
+      setPhase('🚶 走动/跑步才能前进！（静止=停止）');
     }
 
     // 等级提升
