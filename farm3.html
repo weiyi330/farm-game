@@ -427,8 +427,12 @@ function drawTile(r, c) {
 // ============================================================
 const farmerImgs = {};
 const dirMap = {down:'front', up:'back', left:'left', right:'right'};
+let imgsLoaded = 0;
 ['front','back','left','right'].forEach(d => {
   const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { imgsLoaded++; console.log('loaded:', d, img.width, img.height); };
+  img.onerror = (e) => { console.error('failed:', d, e); };
   img.src = d + '.png';
   farmerImgs[d] = img;
 });
@@ -454,11 +458,19 @@ function drawCat(x, y) {
   if(img && img.complete && img.naturalWidth>0) {
     ctx.drawImage(img, dx, dy, drawW, drawH);
   } else {
-    // 加载中占位
-    ctx.fillStyle='#e8c040';
-    ctx.beginPath(); ctx.arc(x, y-20, 14, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle='#f5c87a';
-    ctx.fillRect(x-8, y-8, 16, 20);
+    // 占位显示
+    ctx.fillStyle='rgba(232,192,64,0.9)';
+    ctx.beginPath(); ctx.arc(x, y-30, 18, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='#5a3a10';
+    ctx.font='bold 11px serif';
+    ctx.textAlign='center';
+    ctx.fillText('农', x, y-26);
+    ctx.fillStyle='rgba(255,200,80,0.7)';
+    ctx.fillRect(x-12, y-12, 24, 20);
+    // 显示加载状态
+    ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.font='9px sans-serif';
+    ctx.fillText(imgsLoaded+'/4', x, y+6);
   }
 
   // 工具提示
