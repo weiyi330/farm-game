@@ -365,6 +365,8 @@ function drawTile(r, c) {
   const colors = GROUND_COLORS[type] || GROUND_COLORS[T.GRASS];
   drawIsoTile(x, y, colors, isPlayerTile);
 
+  const crop = cropMap[r][c];
+
   // 水面波纹
   if(type===T.WATER) {
     ctx.strokeStyle=`rgba(255,255,255,${0.2+Math.sin(Date.now()*0.003+c)*0.15})`;
@@ -386,22 +388,21 @@ function drawTile(r, c) {
     }
   }
 
-  // 浇水光泽
-  const crop = cropMap[r][c];
-  if(crop && crop.watered) {
-    ctx.fillStyle='rgba(80,160,240,0.18)';
-    ctx.beginPath();
-    ctx.moveTo(x,y+2); ctx.lineTo(x+TW/2,y+TH/2);
-    ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH/2);
-    ctx.closePath(); ctx.fill();
-  }
-
   // 物件
   ctx.textAlign='center'; ctx.textBaseline='bottom';
   if(crop) {
     const cfg=CROPS[crop.type];
     const si=crop.ready?cfg.stages.length-1:Math.min(crop.daysGrown,cfg.stages.length-1);
     const sz=crop.ready?26:20;
+
+  // 浇水光泽（画在作物下方，只影响土地颜色）
+  if(crop.watered) {
+    ctx.fillStyle='rgba(80,160,240,0.18)';
+    ctx.beginPath();
+    ctx.moveTo(x,y+2); ctx.lineTo(x+TW/2,y+TH/2);
+    ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH/2);
+    ctx.closePath(); ctx.fill();
+  }
     ctx.font=`${sz}px serif`;
     ctx.fillText(cfg.stages[si], x, y+TH/2+2);
     if(crop.ready) {
