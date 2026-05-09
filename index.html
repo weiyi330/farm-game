@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>深蹲计数器</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #0f0f1a;
+    color: #fff;
+    font-family: -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .bg-circle {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    pointer-events: none;
+  }
+  .bg-circle-1 { width: 400px; height: 400px; background: #6c63ff; top: -100px; left: -100px; }
+  .bg-circle-2 { width: 300px; height: 300px; background: #ff6584; bottom: -50px; right: -50px; }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    z-index: 1;
+    padding: 20px;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .title {
+    font-size: 18px;
+    color: #aaa;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  .count-ring {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .count-ring svg {
+    position: absolute;
+    top: 0; left: 0;
+    transform: rotate(-90deg);
+  }
+
+  .ring-bg { stroke: #2a2a3e; fill: none; stroke-width: 8; }
+  .ring-progress {
+    stroke: #6c63ff;
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 628;
+    stroke-dashoffset: 628;
+    transition: stroke-dashoffset 0.3s ease;
+  }
+
+  .count-number {
+    font-size: 80px;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, #6c63ff, #ff6584);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: transform 0.1s ease;
+  }
+
+  .count-number.pulse {
+    transform: scale(1.2);
+  }
+
+  .count-label {
+    font-size: 14px;
+    color: #666;
+    letter-spacing: 2px;
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 24px;
+    background: #1a1a2e;
+    border-radius: 16px;
+    padding: 16px 28px;
+    border: 1px solid #2a2a3e;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #666;
+    letter-spacing: 1px;
+  }
+
+  .phase-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #aaa;
+  }
+
+  .phase-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #333;
+    transition: all 0.3s;
+  }
+
+  .phase-dot.down { background: #ff6584; box-shadow: 0 0 10px #ff6584; }
+  .phase-dot.up { background: #6c63ff; box-shadow: 0 0 10px #6c63ff; }
+
+  .btn-group {
+    display: flex;
+    gap: 16px;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    border-radius: 50px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+  }
+
+  .btn-start:active { transform: scale(0.95); }
+
+  .btn-reset {
+    background: #1a1a2e;
+    color: #666;
+    border: 1px solid #2a2a3e;
+  }
+
+  .btn-reset:active { transform: scale(0.95); }
+
+  .permission-tip {
+    font-size: 13px;
+    color: #555;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 280px;
+  }
+
+  .feedback-flash {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    border-radius: 0;
+  }
+  .feedback-flash.show { opacity: 0.08; }
+
+  .tip-text {
+    font-size: 13px;
+    color: #444;
+    text-align: center;
+    margin-top: -16px;
+  }
+
+  /* 历史记录 */
+  .history {
+    width: 100%;
+    background: #1a1a2e;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid #2a2a3e;
+    display: none;
+  }
+
+  .history.show { display: block; }
+
+  .history-title {
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .history-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .history-item {
+    background: #0f0f1a;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #888;
+    border: 1px solid #2a2a3e;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-circle bg-circle-1"></div>
+<div class="bg-circle bg-circle-2"></div>
+<div class="feedback-flash" id="flash" style="background:#6c63ff"></div>
+
+<div class="container">
+  <div class="title">🏋️ 深蹲计数</div>
+
+  <div class="count-ring">
+    <svg viewBox="0 0 220 220" width="220" height="220">
+      <circle class="ring-bg" cx="110" cy="110" r="100"/>
+      <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"/>
+    </svg>
+    <div style="text-align:center">
+      <div class="count-number" id="countNum">0</div>
+      <div class="count-label">次</div>
+    </div>
+  </div>
+
+  <div class="phase-indicator">
+    <div class="phase-dot" id="dotDown"></div>
+    <span id="phaseText">准备开始</span>
+    <div class="phase-dot" id="dotUp"></div>
+  </div>
+
+  <div class="status-bar">
+    <div class="stat">
+      <div class="stat-value" id="targetVal">20</div>
+      <div class="stat-label">目标</div>
+    </div>
+    <div class="stat" style="border-left:1px solid #2a2a3e; padding-left:24px">
+      <div class="stat-value" id="timeVal">0</div>
+      <div class="stat-label">秒</div>
+    </div>
+    <div class="stat" style="border-left:1px solid #2a2a3e; padding-left:24px">
+      <div class="stat-value" id="bestVal">-</div>
+      <div class="stat-label">最佳</div>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn btn-start" id="mainBtn" onclick="toggleStart()">开始</button>
+    <button class="btn btn-reset" onclick="resetCount()">重置</button>
+  </div>
+
+  <p class="permission-tip" id="permTip">
+    手机竖拿，放在腰部附近<br>做深蹲时自动计数 📱
+  </p>
+
+  <div class="history" id="historyBox">
+    <div class="history-title">历史记录</div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<script>
+// ===== 状态 =====
+let count = 0;
+let target = 20;
+let isRunning = false;
+let timer = null;
+let seconds = 0;
+let history = JSON.parse(localStorage.getItem('squat_history') || '[]');
+
+// 传感器状态
+let lastY = null;
+let phase = 'idle'; // idle / going_down / at_bottom / going_up
+let smoothY = 0;
+let lastCountTime = 0;
+
+// DOM
+const countNum = document.getElementById('countNum');
+const ringProgress = document.getElementById('ringProgress');
+const mainBtn = document.getElementById('mainBtn');
+const phaseText = document.getElementById('phaseText');
+const dotDown = document.getElementById('dotDown');
+const dotUp = document.getElementById('dotUp');
+const timeVal = document.getElementById('timeVal');
+const bestVal = document.getElementById('bestVal');
+const flash = document.getElementById('flash');
+
+// ===== 初始化 =====
+updateBest();
+renderHistory();
+
+function updateBest() {
+  if (history.length > 0) {
+    bestVal.textContent = Math.max(...history.map(h => h.count));
+  }
+}
+
+// ===== 传感器处理 =====
+function handleMotion(event) {
+  if (!isRunning) return;
+
+  const acc = event.accelerationIncludingGravity;
+  if (!acc) return;
+
+  const y = acc.y || 0;
+
+  // 低通滤波平滑数据
+  smoothY = smoothY * 0.7 + y * 0.3;
+
+  const now = Date.now();
+  const cooldown = 800; // 最小间隔800ms，防止抖动重复计数
+
+  // 深蹲检测逻辑：
+  // 手机放腰部时，下蹲 → y值增大，站起 → y值减小
+  // 阈值可以根据实测调整
+
+  if (phase === 'idle' || phase === 'going_up') {
+    if (smoothY > 12) {
+      phase = 'going_down';
+      updatePhaseUI('down');
+    }
+  }
+
+  if (phase === 'going_down') {
+    if (smoothY < 7 && (now - lastCountTime > cooldown)) {
+      // 从下往上回来了，计一次
+      phase = 'going_up';
+      lastCountTime = now;
+      addCount();
+      updatePhaseUI('up');
+    }
+  }
+
+  if (phase === 'going_up') {
+    if (smoothY < 4) {
+      phase = 'idle';
+      updatePhaseUI('idle');
+    }
+  }
+}
+
+function updatePhaseUI(state) {
+  dotDown.className = 'phase-dot';
+  dotUp.className = 'phase-dot';
+  if (state === 'down') {
+    dotDown.classList.add('down');
+    phaseText.textContent = '下蹲中...';
+  } else if (state === 'up') {
+    dotUp.classList.add('up');
+    phaseText.textContent = '站起 ✓';
+  } else {
+    phaseText.textContent = '等待动作';
+  }
+}
+
+// ===== 计数 =====
+function addCount() {
+  count++;
+  countNum.textContent = count;
+
+  // 脉冲动画
+  countNum.classList.add('pulse');
+  setTimeout(() => countNum.classList.remove('pulse'), 150);
+
+  // 闪光反馈
+  flash.classList.add('show');
+  setTimeout(() => flash.classList.remove('show'), 100);
+
+  // 震动反馈
+  if (navigator.vibrate) navigator.vibrate(50);
+
+  // 更新进度环
+  updateRing();
+
+  // 完成目标
+  if (count >= target) {
+    completeSet();
+  }
+}
+
+function updateRing() {
+  const progress = Math.min(count / target, 1);
+  const offset = 628 * (1 - progress);
+  ringProgress.style.strokeDashoffset = offset;
+
+  // 颜色变化
+  if (progress >= 1) {
+    ringProgress.style.stroke = '#ff6584';
+  } else if (progress >= 0.6) {
+    ringProgress.style.stroke = '#f59e0b';
+  } else {
+    ringProgress.style.stroke = '#6c63ff';
+  }
+}
+
+// ===== 开始/暂停 =====
+async function toggleStart() {
+  if (!isRunning) {
+    // 请求传感器权限（iOS 13+ 需要）
+    if (typeof DeviceMotionEvent !== 'undefined' &&
+        typeof DeviceMotionEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceMotionEvent.requestPermission();
+        if (permission !== 'granted') {
+          document.getElementById('permTip').textContent = '需要授权传感器才能使用！';
+          return;
+        }
+      } catch(e) {
+        document.getElementById('permTip').textContent = '传感器授权失败，请重试';
+        return;
+      }
+    }
+
+    isRunning = true;
+    mainBtn.textContent = '暂停';
+    mainBtn.style.background = 'linear-gradient(135deg, #ff6584, #f59e0b)';
+    document.getElementById('permTip').textContent = '开始运动！手机放腰部 🔥';
+    phase = 'idle';
+    smoothY = 0;
+
+    // 开始计时
+    timer = setInterval(() => {
+      seconds++;
+      timeVal.textContent = seconds;
+    }, 1000);
+
+    window.addEventListener('devicemotion', handleMotion);
+
+  } else {
+    isRunning = false;
+    mainBtn.textContent = '继续';
+    mainBtn.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
+    phaseText.textContent = '已暂停';
+    clearInterval(timer);
+    window.removeEventListener('devicemotion', handleMotion);
+  }
+}
+
+function resetCount() {
+  // 保存历史
+  if (count > 0) {
+    history.unshift({ count, seconds, date: new Date().toLocaleDateString() });
+    history = history.slice(0, 10);
+    localStorage.setItem('squat_history', JSON.stringify(history));
+    renderHistory();
+    updateBest();
+  }
+
+  isRunning = false;
+  count = 0;
+  seconds = 0;
+  phase = 'idle';
+  smoothY = 0;
+  clearInterval(timer);
+  window.removeEventListener('devicemotion', handleMotion);
+
+  countNum.textContent = '0';
+  timeVal.textContent = '0';
+  mainBtn.textContent = '开始';
+  mainBtn.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
+  phaseText.textContent = '准备开始';
+  dotDown.className = 'phase-dot';
+  dotUp.className = 'phase-dot';
+  ringProgress.style.strokeDashoffset = 628;
+  ringProgress.style.stroke = '#6c63ff';
+  document.getElementById('permTip').textContent = '手机竖拿，放在腰部附近\n做深蹲时自动计数 📱';
+}
+
+function completeSet() {
+  isRunning = false;
+  clearInterval(timer);
+  window.removeEventListener('devicemotion', handleMotion);
+
+  mainBtn.textContent = '再来一组';
+  mainBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+  phaseText.textContent = '🎉 完成！';
+  document.getElementById('permTip').textContent = `太棒了！${count}次深蹲，用时${seconds}秒 🏆`;
+
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
+
+  // 保存记录
+  history.unshift({ count, seconds, date: new Date().toLocaleDateString() });
+  history = history.slice(0, 10);
+  localStorage.setItem('squat_history', JSON.stringify(history));
+  renderHistory();
+  updateBest();
+}
+
+function renderHistory() {
+  if (history.length === 0) return;
+  document.getElementById('historyBox').classList.add('show');
+  document.getElementById('historyList').innerHTML = history
+    .slice(0, 5)
+    .map(h => `<div class="history-item">${h.date} · ${h.count}次 · ${h.seconds}s</div>`)
+    .join('');
+}
+</script>
+</body>
+</html>
