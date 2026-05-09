@@ -298,10 +298,12 @@ let seconds = 0;
 let history = JSON.parse(localStorage.getItem('squat_history') || '[]');
 
 // 传感器状态
-let lastY = null;
-let phase = 'idle'; // idle / going_down / at_bottom / going_up
-let smoothY = 0;
+let phase = 'idle';
+let smoothAcc = 0;      // 平滑后的合加速度
+let baseAcc = null;     // 站立基准值（开始后前1秒采样）
+let calibSamples = [];  // 校准样本
 let lastCountTime = 0;
+let peakAcc = 0;        // 记录下蹲时的峰值
 
 // DOM
 const countNum = document.getElementById('countNum');
@@ -331,37 +333,59 @@ function handleMotion(event) {
   const acc = event.accelerationIncludingGravity;
   if (!acc) return;
 
+  // 用三轴合加速度（不依赖方向，手机任意角度都行）
+  const x = acc.x || 0;
   const y = acc.y || 0;
+  const z = acc.z || 0;
+  const total = Math.sqrt(x*x + y*y + z*z);
 
-  // 低通滤波平滑数据
-  smoothY = smoothY * 0.7 + y * 0.3;
+  // 低通滤波
+  smoothAcc = smoothAcc * 0.75 + total * 0.25;
 
+  // 校准阶段：开始后前1.5秒，采样站立基准值
+  if (baseAcc === null) {
+    calibSamples.push(smoothAcc);
+    if (calibSamples.length >= 15) {
+      baseAcc = calibSamples.reduce((a,b)=>a+b,0) / calibSamples.length;
+      phaseText.textContent = '校准完成，开始蹲！';
+    } else {
+      phaseText.textContent = `校准中 ${calibSamples.length}/15...`;
+    }
+    return;
+  }
+
+  // 相对变化量（偏离基准多少）
+  const delta = smoothAcc - baseAcc;
   const now = Date.now();
-  const cooldown = 800; // 最小间隔800ms，防止抖动重复计数
+  const cooldown = 700;
 
-  // 深蹲检测逻辑：
-  // 手机放腰部时，下蹲 → y值增大，站起 → y值减小
-  // 阈值可以根据实测调整
+  // 深蹲检测：
+  // 下蹲时身体下沉 → 重力分量变化 → delta 出现明显偏移（通常 >3)
+  // 站起时回到基准
 
   if (phase === 'idle' || phase === 'going_up') {
-    if (smoothY > 12) {
+    if (Math.abs(delta) > 3.0) {
       phase = 'going_down';
+      peakAcc = Math.abs(delta);
       updatePhaseUI('down');
     }
   }
 
   if (phase === 'going_down') {
-    if (smoothY < 7 && (now - lastCountTime > cooldown)) {
-      // 从下往上回来了，计一次
+    // 记录峰值
+    if (Math.abs(delta) > peakAcc) peakAcc = Math.abs(delta);
+    // 回到接近基准 且 峰值足够大（排除小抖动）
+    if (Math.abs(delta) < 1.5 && peakAcc > 3.5 && (now - lastCountTime > cooldown)) {
       phase = 'going_up';
       lastCountTime = now;
+      peakAcc = 0;
       addCount();
       updatePhaseUI('up');
     }
   }
 
   if (phase === 'going_up') {
-    if (smoothY < 4) {
+    if (Math.abs(delta) < 1.0) {
       phase = 'idle';
       updatePhaseUI('idle');
     }
@@ -443,9 +467,12 @@ async function toggleStart() {
     isRunning = true;
     mainBtn.textContent = '暂停';
     mainBtn.style.background = 'linear-gradient(135deg, #ff6584, #f59e0b)';
-    document.getElementById('permTip').textContent = '开始运动！手机放腰部 🔥';
+    document.getElementById('permTip').textContent = '站好别动，正在校准姿势... 📱';
     phase = 'idle';
-    smoothY = 0;
+    smoothAcc = 0;
+    baseAcc = null;
+    calibSamples = [];
+    peakAcc = 0;
 
     // 开始计时
     timer = setInterval(() => {
@@ -479,7 +506,10 @@ function resetCount() {
   count = 0;
   seconds = 0;
   phase = 'idle';
-  smoothY = 0;
+  smoothAcc = 0;
+  baseAcc = null;
+  calibSamples = [];
+  peakAcc = 0;
   clearInterval(timer);
   window.removeEventListener('devicemotion', handleMotion);
 
