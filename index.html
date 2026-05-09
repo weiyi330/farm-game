@@ -619,8 +619,8 @@ function gameLoop(ts) {
   frameCount++;
 
   // 速度完全由步行驱动：stepAcc>2.2才开始动，静止时快速减速到0
-  const moving = stepAcc > 2.2;
-  const targetSpeed = moving ? Math.min(0.8 + (stepAcc - 2.2) * 2.0, 7) : 0;
+  const moving = stepAcc > 2.5;
+  const targetSpeed = moving ? Math.min(0.8 + (stepAcc - 2.5) * 2.0, 7) : 0;
   bgSpeed = moving ? bgSpeed * 0.85 + targetSpeed * 0.15 : bgSpeed * 0.85;
   if (bgSpeed < 0.05) bgSpeed = 0;
 
