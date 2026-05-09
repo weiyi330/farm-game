@@ -428,12 +428,13 @@ function drawTile(r, c) {
 const farmerImgs = {};
 const dirMap = {down:'front', up:'back', left:'left', right:'right'};
 let imgsLoaded = 0;
+const BASE = 'https://weiyi330.github.io/squat-game/';
 ['front','back','left','right'].forEach(d => {
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  img.onload = () => { imgsLoaded++; console.log('loaded:', d, img.width, img.height); };
-  img.onerror = (e) => { console.error('failed:', d, e); };
-  img.src = d + '.png';
+  img.onload = () => { imgsLoaded++; console.log('loaded:', d); };
+  img.onerror = (e) => { console.error('failed:', d); };
+  img.src = BASE + 'farmer_' + d + '.png';
   farmerImgs[d] = img;
 });
 
