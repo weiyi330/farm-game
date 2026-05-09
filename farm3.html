@@ -394,15 +394,6 @@ function drawTile(r, c) {
     const cfg=CROPS[crop.type];
     const si=crop.ready?cfg.stages.length-1:Math.min(crop.daysGrown,cfg.stages.length-1);
     const sz=crop.ready?26:20;
-
-  // 浇水光泽（画在作物下方，只影响土地颜色）
-  if(crop.watered) {
-    ctx.fillStyle='rgba(80,160,240,0.18)';
-    ctx.beginPath();
-    ctx.moveTo(x,y+2); ctx.lineTo(x+TW/2,y+TH/2);
-    ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH/2);
-    ctx.closePath(); ctx.fill();
-  }
     ctx.font=`${sz}px serif`;
     ctx.fillText(cfg.stages[si], x, y+TH/2+2);
     if(crop.ready) {
@@ -412,6 +403,14 @@ function drawTile(r, c) {
       ctx.moveTo(x,y+2); ctx.lineTo(x+TW/2,y+TH/2);
       ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH/2);
       ctx.closePath(); ctx.stroke();
+    }
+    // 浇水标记（画在最后，但只影响土地不影响作物）
+    if(crop.watered) {
+      ctx.fillStyle='rgba(80,160,240,0.12)';
+      ctx.beginPath();
+      ctx.moveTo(x,y+TH/2); ctx.lineTo(x+TW/2,y+TH*0.75);
+      ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH*0.75);
+      ctx.closePath(); ctx.fill();
     }
   }
 
