@@ -620,8 +620,8 @@ function loop(ts){
     // 等距方向修正：
     // 屏幕向右(dx+) → wx+, wy+（往右下走）
     // 屏幕向上(dy-) → wx+, wy-（往右上走）
-    const nx = player.wx + (joyDX - joyDY)*sp;
-    const ny = player.wy + (joyDX + joyDY)*sp;
+    const nx = player.wx + (joyDX + joyDY)*sp;
+    const ny = player.wy + (joyDY - joyDX)*sp;
 
     // 边界+碰撞
     const BLOCKED=[T.HOUSE,T.TREE,T.WATER];
