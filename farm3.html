@@ -196,6 +196,11 @@ canvas { display:block; }
     <div id="action-btn" onclick="doAction()">✅</div>
   </div>
 
+  <!-- 玩家角色（HTML img层，绕开Canvas跨域）-->
+  <img id="player-sprite" src="https://weiyi330.github.io/squat-game/farmer_front.png"
+    style="position:absolute;width:56px;height:72px;pointer-events:none;z-index:5;display:none;
+    image-rendering:auto;transform-origin:bottom center;">
+
   <!-- Toast -->
   <div id="toast"></div>
 
@@ -431,9 +436,7 @@ let imgsLoaded = 0;
 const BASE = 'https://weiyi330.github.io/squat-game/';
 ['front','back','left','right'].forEach(d => {
   const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => { imgsLoaded++; console.log('loaded:', d); };
-  img.onerror = (e) => { console.error('failed:', d); };
+  img.onload = () => { imgsLoaded++; };
   img.src = BASE + 'farmer_' + d + '.png';
   farmerImgs[d] = img;
 });
@@ -442,36 +445,24 @@ const BASE = 'https://weiyi330.github.io/squat-game/';
 // 绘制农夫玩家
 // ============================================================
 function drawCat(x, y) {
-  const t = Date.now();
-  const bob = player.moving ? Math.sin(t*0.015)*2 : 0;
-  const dirKey = dirMap[player.dir] || 'front';
-  const img = farmerImgs[dirKey];
-
-  const drawW = 56, drawH = 72;
-  const dx = x - drawW/2;
-  const dy = y - drawH + bob;
-
-  // 阴影
+  // 阴影（Canvas画）
   ctx.fillStyle='rgba(0,0,0,0.2)';
   ctx.beginPath(); ctx.ellipse(x, y+2, 16, 5, 0, 0, Math.PI*2); ctx.fill();
 
-  // 角色图片
-  if(img && img.complete && img.naturalWidth>0) {
-    ctx.drawImage(img, dx, dy, drawW, drawH);
-  } else {
-    // 占位显示
-    ctx.fillStyle='rgba(232,192,64,0.9)';
-    ctx.beginPath(); ctx.arc(x, y-30, 18, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle='#5a3a10';
-    ctx.font='bold 11px serif';
-    ctx.textAlign='center';
-    ctx.fillText('农', x, y-26);
-    ctx.fillStyle='rgba(255,200,80,0.7)';
-    ctx.fillRect(x-12, y-12, 24, 20);
-    // 显示加载状态
-    ctx.fillStyle='rgba(255,255,255,0.8)';
-    ctx.font='9px sans-serif';
-    ctx.fillText(imgsLoaded+'/4', x, y+6);
+  // 角色由HTML img层显示，这里只更新位置
+  const sprite = document.getElementById('player-sprite');
+  if(sprite) {
+    const drawW = 56, drawH = 72;
+    sprite.style.display = 'block';
+    sprite.style.left = (x - drawW/2) + 'px';
+    sprite.style.top  = (y - drawH + (player.moving ? Math.sin(Date.now()*0.015)*2 : 0)) + 'px';
+    // 切换方向
+    const dirKey = dirMap[player.dir] || 'front';
+    const newSrc = 'https://weiyi330.github.io/squat-game/farmer_' + dirKey + '.png';
+    if(sprite.getAttribute('data-dir') !== dirKey) {
+      sprite.src = newSrc;
+      sprite.setAttribute('data-dir', dirKey);
+    }
   }
 
   // 工具提示
