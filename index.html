@@ -262,12 +262,14 @@ let calibSamples = [];
 let phase = 'idle';   // idle / down / up
 let lastCountTime = 0;
 let peakDelta = 0;
+let downStartTime = 0;  // 下蹲开始时间
 
 const CALIB_FRAMES = 20;  // 约2秒校准
-const DOWN_THRESH = 1.8;  // 下蹲触发阈值（Z轴相对变化）
-const UP_THRESH = 0.8;    // 回位阈值
-const MIN_PEAK = 2.2;     // 最小峰值（过滤微小抖动）
-const COOLDOWN = 700;     // ms
+const DOWN_THRESH = 2.5;  // 下蹲触发阈值（需要更大幅度）
+const UP_THRESH = 1.0;    // 回位阈值
+const MIN_PEAK = 3.0;     // 最小峰值（走路约1-2，深蹲3+）
+const COOLDOWN = 1500;    // 深蹲最快也要1.5秒，走路步频更快
+const MIN_DOWN_MS = 400;  // 下蹲动作最少持续400ms（过滤走路弹跳）
 
 // DOM
 const countNumEl = document.getElementById('countNum');
@@ -325,19 +327,20 @@ function handleMotion(e) {
   const now = Date.now();
 
   if (phase === 'idle') {
-    if (delta > DOWN_THRESH) {
+    if (delta > DOWN_THRESH && (now - lastCountTime > COOLDOWN)) {
       phase = 'down';
       peakDelta = delta;
+      downStartTime = now;
       phaseDotEl.className = 'phase-dot down';
       phaseTextEl.textContent = '⬇️ 下蹲中...';
     }
   } else if (phase === 'down') {
     if (delta > peakDelta) peakDelta = delta;
-    // 回位：delta 回落到接近基准
-    if (delta < UP_THRESH && peakDelta >= MIN_PEAK && (now - lastCountTime > COOLDOWN)) {
+    const downDuration = now - downStartTime;
+    // 回位条件：1.峰值够大 2.持续时间够长（过滤走路） 3.delta回落
+    if (delta < UP_THRESH && peakDelta >= MIN_PEAK && downDuration >= MIN_DOWN_MS) {
       phase = 'idle';
       lastCountTime = now;
-      const savedPeak = peakDelta;
       peakDelta = 0;
       addCount();
       phaseDotEl.className = 'phase-dot up';
@@ -348,6 +351,13 @@ function handleMotion(e) {
           phaseTextEl.textContent = '等待下一次...';
         }
       }, 600);
+    }
+    // 如果持续时间超过3秒还没回位，可能是误触发，重置
+    if (downDuration > 3000) {
+      phase = 'idle';
+      peakDelta = 0;
+      phaseDotEl.className = 'phase-dot';
+      phaseTextEl.textContent = '等待下一次...';
     }
   }
 }
@@ -413,7 +423,7 @@ function completeSet() {
 function resetAll() {
   if (count > 0) saveHistory();
   isRunning = false; count = 0; seconds = 0; phase = 'idle';
-  smoothZ = 0; baseZ = null; calibSamples = []; peakDelta = 0;
+  smoothZ = 0; baseZ = null; calibSamples = []; peakDelta = 0; downStartTime = 0;
   clearInterval(timer);
   window.removeEventListener('devicemotion', handleMotion);
   countNumEl.textContent = '0';
