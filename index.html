@@ -267,21 +267,22 @@ const OBS_TYPES = [
 
 function spawnObstacle() {
   const type = OBS_TYPES[Math.floor(Math.random() * OBS_TYPES.length)];
-  // 障碍宽度内随机x，不贴边
-  const margin = 40;
+  const margin = 60;
   const x = margin + Math.random() * (W - margin*2);
+  // 从屏幕顶部生成，给玩家充足反应时间
+  const obstacleSpeed = 1.2 + level * 0.2; // 速度更慢
   obstacles.push({
-    x, y: player.y - H * 0.15,
+    x, y: -40,  // 从屏幕顶部以外生成
     w: type.w, h: type.h,
     color: type.color,
     name: type.name,
-    speed: 1.5 + level * 0.3,
+    speed: obstacleSpeed,
     hit: false,
     frame: 0,
   });
-  // 提前警告
+  // 生成时立刻警告
   warningActive = true;
-  warningTimer = 90;
+  warningTimer = Math.floor(H / obstacleSpeed); // 警告持续到障碍到达
 }
 
 function updateObstacles() {
@@ -354,14 +355,29 @@ function drawObstacles() {
 
     ctx.globalAlpha = 1;
 
-    // 警告箭头（接近时）
-    if (o.y > player.y - H*0.25 && o.y < player.y - 30) {
-      const alpha = 0.5 + Math.sin(Date.now() * 0.008) * 0.5;
+    // 顶部箭头指示器（障碍在屏幕上方时显示位置）
+    if (o.y < 60) {
+      const alpha = 0.6 + Math.sin(Date.now() * 0.01) * 0.4;
       ctx.globalAlpha = alpha;
       ctx.fillStyle = '#ffcc00';
-      ctx.font = '18px sans-serif';
-      ctx.fillText('⚠️', o.x - 10, o.y - o.h - 8);
+      ctx.font = 'bold 14px Courier New';
+      ctx.fillText('▼', o.x - 5, 20);
+      ctx.fillStyle = 'rgba(255,200,0,0.3)';
+      ctx.fillRect(o.x - o.w/2, 0, o.w, 4);
       ctx.globalAlpha = 1;
+    }
+    // 接近警告（距离玩家1/3屏幕时）
+    if (o.y > player.y - H*0.35 && o.y < player.y - 30) {
+      const alpha = 0.5 + Math.sin(Date.now() * 0.012) * 0.5;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#ff4444';
+      ctx.font = 'bold 13px Courier New';
+      ctx.fillText('⚠️ 深蹲！', o.x - 28, o.y - o.h - 10);
+      ctx.globalAlpha = 1;
+      // 障碍本身高亮边框
+      ctx.strokeStyle = '#ff4444';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(o.x - o.w/2 - 2, o.y - o.h - 2, o.w + 4, o.h + 4);
     }
   });
 }
@@ -597,14 +613,21 @@ function gameLoop(ts) {
   lastTime = ts;
   frameCount++;
 
-  // 更新速度（由步行决定）
-  const targetSpeed = Math.min(2 + stepAcc * 1.2, 6);
-  bgSpeed = bgSpeed * 0.9 + targetSpeed * 0.1;
+  // 速度完全由步行驱动：stepAcc>0.5才开始动，静止时快速减速到0
+  const moving = stepAcc > 0.5;
+  const targetSpeed = moving ? Math.min(1.5 + stepAcc * 1.5, 7) : 0;
+  bgSpeed = moving ? bgSpeed * 0.85 + targetSpeed * 0.15 : bgSpeed * 0.88;
+  if (bgSpeed < 0.05) bgSpeed = 0;
 
   if (gameState === 'running') {
     bgOffset += bgSpeed;
     distance += bgSpeed * 0.05;
-    score += Math.floor(bgSpeed * 0.1);
+    if (bgSpeed > 0) score += Math.floor(bgSpeed * 0.1);
+
+    // 提示静止状态
+    if (bgSpeed < 0.1 && !warningActive && !player.squatting && sensorPhase === 'idle') {
+      setPhase('🚶 走动起来让角色前进！');
+    }
 
     // 等级提升
     level = 1 + Math.floor(distance / 100);
