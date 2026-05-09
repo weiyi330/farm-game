@@ -6,7 +6,6 @@
 <title>深蹲计数器</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  
   body {
     background: #0f0f1a;
     color: #fff;
@@ -15,236 +14,200 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    overflow-x: hidden;
   }
-
-  .bg-circle {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.15;
-    pointer-events: none;
-  }
+  .bg-circle { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.12; pointer-events: none; }
   .bg-circle-1 { width: 400px; height: 400px; background: #6c63ff; top: -100px; left: -100px; }
   .bg-circle-2 { width: 300px; height: 300px; background: #ff6584; bottom: -50px; right: -50px; }
 
-  .container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
-    z-index: 1;
-    padding: 20px;
-    width: 100%;
-    max-width: 400px;
+  /* ===== 引导页 ===== */
+  #guidePage {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 100vh; padding: 24px;
+    gap: 20px; z-index: 1;
   }
+  .guide-title { font-size: 22px; font-weight: 800; letter-spacing: 2px; }
+  .guide-subtitle { font-size: 14px; color: #888; text-align: center; line-height: 1.8; }
 
-  .title {
-    font-size: 18px;
-    color: #aaa;
-    letter-spacing: 4px;
-    text-transform: uppercase;
+  .pose-card {
+    background: #1a1a2e; border-radius: 20px; padding: 20px 24px;
+    border: 1px solid #2a2a3e; width: 100%; max-width: 340px;
   }
+  .pose-card-title { font-size: 13px; color: #6c63ff; letter-spacing: 2px; margin-bottom: 16px; }
 
-  .count-ring {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* SVG 姿势图区域 */
+  .pose-figures {
+    display: flex; justify-content: space-around; align-items: flex-end;
+    gap: 8px; margin-bottom: 16px;
   }
+  .pose-fig { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .pose-fig span { font-size: 11px; color: #666; }
 
-  .count-ring svg {
-    position: absolute;
-    top: 0; left: 0;
-    transform: rotate(-90deg);
-  }
-
-  .ring-bg { stroke: #2a2a3e; fill: none; stroke-width: 8; }
-  .ring-progress {
-    stroke: #6c63ff;
-    fill: none;
-    stroke-width: 8;
-    stroke-linecap: round;
-    stroke-dasharray: 628;
-    stroke-dashoffset: 628;
-    transition: stroke-dashoffset 0.3s ease;
-  }
-
-  .count-number {
-    font-size: 80px;
-    font-weight: 900;
-    line-height: 1;
-    background: linear-gradient(135deg, #6c63ff, #ff6584);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition: transform 0.1s ease;
-  }
-
-  .count-number.pulse {
-    transform: scale(1.2);
-  }
-
-  .count-label {
-    font-size: 14px;
-    color: #666;
-    letter-spacing: 2px;
-  }
-
-  .status-bar {
-    display: flex;
-    gap: 24px;
-    background: #1a1a2e;
-    border-radius: 16px;
-    padding: 16px 28px;
-    border: 1px solid #2a2a3e;
-  }
-
-  .stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .stat-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .stat-label {
-    font-size: 11px;
-    color: #666;
-    letter-spacing: 1px;
-  }
-
-  .phase-indicator {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    color: #aaa;
-  }
-
-  .phase-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #333;
-    transition: all 0.3s;
-  }
-
-  .phase-dot.down { background: #ff6584; box-shadow: 0 0 10px #ff6584; }
-  .phase-dot.up { background: #6c63ff; box-shadow: 0 0 10px #6c63ff; }
-
-  .btn-group {
-    display: flex;
-    gap: 16px;
-  }
-
-  .btn {
-    padding: 14px 32px;
-    border-radius: 50px;
-    border: none;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 1px;
-  }
-
-  .btn-start {
+  .pose-steps { display: flex; flex-direction: column; gap: 8px; }
+  .pose-step { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #ccc; line-height: 1.5; }
+  .step-num {
+    min-width: 20px; height: 20px; border-radius: 50%;
     background: linear-gradient(135deg, #6c63ff, #8b5cf6);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
   }
 
-  .btn-start:active { transform: scale(0.95); }
-
-  .btn-reset {
-    background: #1a1a2e;
-    color: #666;
-    border: 1px solid #2a2a3e;
+  .guide-tip {
+    background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 12px; padding: 12px 16px;
+    font-size: 13px; color: #a09ff0; line-height: 1.7;
+    width: 100%; max-width: 340px;
   }
 
+  .btn-start-guide {
+    width: 100%; max-width: 340px; padding: 16px;
+    border-radius: 50px; border: none;
+    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+    color: #fff; font-size: 17px; font-weight: 700;
+    box-shadow: 0 4px 24px rgba(108,99,255,0.4);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  .btn-start-guide:active { transform: scale(0.97); }
+
+  /* ===== 主计数页 ===== */
+  #mainPage { display: none; flex-direction: column; align-items: center; gap: 24px; padding: 32px 20px 40px; z-index: 1; width: 100%; }
+
+  .title { font-size: 16px; color: #aaa; letter-spacing: 4px; }
+
+  .count-ring { position: relative; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
+  .count-ring svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+  .ring-bg { stroke: #2a2a3e; fill: none; stroke-width: 8; }
+  .ring-progress { stroke: #6c63ff; fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 565; stroke-dashoffset: 565; transition: stroke-dashoffset 0.3s ease; }
+  .count-number { font-size: 72px; font-weight: 900; line-height: 1; background: linear-gradient(135deg, #6c63ff, #ff6584); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: transform 0.1s; }
+  .count-number.pulse { transform: scale(1.2); }
+  .count-label { font-size: 13px; color: #666; letter-spacing: 2px; text-align: center; }
+
+  .phase-bar {
+    display: flex; align-items: center; gap: 12px;
+    background: #1a1a2e; border-radius: 50px; padding: 10px 20px;
+    border: 1px solid #2a2a3e; font-size: 14px; color: #aaa;
+  }
+  .phase-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; transition: all 0.3s; }
+  .phase-dot.down { background: #ff6584; box-shadow: 0 0 8px #ff6584; }
+  .phase-dot.up { background: #6c63ff; box-shadow: 0 0 8px #6c63ff; }
+  .phase-dot.calib { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; animation: blink 0.6s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .status-bar { display: flex; gap: 0; background: #1a1a2e; border-radius: 16px; border: 1px solid #2a2a3e; overflow: hidden; width: 100%; max-width: 320px; }
+  .stat { flex: 1; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .stat + .stat { border-left: 1px solid #2a2a3e; }
+  .stat-value { font-size: 22px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: #555; letter-spacing: 1px; }
+
+  .btn-group { display: flex; gap: 12px; width: 100%; max-width: 320px; }
+  .btn { flex: 1; padding: 14px; border-radius: 50px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-main { background: linear-gradient(135deg, #6c63ff, #8b5cf6); color: #fff; box-shadow: 0 4px 16px rgba(108,99,255,0.35); }
+  .btn-main:active { transform: scale(0.95); }
+  .btn-reset { background: #1a1a2e; color: #666; border: 1px solid #2a2a3e; }
   .btn-reset:active { transform: scale(0.95); }
 
-  .permission-tip {
-    font-size: 13px;
-    color: #555;
-    text-align: center;
-    line-height: 1.6;
-    max-width: 280px;
-  }
+  .feedback-flash { position: fixed; top:0;left:0;right:0;bottom:0; pointer-events:none; opacity:0; transition: opacity 0.1s; background: #6c63ff; }
+  .feedback-flash.show { opacity: 0.07; }
 
-  .feedback-flash {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.1s;
-    border-radius: 0;
-  }
-  .feedback-flash.show { opacity: 0.08; }
-
-  .tip-text {
-    font-size: 13px;
-    color: #444;
-    text-align: center;
-    margin-top: -16px;
-  }
-
-  /* 历史记录 */
-  .history {
-    width: 100%;
-    background: #1a1a2e;
-    border-radius: 16px;
-    padding: 16px;
-    border: 1px solid #2a2a3e;
-    display: none;
-  }
-
+  .history { width: 100%; max-width: 320px; background: #1a1a2e; border-radius: 16px; padding: 14px 16px; border: 1px solid #2a2a3e; display: none; }
   .history.show { display: block; }
+  .history-title { font-size: 11px; color: #555; letter-spacing: 2px; margin-bottom: 10px; }
+  .history-list { display: flex; gap: 6px; flex-wrap: wrap; }
+  .history-item { background: #0f0f1a; border-radius: 8px; padding: 5px 10px; font-size: 12px; color: #777; border: 1px solid #2a2a3e; }
 
-  .history-title {
-    font-size: 12px;
-    color: #555;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
-  }
-
-  .history-list {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .history-item {
-    background: #0f0f1a;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 13px;
-    color: #888;
-    border: 1px solid #2a2a3e;
-  }
+  .guide-link { font-size: 12px; color: #555; cursor: pointer; text-decoration: underline; }
 </style>
 </head>
 <body>
-
 <div class="bg-circle bg-circle-1"></div>
 <div class="bg-circle bg-circle-2"></div>
-<div class="feedback-flash" id="flash" style="background:#6c63ff"></div>
+<div class="feedback-flash" id="flash"></div>
 
-<div class="container">
+<!-- ===== 引导页 ===== -->
+<div id="guidePage">
+  <div class="guide-title">🏋️ 深蹲计数器</div>
+  <div class="guide-subtitle">手握手机，双臂平举<br>系统自动识别深蹲动作</div>
+
+  <div class="pose-card">
+    <div class="pose-card-title">✦ 标准姿势示意</div>
+    <div class="pose-figures">
+      <!-- 站立姿势 SVG -->
+      <div class="pose-fig">
+        <svg width="72" height="110" viewBox="0 0 72 110">
+          <!-- 头 -->
+          <circle cx="36" cy="12" r="9" fill="none" stroke="#6c63ff" stroke-width="2.5"/>
+          <!-- 身体 -->
+          <line x1="36" y1="21" x2="36" y2="62" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 手臂平举 + 手机 -->
+          <line x1="10" y1="38" x2="36" y2="38" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="36" y1="38" x2="62" y2="38" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 手机图标（右手端） -->
+          <rect x="58" y="32" width="10" height="16" rx="2" fill="none" stroke="#ff6584" stroke-width="2"/>
+          <line x1="63" y1="45" x2="63" y2="47" stroke="#ff6584" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- 左腿 -->
+          <line x1="36" y1="62" x2="24" y2="88" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="24" y1="88" x2="18" y2="108" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 右腿 -->
+          <line x1="36" y1="62" x2="48" y2="88" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="48" y1="88" x2="54" y2="108" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span>站立</span>
+      </div>
+
+      <!-- 箭头 -->
+      <svg width="24" height="24" viewBox="0 0 24 24" style="margin-bottom:44px">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+
+      <!-- 深蹲姿势 SVG -->
+      <div class="pose-fig">
+        <svg width="72" height="110" viewBox="0 0 72 110">
+          <!-- 头（低一些） -->
+          <circle cx="36" cy="26" r="9" fill="none" stroke="#ff6584" stroke-width="2.5"/>
+          <!-- 身体（前倾） -->
+          <line x1="36" y1="35" x2="33" y2="66" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 手臂平举（随身体，仍保持相对水平） -->
+          <line x1="8" y1="48" x2="33" y2="50" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="33" y1="50" x2="58" y2="48" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 手机 -->
+          <rect x="54" y="42" width="10" height="16" rx="2" fill="none" stroke="#6c63ff" stroke-width="2"/>
+          <line x1="59" y1="55" x2="59" y2="57" stroke="#6c63ff" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- 大腿（弯曲） -->
+          <line x1="33" y1="66" x2="18" y2="82" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="33" y1="66" x2="48" y2="82" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 小腿 -->
+          <line x1="18" y1="82" x2="14" y2="108" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="48" y1="82" x2="52" y2="108" stroke="#ff6584" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 下箭头提示 -->
+          <path d="M36 2 L32 8 L40 8 Z" fill="#f59e0b" opacity="0.8"/>
+        </svg>
+        <span>下蹲</span>
+      </div>
+    </div>
+
+    <div class="pose-steps">
+      <div class="pose-step"><div class="step-num">1</div><span>双脚与肩同宽，自然站立</span></div>
+      <div class="pose-step"><div class="step-num">2</div><span>单手握住手机，<strong style="color:#ff6584">双臂向前平举</strong></span></div>
+      <div class="pose-step"><div class="step-num">3</div><span>缓慢下蹲至大腿平行地面，再站起</span></div>
+      <div class="pose-step"><div class="step-num">4</div><span>点「开始」后系统自动校准，<strong style="color:#f59e0b">保持姿势3秒</strong>再蹲</span></div>
+    </div>
+  </div>
+
+  <div class="guide-tip">
+    💡 手臂平举时手机近似水平，下蹲时重力Z轴变化最明显，识别最准确。
+  </div>
+
+  <button class="btn-start-guide" onclick="goToMain()">我准备好了，开始！</button>
+</div>
+
+<!-- ===== 主计数页 ===== -->
+<div id="mainPage">
   <div class="title">🏋️ 深蹲计数</div>
 
   <div class="count-ring">
-    <svg viewBox="0 0 220 220" width="220" height="220">
-      <circle class="ring-bg" cx="110" cy="110" r="100"/>
-      <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"/>
+    <svg viewBox="0 0 200 200" width="200" height="200">
+      <circle class="ring-bg" cx="100" cy="100" r="90"/>
+      <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="90"/>
     </svg>
     <div style="text-align:center">
       <div class="count-number" id="countNum">0</div>
@@ -252,10 +215,9 @@
     </div>
   </div>
 
-  <div class="phase-indicator">
-    <div class="phase-dot" id="dotDown"></div>
-    <span id="phaseText">准备开始</span>
-    <div class="phase-dot" id="dotUp"></div>
+  <div class="phase-bar">
+    <div class="phase-dot" id="phaseDot"></div>
+    <span id="phaseText">点开始后保持平举姿势</span>
   </div>
 
   <div class="status-bar">
@@ -263,295 +225,224 @@
       <div class="stat-value" id="targetVal">20</div>
       <div class="stat-label">目标</div>
     </div>
-    <div class="stat" style="border-left:1px solid #2a2a3e; padding-left:24px">
+    <div class="stat">
       <div class="stat-value" id="timeVal">0</div>
       <div class="stat-label">秒</div>
     </div>
-    <div class="stat" style="border-left:1px solid #2a2a3e; padding-left:24px">
+    <div class="stat">
       <div class="stat-value" id="bestVal">-</div>
       <div class="stat-label">最佳</div>
     </div>
   </div>
 
   <div class="btn-group">
-    <button class="btn btn-start" id="mainBtn" onclick="toggleStart()">开始</button>
-    <button class="btn btn-reset" onclick="resetCount()">重置</button>
+    <button class="btn btn-main" id="mainBtn" onclick="toggleStart()">开始</button>
+    <button class="btn btn-reset" onclick="resetAll()">重置</button>
   </div>
-
-  <p class="permission-tip" id="permTip">
-    手机竖拿，放在腰部附近<br>做深蹲时自动计数 📱
-  </p>
 
   <div class="history" id="historyBox">
     <div class="history-title">历史记录</div>
     <div class="history-list" id="historyList"></div>
   </div>
+
+  <span class="guide-link" onclick="showGuide()">查看姿势说明</span>
 </div>
 
 <script>
 // ===== 状态 =====
-let count = 0;
-let target = 20;
+let count = 0, target = 20;
 let isRunning = false;
-let timer = null;
-let seconds = 0;
-let history = JSON.parse(localStorage.getItem('squat_history') || '[]');
+let timer = null, seconds = 0;
+let history = JSON.parse(localStorage.getItem('squat_v2') || '[]');
 
-// 传感器状态
-let phase = 'idle';
-let smoothAcc = 0;      // 平滑后的合加速度
-let baseAcc = null;     // 站立基准值（开始后前1秒采样）
-let calibSamples = [];  // 校准样本
+// 传感器
+let smoothZ = 0;
+let baseZ = null;
+let calibSamples = [];
+let phase = 'idle';   // idle / down / up
 let lastCountTime = 0;
-let peakAcc = 0;        // 记录下蹲时的峰值
+let peakDelta = 0;
+
+const CALIB_FRAMES = 20;  // 约2秒校准
+const DOWN_THRESH = 1.8;  // 下蹲触发阈值（Z轴相对变化）
+const UP_THRESH = 0.8;    // 回位阈值
+const MIN_PEAK = 2.2;     // 最小峰值（过滤微小抖动）
+const COOLDOWN = 700;     // ms
 
 // DOM
-const countNum = document.getElementById('countNum');
-const ringProgress = document.getElementById('ringProgress');
-const mainBtn = document.getElementById('mainBtn');
-const phaseText = document.getElementById('phaseText');
-const dotDown = document.getElementById('dotDown');
-const dotUp = document.getElementById('dotUp');
-const timeVal = document.getElementById('timeVal');
-const bestVal = document.getElementById('bestVal');
-const flash = document.getElementById('flash');
+const countNumEl = document.getElementById('countNum');
+const ringEl = document.getElementById('ringProgress');
+const mainBtnEl = document.getElementById('mainBtn');
+const phaseTextEl = document.getElementById('phaseText');
+const phaseDotEl = document.getElementById('phaseDot');
+const timeValEl = document.getElementById('timeVal');
+const bestValEl = document.getElementById('bestVal');
+const flashEl = document.getElementById('flash');
 
-// ===== 初始化 =====
 updateBest();
 renderHistory();
 
-function updateBest() {
-  if (history.length > 0) {
-    bestVal.textContent = Math.max(...history.map(h => h.count));
-  }
+// ===== 页面切换 =====
+function goToMain() {
+  document.getElementById('guidePage').style.display = 'none';
+  document.getElementById('mainPage').style.display = 'flex';
+}
+function showGuide() {
+  if (isRunning) toggleStart();
+  document.getElementById('mainPage').style.display = 'none';
+  document.getElementById('guidePage').style.display = 'flex';
 }
 
-// ===== 传感器处理 =====
-function handleMotion(event) {
+// ===== 传感器 =====
+function handleMotion(e) {
   if (!isRunning) return;
-
-  const acc = event.accelerationIncludingGravity;
+  const acc = e.accelerationIncludingGravity;
   if (!acc) return;
 
-  // 用三轴合加速度（不依赖方向，手机任意角度都行）
-  const x = acc.x || 0;
-  const y = acc.y || 0;
-  const z = acc.z || 0;
-  const total = Math.sqrt(x*x + y*y + z*z);
+  // 手臂平举时手机近似水平，Z轴 ≈ 重力 ≈ ±9.8
+  // 下蹲时身体降低，但手臂保持平举 → Z轴受力分量因手腕微调会有变化
+  // 更稳定的做法：用合加速度大小的变化
+  const x = acc.x || 0, y = acc.y || 0, z = acc.z || 0;
+  const mag = Math.sqrt(x*x + y*y + z*z);
 
-  // 低通滤波
-  smoothAcc = smoothAcc * 0.75 + total * 0.25;
+  smoothZ = smoothZ * 0.8 + mag * 0.2;
 
-  // 校准阶段：开始后前1.5秒，采样站立基准值
-  if (baseAcc === null) {
-    calibSamples.push(smoothAcc);
-    if (calibSamples.length >= 15) {
-      baseAcc = calibSamples.reduce((a,b)=>a+b,0) / calibSamples.length;
-      phaseText.textContent = '校准完成，开始蹲！';
-    } else {
-      phaseText.textContent = `校准中 ${calibSamples.length}/15...`;
+  // 校准阶段
+  if (baseZ === null) {
+    calibSamples.push(smoothZ);
+    const n = calibSamples.length;
+    phaseTextEl.textContent = `校准中 ${n}/${CALIB_FRAMES}，保持姿势...`;
+    phaseDotEl.className = 'phase-dot calib';
+    if (n >= CALIB_FRAMES) {
+      baseZ = calibSamples.reduce((a,b)=>a+b,0) / n;
+      phaseTextEl.textContent = '✅ 校准完成，开始蹲！';
+      phaseDotEl.className = 'phase-dot';
     }
     return;
   }
 
-  // 相对变化量（偏离基准多少）
-  const delta = smoothAcc - baseAcc;
+  const delta = smoothZ - baseZ;
   const now = Date.now();
-  const cooldown = 700;
 
-  // 深蹲检测：
-  // 下蹲时身体下沉 → 重力分量变化 → delta 出现明显偏移（通常 >3)
-  // 站起时回到基准
-
-  if (phase === 'idle' || phase === 'going_up') {
-    if (Math.abs(delta) > 3.0) {
-      phase = 'going_down';
-      peakAcc = Math.abs(delta);
-      updatePhaseUI('down');
+  if (phase === 'idle') {
+    if (delta > DOWN_THRESH) {
+      phase = 'down';
+      peakDelta = delta;
+      phaseDotEl.className = 'phase-dot down';
+      phaseTextEl.textContent = '⬇️ 下蹲中...';
     }
-  }
-
-  if (phase === 'going_down') {
-    // 记录峰值
-    if (Math.abs(delta) > peakAcc) peakAcc = Math.abs(delta);
-    // 回到接近基准 且 峰值足够大（排除小抖动）
-    if (Math.abs(delta) < 1.5 && peakAcc > 3.5 && (now - lastCountTime > cooldown)) {
-      phase = 'going_up';
-      lastCountTime = now;
-      peakAcc = 0;
-      addCount();
-      updatePhaseUI('up');
-    }
-  }
-
-  if (phase === 'going_up') {
-    if (Math.abs(delta) < 1.0) {
+  } else if (phase === 'down') {
+    if (delta > peakDelta) peakDelta = delta;
+    // 回位：delta 回落到接近基准
+    if (delta < UP_THRESH && peakDelta >= MIN_PEAK && (now - lastCountTime > COOLDOWN)) {
       phase = 'idle';
-      updatePhaseUI('idle');
+      lastCountTime = now;
+      const savedPeak = peakDelta;
+      peakDelta = 0;
+      addCount();
+      phaseDotEl.className = 'phase-dot up';
+      phaseTextEl.textContent = '⬆️ 站起 ✓';
+      setTimeout(() => {
+        if (phase === 'idle') {
+          phaseDotEl.className = 'phase-dot';
+          phaseTextEl.textContent = '等待下一次...';
+        }
+      }, 600);
     }
-  }
-}
-
-function updatePhaseUI(state) {
-  dotDown.className = 'phase-dot';
-  dotUp.className = 'phase-dot';
-  if (state === 'down') {
-    dotDown.classList.add('down');
-    phaseText.textContent = '下蹲中...';
-  } else if (state === 'up') {
-    dotUp.classList.add('up');
-    phaseText.textContent = '站起 ✓';
-  } else {
-    phaseText.textContent = '等待动作';
   }
 }
 
 // ===== 计数 =====
 function addCount() {
   count++;
-  countNum.textContent = count;
-
-  // 脉冲动画
-  countNum.classList.add('pulse');
-  setTimeout(() => countNum.classList.remove('pulse'), 150);
-
-  // 闪光反馈
-  flash.classList.add('show');
-  setTimeout(() => flash.classList.remove('show'), 100);
-
-  // 震动反馈
-  if (navigator.vibrate) navigator.vibrate(50);
-
-  // 更新进度环
+  countNumEl.textContent = count;
+  countNumEl.classList.add('pulse');
+  setTimeout(() => countNumEl.classList.remove('pulse'), 150);
+  flashEl.classList.add('show');
+  setTimeout(() => flashEl.classList.remove('show'), 100);
+  if (navigator.vibrate) navigator.vibrate(60);
   updateRing();
-
-  // 完成目标
-  if (count >= target) {
-    completeSet();
-  }
+  if (count >= target) completeSet();
 }
 
 function updateRing() {
-  const progress = Math.min(count / target, 1);
-  const offset = 628 * (1 - progress);
-  ringProgress.style.strokeDashoffset = offset;
-
-  // 颜色变化
-  if (progress >= 1) {
-    ringProgress.style.stroke = '#ff6584';
-  } else if (progress >= 0.6) {
-    ringProgress.style.stroke = '#f59e0b';
-  } else {
-    ringProgress.style.stroke = '#6c63ff';
-  }
+  const p = Math.min(count / target, 1);
+  ringEl.style.strokeDashoffset = 565 * (1 - p);
+  ringEl.style.stroke = p >= 1 ? '#ff6584' : p >= 0.6 ? '#f59e0b' : '#6c63ff';
 }
 
 // ===== 开始/暂停 =====
 async function toggleStart() {
   if (!isRunning) {
-    // 请求传感器权限（iOS 13+ 需要）
     if (typeof DeviceMotionEvent !== 'undefined' &&
         typeof DeviceMotionEvent.requestPermission === 'function') {
       try {
-        const permission = await DeviceMotionEvent.requestPermission();
-        if (permission !== 'granted') {
-          document.getElementById('permTip').textContent = '需要授权传感器才能使用！';
-          return;
-        }
-      } catch(e) {
-        document.getElementById('permTip').textContent = '传感器授权失败，请重试';
-        return;
-      }
+        const perm = await DeviceMotionEvent.requestPermission();
+        if (perm !== 'granted') { phaseTextEl.textContent = '需要传感器权限！'; return; }
+      } catch(e) { phaseTextEl.textContent = '权限获取失败，请重试'; return; }
     }
-
     isRunning = true;
-    mainBtn.textContent = '暂停';
-    mainBtn.style.background = 'linear-gradient(135deg, #ff6584, #f59e0b)';
-    document.getElementById('permTip').textContent = '站好别动，正在校准姿势... 📱';
-    phase = 'idle';
-    smoothAcc = 0;
-    baseAcc = null;
-    calibSamples = [];
-    peakAcc = 0;
-
-    // 开始计时
-    timer = setInterval(() => {
-      seconds++;
-      timeVal.textContent = seconds;
-    }, 1000);
-
+    baseZ = null; calibSamples = []; smoothZ = 0; peakDelta = 0; phase = 'idle';
+    mainBtnEl.textContent = '暂停';
+    mainBtnEl.style.background = 'linear-gradient(135deg, #ff6584, #f59e0b)';
+    timer = setInterval(() => { seconds++; timeValEl.textContent = seconds; }, 1000);
     window.addEventListener('devicemotion', handleMotion);
-
   } else {
     isRunning = false;
-    mainBtn.textContent = '继续';
-    mainBtn.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
-    phaseText.textContent = '已暂停';
+    mainBtnEl.textContent = '继续';
+    mainBtnEl.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
+    phaseTextEl.textContent = '已暂停';
+    phaseDotEl.className = 'phase-dot';
     clearInterval(timer);
     window.removeEventListener('devicemotion', handleMotion);
   }
-}
-
-function resetCount() {
-  // 保存历史
-  if (count > 0) {
-    history.unshift({ count, seconds, date: new Date().toLocaleDateString() });
-    history = history.slice(0, 10);
-    localStorage.setItem('squat_history', JSON.stringify(history));
-    renderHistory();
-    updateBest();
-  }
-
-  isRunning = false;
-  count = 0;
-  seconds = 0;
-  phase = 'idle';
-  smoothAcc = 0;
-  baseAcc = null;
-  calibSamples = [];
-  peakAcc = 0;
-  clearInterval(timer);
-  window.removeEventListener('devicemotion', handleMotion);
-
-  countNum.textContent = '0';
-  timeVal.textContent = '0';
-  mainBtn.textContent = '开始';
-  mainBtn.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
-  phaseText.textContent = '准备开始';
-  dotDown.className = 'phase-dot';
-  dotUp.className = 'phase-dot';
-  ringProgress.style.strokeDashoffset = 628;
-  ringProgress.style.stroke = '#6c63ff';
-  document.getElementById('permTip').textContent = '手机竖拿，放在腰部附近\n做深蹲时自动计数 📱';
 }
 
 function completeSet() {
   isRunning = false;
   clearInterval(timer);
   window.removeEventListener('devicemotion', handleMotion);
+  mainBtnEl.textContent = '再来一组';
+  mainBtnEl.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+  phaseTextEl.textContent = `🎉 完成！共${count}次，${seconds}秒`;
+  phaseDotEl.className = 'phase-dot';
+  if (navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+  saveHistory();
+}
 
-  mainBtn.textContent = '再来一组';
-  mainBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-  phaseText.textContent = '🎉 完成！';
-  document.getElementById('permTip').textContent = `太棒了！${count}次深蹲，用时${seconds}秒 🏆`;
+function resetAll() {
+  if (count > 0) saveHistory();
+  isRunning = false; count = 0; seconds = 0; phase = 'idle';
+  smoothZ = 0; baseZ = null; calibSamples = []; peakDelta = 0;
+  clearInterval(timer);
+  window.removeEventListener('devicemotion', handleMotion);
+  countNumEl.textContent = '0';
+  timeValEl.textContent = '0';
+  mainBtnEl.textContent = '开始';
+  mainBtnEl.style.background = 'linear-gradient(135deg, #6c63ff, #8b5cf6)';
+  phaseTextEl.textContent = '点开始后保持平举姿势';
+  phaseDotEl.className = 'phase-dot';
+  ringEl.style.strokeDashoffset = 565;
+  ringEl.style.stroke = '#6c63ff';
+}
 
-  if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 200]);
-
-  // 保存记录
+function saveHistory() {
+  if (count === 0) return;
   history.unshift({ count, seconds, date: new Date().toLocaleDateString() });
   history = history.slice(0, 10);
-  localStorage.setItem('squat_history', JSON.stringify(history));
-  renderHistory();
-  updateBest();
+  localStorage.setItem('squat_v2', JSON.stringify(history));
+  renderHistory(); updateBest();
+}
+
+function updateBest() {
+  if (history.length > 0) bestValEl.textContent = Math.max(...history.map(h => h.count));
 }
 
 function renderHistory() {
-  if (history.length === 0) return;
+  if (!history.length) return;
   document.getElementById('historyBox').classList.add('show');
-  document.getElementById('historyList').innerHTML = history
-    .slice(0, 5)
-    .map(h => `<div class="history-item">${h.date} · ${h.count}次 · ${h.seconds}s</div>`)
-    .join('');
+  document.getElementById('historyList').innerHTML = history.slice(0,5)
+    .map(h => `<div class="history-item">${h.date} · ${h.count}次 · ${h.seconds}s</div>`).join('');
 }
 </script>
 </body>
