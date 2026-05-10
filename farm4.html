@@ -343,46 +343,30 @@ const TILE_UV = {
   [T.SHOP]:   { col:0, row:3 },
 };
 
-// 绘制等距地块顶面（素材贴图版，仿射变换）
+// 绘制等距地块顶面（素材贴图版）
 function drawIsoTileTop(x, y, tileCol, tileRow, highlight=false) {
   if (!tilesetLoaded) return;
+  // 剩菑形路径
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x,        y);
+  ctx.lineTo(x+TW/2,   y+TH/2);
+  ctx.lineTo(x,        y+TH);
+  ctx.lineTo(x-TW/2,   y+TH/2);
+  ctx.closePath();
+  ctx.clip();
+
+  // 将 tileset 小格拉伸到菱形内（拉伸以内接矩形覆盖）
   const sx = tileCol * TS;
   const sy = tileRow * TS;
+  ctx.drawImage(tilesetImg, sx, sy, TS, TS, x - TW/2, y, TW, TH);
 
-  // 菱形四个顶点（从顶部顺时针）
-  // 顶: (x, y)
-  // 右: (x+TW/2, y+TH/2)
-  // 底: (x, y+TH)
-  // 左: (x-TW/2, y+TH/2)
-  //
-  // 素材坐标系：(0,0)→左顶点, (TS,0)→右顶点, (0,TS)→底左, (TS,TS)→底右
-  // 等距投影映射：
-  //   左层 u轴（素材x）→ 屏幕 (+TW/2, +TH/2) 方向
-  //   左层 v轴（素材y）→ 屏幕 (-TW/2, +TH/2) 方向
-  // 对应 canvas setTransform(a,b,c,d,e,f)
-  //   a = TW/(2*TS),  b = TH/(2*TS)
-  //   c = -TW/(2*TS), d = TH/(2*TS)
-  //   e = x (left vertex screen x)
-  //   f = y (top vertex screen y)
-
-  const a =  TW / (2 * TS);
-  const b =  TH / (2 * TS);
-  const c = -TW / (2 * TS);
-  const d =  TH / (2 * TS);
-  // 顶部顶点坐标是 (x, y)，左顶点是 (x-TW/2, y+TH/2)
-  // 起始点（左顶点）= (x - TW/2, y + TH/2)
-  // 但 transform 的原点对应素材(0,0)
-  // 当 u=0,v=0 时 屏幕点 = (x-TW/2, y+TH/2)
-  const e = x - TW / 2;
-  const f = y;
-
-  ctx.save();
-  ctx.setTransform(a, b, c, d, e, f);
-  ctx.drawImage(tilesetImg, sx, sy, TS, TS, 0, 0, TS, TS);
-
+  // 高亮覆盖
   if (highlight) {
     ctx.fillStyle = 'rgba(255,220,80,0.35)';
-    ctx.fillRect(0, 0, TS, TS);
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,220,80,0.9)'; ctx.lineWidth=1.5;
+    ctx.stroke();
   }
   ctx.restore();
 }
