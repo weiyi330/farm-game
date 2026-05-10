@@ -234,9 +234,9 @@ resize();
 window.addEventListener('resize', resize);
 
 // ============================================================
-// 等距地图配置
+// 俧视角地图配置
 // ============================================================
-const TW = 72, TH = 36;  // 菱形瓦片宽高
+const TILE = 48;  // 每格地块像素大小
 const MAP_COLS = 18, MAP_ROWS = 14;
 
 // 瓦片类型
@@ -269,11 +269,12 @@ tileMap[5][14]=T.WELL;
 // ============================================================
 let camX=0, camY=0;
 
+// 俧视角坐标转屏幕坐标
 function iso(wx, wy) {
   const W = canvas.width, H = canvas.height;
   return {
-    x: (wx - wy) * TW/2 + W/2 - camX,
-    y: (wx + wy) * TH/2 + 60  - camY,
+    x: wx * TILE + TILE/2 - camX,
+    y: wy * TILE + TILE/2 - camY,
   };
 }
 
@@ -308,16 +309,16 @@ const player = {
 // 绘制地图
 // ============================================================
 const GROUND_COLORS = {
-  [T.GRASS]:  {top:'#6abf50',lft:'#3d7a2a',rgt:'#4e9e38'},
-  [T.SOIL]:   {top:'#c8945a',lft:'#7a5030',rgt:'#a06840'},
-  [T.TILLED]: {top:'#7a4a22',lft:'#4a2a0a',rgt:'#5e3818'},
-  [T.PATH]:   {top:'#d4b870',lft:'#8a7030',rgt:'#b09050'},
-  [T.WATER]:  {top:'#5ab8e8',lft:'#2a7aaa',rgt:'#3a98c8'},
-  [T.CROP]:   {top:'#7a4a22',lft:'#4a2a0a',rgt:'#5e3818'},
-  [T.TREE]:   {top:'#6abf50',lft:'#3d7a2a',rgt:'#4e9e38'},
-  [T.HOUSE]:  {top:'#6abf50',lft:'#3d7a2a',rgt:'#4e9e38'},
-  [T.WELL]:   {top:'#6abf50',lft:'#3d7a2a',rgt:'#4e9e38'},
-  [T.SHOP]:   {top:'#6abf50',lft:'#3d7a2a',rgt:'#4e9e38'},
+  [T.GRASS]:  '#5aaa3a',
+  [T.SOIL]:   '#c8945a',
+  [T.TILLED]: '#7a4a22',
+  [T.PATH]:   '#d4b870',
+  [T.WATER]:  '#5ab8e8',
+  [T.CROP]:   '#7a4a22',
+  [T.TREE]:   '#5aaa3a',
+  [T.HOUSE]:  '#5aaa3a',
+  [T.WELL]:   '#5aaa3a',
+  [T.SHOP]:   '#5aaa3a',
 };
 
 // ============================================================
@@ -343,81 +344,50 @@ const TILE_UV = {
   [T.SHOP]:   { col:0, row:3 },
 };
 
-// 绘制等距地块顶面（素材贴图版）
+// 绘制地块（素材贴图版）
 function drawIsoTileTop(x, y, tileCol, tileRow, highlight=false) {
   if (!tilesetLoaded) return;
-  // 剩菑形路径
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(x,        y);
-  ctx.lineTo(x+TW/2,   y+TH/2);
-  ctx.lineTo(x,        y+TH);
-  ctx.lineTo(x-TW/2,   y+TH/2);
-  ctx.closePath();
-  ctx.clip();
-
-  // 将 tileset 小格拉伸到菱形内（拉伸以内接矩形覆盖）
   const sx = tileCol * TS;
   const sy = tileRow * TS;
-  ctx.drawImage(tilesetImg, sx, sy, TS, TS, x - TW/2, y, TW, TH);
-
-  // 高亮覆盖
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(tilesetImg, sx, sy, TS, TS,
+    x - TILE/2, y - TILE/2, TILE, TILE);
   if (highlight) {
     ctx.fillStyle = 'rgba(255,220,80,0.35)';
-    ctx.fill();
-    ctx.strokeStyle='rgba(255,220,80,0.9)'; ctx.lineWidth=1.5;
-    ctx.stroke();
+    ctx.fillRect(x - TILE/2, y - TILE/2, TILE, TILE);
+    ctx.strokeStyle='rgba(255,220,80,0.9)'; ctx.lineWidth=2;
+    ctx.strokeRect(x - TILE/2, y - TILE/2, TILE, TILE);
   }
   ctx.restore();
 }
 
-const DEPTH = 12;
-
-function drawIsoTile(x, y, colors, highlight=false) {
-  const {top,lft,rgt} = colors;
-  // 顶面
-  ctx.fillStyle = highlight ? '#ffe88a' : top;
-  ctx.beginPath();
-  ctx.moveTo(x,        y);
-  ctx.lineTo(x+TW/2,   y+TH/2);
-  ctx.lineTo(x,        y+TH);
-  ctx.lineTo(x-TW/2,   y+TH/2);
-  ctx.closePath(); ctx.fill();
+function drawIsoTile(x, y, color, highlight=false) {
+  ctx.fillStyle = highlight ? '#ffe88a' : color;
+  ctx.fillRect(x - TILE/2, y - TILE/2, TILE, TILE);
+  // 网格线
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x - TILE/2, y - TILE/2, TILE, TILE);
   if(highlight) {
-    ctx.strokeStyle='rgba(255,220,80,0.8)'; ctx.lineWidth=1.5;
-    ctx.stroke();
+    ctx.strokeStyle='rgba(255,220,80,0.8)'; ctx.lineWidth=2;
+    ctx.strokeRect(x - TILE/2, y - TILE/2, TILE, TILE);
   }
-  // 左侧面
-  ctx.fillStyle = lft;
-  ctx.beginPath();
-  ctx.moveTo(x-TW/2, y+TH/2);
-  ctx.lineTo(x,      y+TH);
-  ctx.lineTo(x,      y+TH+DEPTH);
-  ctx.lineTo(x-TW/2, y+TH/2+DEPTH);
-  ctx.closePath(); ctx.fill();
-  // 右侧面
-  ctx.fillStyle = rgt;
-  ctx.beginPath();
-  ctx.moveTo(x,      y+TH);
-  ctx.lineTo(x+TW/2, y+TH/2);
-  ctx.lineTo(x+TW/2, y+TH/2+DEPTH);
-  ctx.lineTo(x,      y+TH+DEPTH);
-  ctx.closePath(); ctx.fill();
 }
 
 function drawTile(r, c) {
   const type = tileMap[r][c];
   const {x,y} = iso(c, r);
   const W=canvas.width, H=canvas.height;
-  if(x<-TW*2||x>W+TW*2||y<-TH*4||y>H+TH*4) return;
+  if(x<-TILE*2||x>W+TILE*2||y<-TILE*2||y>H+TILE*2) return;
 
   const pr=Math.round(player.wy), pc=Math.round(player.wx);
   const isPlayerTile = (r===pr && c===pc);
 
-  const colors = GROUND_COLORS[type] || GROUND_COLORS[T.GRASS];
-  drawIsoTile(x, y, colors, isPlayerTile);
+  const color = GROUND_COLORS[type] || GROUND_COLORS[T.GRASS];
+  drawIsoTile(x, y, color, isPlayerTile);
 
-  // 草地类用 tileset 贴图覆盖顶面
+  // 草地类用 tileset 贴图覆盖
   if (type === T.GRASS || type === T.TREE || type === T.HOUSE || type === T.WELL || type === T.SHOP) {
     const uv = TILE_UV[type];
     drawIsoTileTop(x, y, uv.col, uv.row, isPlayerTile);
@@ -430,54 +400,45 @@ function drawTile(r, c) {
     ctx.strokeStyle=`rgba(255,255,255,${0.2+Math.sin(Date.now()*0.003+c)*0.15})`;
     ctx.lineWidth=1;
     ctx.beginPath();
-    ctx.moveTo(x-12, y+TH/2-2); ctx.lineTo(x+12, y+TH/2-2);
+    ctx.moveTo(x-12, y-2); ctx.lineTo(x+12, y-2);
     ctx.stroke();
   }
 
   // 翻土纹路
   if(type===T.TILLED || type===T.CROP) {
     ctx.strokeStyle='rgba(80,40,10,0.4)'; ctx.lineWidth=0.8;
-    for(let i=1;i<3;i++){
-      const lx=x-TW/2+TW*i/3, ly=y+TH/2-TH*i/6;
+    for(let i=1;i<4;i++){
+      const ly = y - TILE/2 + (TILE/4)*i;
       ctx.beginPath();
-      ctx.moveTo(lx-TW/4, ly+TH/4);
-      ctx.lineTo(lx+TW/4, ly-TH/4);
+      ctx.moveTo(x - TILE/2 + 4, ly);
+      ctx.lineTo(x + TILE/2 - 4, ly);
       ctx.stroke();
     }
   }
 
   // 物件
-  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
   if(crop) {
     const cfg=CROPS[crop.type];
     const si=crop.ready?cfg.stages.length-1:Math.min(crop.daysGrown,cfg.stages.length-1);
-    const sz=crop.ready?26:20;
+    const sz=crop.ready?28:22;
     ctx.font=`${sz}px serif`;
-    ctx.fillText(cfg.stages[si], x, y+TH/2+2);
+    ctx.fillText(cfg.stages[si], x, y);
     if(crop.ready) {
       const a=(Math.sin(Date.now()*0.006)+1)*0.4+0.2;
       ctx.strokeStyle=`rgba(255,220,60,${a})`; ctx.lineWidth=2;
-      ctx.beginPath();
-      ctx.moveTo(x,y+2); ctx.lineTo(x+TW/2,y+TH/2);
-      ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH/2);
-      ctx.closePath(); ctx.stroke();
+      ctx.strokeRect(x-TILE/2, y-TILE/2, TILE, TILE);
     }
-    // 浇水标记（画在最后，但只影响土地不影响作物）
     if(crop.watered) {
-      ctx.fillStyle='rgba(80,160,240,0.12)';
-      ctx.beginPath();
-      ctx.moveTo(x,y+TH/2); ctx.lineTo(x+TW/2,y+TH*0.75);
-      ctx.lineTo(x,y+TH); ctx.lineTo(x-TW/2,y+TH*0.75);
-      ctx.closePath(); ctx.fill();
+      ctx.fillStyle='rgba(80,160,240,0.15)';
+      ctx.fillRect(x-TILE/2, y-TILE/2, TILE, TILE);
     }
   }
 
-  if(type===T.HOUSE) { ctx.font='34px serif'; ctx.fillText('🏠',x,y+TH/2-2); }
-  else if(type===T.SHOP) { ctx.font='30px serif'; ctx.fillText('🏪',x,y+TH/2-2); }
-  else if(type===T.WELL) { ctx.font='26px serif'; ctx.fillText('🪣',x,y+TH/2-2); }
-  else if(type===T.TREE) {
-    ctx.font='36px serif'; ctx.fillText('🌳',x,y+TH/2-8);
-  }
+  if(type===T.HOUSE) { ctx.font='32px serif'; ctx.fillText('🏠',x,y); }
+  else if(type===T.SHOP) { ctx.font='28px serif'; ctx.fillText('🏪',x,y); }
+  else if(type===T.WELL) { ctx.font='24px serif'; ctx.fillText('🪣',x,y); }
+  else if(type===T.TREE) { ctx.font='34px serif'; ctx.fillText('🌳',x,y-4); }
 }
 
 // ============================================================
@@ -504,12 +465,12 @@ const SP_FRAME_MS = 130;
 // ============================================================
 function drawCat(x, y) {
   // 阴影：贴在角色脚底（y就是角色中心，脚底≈y + sprite高度一半）
-  const footY = y + SP_FRAME_H * SP_SCALE * 0.3; // 脚底位置
+  const footY = y + SP_FRAME_H * SP_SCALE * 0.3;
   ctx.save();
-  ctx.globalAlpha = 0.3;
+  ctx.globalAlpha = 0.25;
   ctx.fillStyle = '#000';
   ctx.beginPath();
-  ctx.ellipse(x, footY, 16, 5, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, footY, 14, 5, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
@@ -558,32 +519,18 @@ function render() {
   const W=canvas.width, H=canvas.height;
   ctx.clearRect(0,0,W,H);
 
-  // 天空渐变
-  const sky=ctx.createLinearGradient(0,0,0,H*0.55);
-  sky.addColorStop(0,'#b0e0ff');
-  sky.addColorStop(1,'#d4f0a0');
-  ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
+  // 背景填充
+  ctx.fillStyle = '#2d5a1b';
+  ctx.fillRect(0, 0, W, H);
 
-  // 远山
-  ctx.fillStyle='rgba(120,180,100,0.3)';
-  ctx.beginPath();
-  ctx.moveTo(0,H*0.38);
-  for(let i=0;i<=W;i+=40) ctx.lineTo(i, H*0.32+Math.sin(i*0.03)*20+Math.sin(i*0.017)*12);
-  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath(); ctx.fill();
-
-  // 云朵
-  drawCloud(W*0.2, H*0.12, 0.8);
-  drawCloud(W*0.6, H*0.08, 1.0);
-  drawCloud(W*0.85, H*0.15, 0.6);
-
-  // 等距瓦片（从后往前）
+  // 俧视角瓦片（逐行逐列）
   for(let r=0;r<MAP_ROWS;r++)
     for(let c=0;c<MAP_COLS;c++)
       drawTile(r,c);
 
   // 玩家
   const {x,y}=iso(player.wx, player.wy);
-  drawCat(x, y+TH/2-4);
+  drawCat(x, y);
 
   // 操作提示
   ctx.fillStyle='rgba(245,215,142,0.75)';
@@ -708,8 +655,8 @@ function loop(ts){
 
   // 相机平滑跟随
   const {x:tx,y:ty}=iso(player.wx,player.wy);
-  camX+=(tx-canvas.width/2)*0.1;
-  camY+=(ty-canvas.height/2)*0.1;
+  camX+=(tx-canvas.width/2)*0.12;
+  camY+=(ty-canvas.height/2)*0.12;
 
   render();
   requestAnimationFrame(loop);
