@@ -3,187 +3,127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>桃源农场 - 地图编辑器</title>
+<title>桃源农场 - 地图编辑器 v2</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body {
-  background:#1a2a1a; color:#e8e0c8;
-  font-family:'STKaiti','KaiTi',sans-serif;
-  display:flex; flex-direction:column; height:100vh; overflow:hidden;
-  font-size:13px;
-}
+body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-serif;
+  display:flex; flex-direction:column; height:100vh; overflow:hidden; font-size:13px; }
 
-/* 顶栏 */
-#topbar {
-  background:#2a3a1a; border-bottom:1px solid #4a6a2a;
-  padding:6px 12px;
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  flex-shrink:0;
-}
-#topbar h1 { font-size:14px; color:#c8e080; margin-right:4px; }
-.btn {
-  padding:4px 10px; border-radius:5px; border:none; cursor:pointer;
-  font-size:12px; font-family:inherit;
-}
+#topbar { background:#2a3a1a; border-bottom:1px solid #4a6a2a; padding:6px 12px;
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap; flex-shrink:0; }
+#topbar h1 { font-size:14px; color:#c8e080; margin-right:2px; }
+.btn { padding:4px 10px; border-radius:5px; border:none; cursor:pointer; font-size:12px; font-family:inherit; }
 .btn-green  { background:#4a8a2a; color:#e0f0a0; }
 .btn-blue   { background:#2a5a8a; color:#a0d0f0; }
 .btn-orange { background:#8a5a1a; color:#f0d0a0; }
 .btn-red    { background:#7a2a1a; color:#f0a090; }
-.btn-purple { background:#5a2a8a; color:#d0a0f0; }
-.btn:hover { opacity:0.85; }
+.btn:hover  { opacity:0.85; }
 
-/* 主体三栏 */
 #main { display:flex; flex:1; overflow:hidden; }
 
-/* ===== 左：图集管理 ===== */
-#tileset-panel {
-  width:220px; background:#1e2e14; border-right:1px solid #3a5020;
-  display:flex; flex-direction:column; flex-shrink:0; overflow:hidden;
-}
-#tileset-tabs {
-  display:flex; border-bottom:1px solid #3a5020; flex-shrink:0;
-}
-.ts-tab {
-  flex:1; padding:5px 4px; text-align:center; cursor:pointer;
-  font-size:11px; color:#80a050; background:#1e2e14;
-  border-bottom:2px solid transparent;
-}
-.ts-tab.active { color:#c8e080; border-bottom-color:#a0e040; background:#243018; }
+/* 左侧 */
+#sidebar { width:230px; background:#1e2e14; border-right:1px solid #3a5020;
+  display:flex; flex-direction:column; flex-shrink:0; overflow:hidden; }
 
-/* 图集列表 */
-#group-list {
-  flex:1; overflow-y:auto; padding:4px;
+/* Tabs */
+#tabs { display:flex; border-bottom:1px solid #3a5020; flex-shrink:0; }
+.tab { flex:1; padding:5px 3px; text-align:center; cursor:pointer; font-size:11px;
+  color:#80a050; border-bottom:2px solid transparent; }
+.tab.active { color:#c8e080; border-bottom-color:#a0e040; background:#243018; }
+
+/* 层切换（图集面板内） */
+#layer-switcher { flex-shrink:0; padding:4px; background:#1a2810; border-bottom:1px solid #3a5020; }
+#layer-switcher .ls-title { font-size:10px; color:#607040; margin-bottom:3px; padding-left:2px; }
+#layer-btns { display:flex; flex-wrap:wrap; gap:3px; }
+.layer-btn {
+  flex:1; min-width:calc(50% - 2px); padding:4px 4px; border-radius:4px; border:1px solid #3a5020;
+  cursor:pointer; font-size:11px; text-align:center; background:#1a2810; color:#80a050;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.group-item {
-  border:1px solid #3a5020; border-radius:6px; margin-bottom:4px;
-  background:#1a2810; overflow:hidden;
-}
-.group-header {
-  display:flex; align-items:center; padding:5px 7px; cursor:pointer;
-  gap:5px; background:#243018;
-}
+.layer-btn.active { border-color:#a0e040; color:#c8e080; background:#2a3c18; }
+.layer-btn.block-btn { border-color:#6a2010; color:#f09080; }
+.layer-btn.block-btn.active { border-color:#ff6040; background:#3a1810; }
+
+/* 图集 */
+#group-list { flex:1; overflow-y:auto; padding:4px; }
+.group-item { border:1px solid #3a5020; border-radius:5px; margin-bottom:3px; background:#1a2810; overflow:hidden; }
+.group-header { display:flex; align-items:center; padding:5px 7px; cursor:pointer; gap:4px; background:#243018; }
 .group-header:hover { background:#2e3c1e; }
-.group-arrow { font-size:10px; color:#80a050; width:12px; }
+.group-arrow { font-size:10px; color:#80a050; width:10px; }
 .group-name { flex:1; font-size:12px; color:#c0d890; }
 .group-count { font-size:10px; color:#607040; }
-.group-actions { display:flex; gap:3px; }
-.group-actions button {
-  padding:1px 5px; border-radius:3px; border:none; cursor:pointer;
-  font-size:10px; background:#3a5020; color:#a0c060;
-}
-.group-actions button:hover { background:#4a6a2a; }
-
-.tile-grid {
-  display:grid; grid-template-columns:repeat(4, 1fr); gap:2px; padding:6px;
-}
-.tile-cell {
-  position:relative; cursor:pointer; border-radius:3px;
-  border:1px solid #3a5020; overflow:hidden;
-  aspect-ratio:1;
-}
+.ga { padding:1px 5px; border-radius:3px; border:none; cursor:pointer; font-size:10px; background:#3a5020; color:#a0c060; }
+.tile-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; padding:5px; }
+.tile-cell { position:relative; cursor:pointer; border-radius:3px; border:1px solid #3a5020; aspect-ratio:1; overflow:hidden; }
 .tile-cell:hover { border-color:#a0e040; }
 .tile-cell.selected { border-color:#ffe040; box-shadow:0 0 0 1px #ffe040; }
 .tile-cell canvas { display:block; width:100%; height:100%; image-rendering:pixelated; }
-.tile-label {
-  position:absolute; bottom:0; left:0; right:0;
-  background:rgba(0,0,0,0.65); color:#e0e0c0;
-  font-size:8px; text-align:center; padding:1px 2px;
-  line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
+.tile-lbl { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.65); color:#e0e0c0;
+  font-size:8px; text-align:center; padding:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* 地块类型面板 */
-#type-list { flex:1; overflow-y:auto; padding:6px; }
-.type-item {
-  display:flex; align-items:center; gap:6px;
-  padding:5px 7px; border-radius:5px; cursor:pointer;
-  margin-bottom:2px; background:#1a2810; border:2px solid transparent;
-}
+/* 地块类型 */
+#type-list { flex:1; overflow-y:auto; padding:5px; }
+.type-item { display:flex; align-items:center; gap:6px; padding:5px 7px; border-radius:5px;
+  cursor:pointer; margin-bottom:2px; background:#1a2810; border:2px solid transparent; }
 .type-item:hover { background:#243018; }
 .type-item.active { border-color:#a0e040; background:#243018; }
-.type-dot { width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,0.2);
-  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0; }
+.type-dot { width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0; }
 
-/* 工具面板 */
-#tool-panel { flex:1; overflow-y:auto; padding:6px; }
-.tool-item {
-  display:flex; align-items:center; gap:6px;
-  padding:5px 7px; border-radius:5px; cursor:pointer;
-  margin-bottom:2px; background:#1a2810; border:2px solid transparent;
-}
+/* 工具 */
+#tool-panel { flex:1; overflow-y:auto; padding:5px; }
+.tool-item { display:flex; align-items:center; gap:6px; padding:5px 7px; border-radius:5px;
+  cursor:pointer; margin-bottom:2px; background:#1a2810; border:2px solid transparent; }
 .tool-item:hover { background:#243018; }
 .tool-item.active { border-color:#a0e040; }
-.sep { border-top:1px solid #3a5020; margin:6px 0; }
-#coord-info {
-  padding:6px; background:#1a2810; border-radius:5px; margin:4px;
-  font-size:10px; color:#80a050; line-height:1.7; flex-shrink:0;
-}
+.sep { border-top:1px solid #3a5020; margin:5px 0; }
+#coord-info { padding:5px; background:#1a2810; border-radius:5px; margin:4px;
+  font-size:10px; color:#80a050; line-height:1.7; flex-shrink:0; }
+.vis-row { display:flex; align-items:center; gap:5px; padding:3px 6px; font-size:11px; }
+.vis-row input { cursor:pointer; }
 
-/* ===== 中：地图画布 ===== */
-#map-wrap {
-  flex:1; overflow:auto; background:#111; position:relative;
-}
+/* 地图 */
+#map-wrap { flex:1; overflow:auto; background:#0e1a0e; }
 #map-canvas { display:block; cursor:crosshair; image-rendering:pixelated; }
 
-/* ===== 底栏 ===== */
-#bottombar {
-  background:#2a3a1a; border-top:1px solid #4a6a2a;
-  padding:5px 12px; display:flex; align-items:center; gap:8px;
-  font-size:11px; flex-shrink:0; flex-wrap:wrap;
-}
+/* 底栏 */
+#bottombar { background:#2a3a1a; border-top:1px solid #4a6a2a; padding:4px 12px;
+  display:flex; align-items:center; gap:8px; font-size:11px; flex-shrink:0; flex-wrap:wrap; }
 #status { color:#80a050; }
+#layer-badge { padding:2px 8px; border-radius:4px; background:#243018; color:#a0e040; font-size:11px; }
 
-/* ===== 弹窗 ===== */
-.modal-bg {
-  display:none; position:fixed; inset:0;
-  background:rgba(0,0,0,0.7); z-index:200;
-  align-items:center; justify-content:center;
-}
+/* 弹窗 */
+.modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:200; align-items:center; justify-content:center; }
 .modal-bg.show { display:flex; }
-.modal-box {
-  background:#243018; border:1px solid #4a6a2a;
-  border-radius:10px; padding:16px; width:92%; max-width:520px;
-}
+.modal-box { background:#243018; border:1px solid #4a6a2a; border-radius:10px; padding:16px; width:92%; max-width:520px; }
 .modal-box h3 { color:#c8e080; margin-bottom:10px; font-size:14px; }
 .modal-box textarea, .modal-box input[type=text] {
-  width:100%; background:#1a2810; color:#c8e080;
-  border:1px solid #4a6a2a; border-radius:5px; padding:7px;
-  font-size:12px; font-family:inherit;
-}
+  width:100%; background:#1a2810; color:#c8e080; border:1px solid #4a6a2a; border-radius:5px;
+  padding:7px; font-size:12px; font-family:inherit; }
 .modal-box textarea { height:140px; resize:none; }
 .modal-box label { font-size:12px; color:#a0b880; display:block; margin-bottom:4px; }
 .modal-btns { display:flex; gap:8px; margin-top:10px; }
-.form-row { margin-bottom:10px; }
-
-/* 名称编辑弹窗 */
-#rename-modal .tile-preview {
-  width:64px; height:64px; image-rendering:pixelated;
-  border:1px solid #4a6a2a; border-radius:4px; margin-bottom:8px;
-}
+.frow { margin-bottom:10px; }
+.finput { background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:4px 6px;font-size:12px; }
 </style>
 </head>
 <body>
-
-<!-- 顶栏 -->
 <div id="topbar">
   <h1>🗺️ 地图编辑器</h1>
   <button class="btn btn-green"  onclick="exportMap()">📤 导出</button>
   <button class="btn btn-blue"   onclick="importMap()">📥 导入</button>
   <button class="btn btn-orange" onclick="fillAll()">🖌️ 全填</button>
   <button class="btn btn-red"    onclick="clearMap()">🗑️ 清空</button>
-  <span style="color:#607040;">|</span>
-  <label style="font-size:11px;color:#80a050;">
-    列<input id="inp-cols" type="number" value="18" min="5" max="60"
-      style="width:42px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px 4px;margin-left:4px;">
+  <span style="color:#4a6a2a;">|</span>
+  <label style="font-size:11px;color:#80a050;">列
+    <input id="inp-cols" type="number" value="18" min="5" max="60" class="finput" style="width:42px;margin-left:3px;">
   </label>
-  <label style="font-size:11px;color:#80a050;">
-    行<input id="inp-rows" type="number" value="14" min="5" max="60"
-      style="width:42px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px 4px;margin-left:4px;">
+  <label style="font-size:11px;color:#80a050;">行
+    <input id="inp-rows" type="number" value="14" min="5" max="60" class="finput" style="width:42px;margin-left:3px;">
   </label>
   <button class="btn btn-green" onclick="resizeMap()">↩ 调整</button>
-  <span style="color:#607040;">|</span>
-  <label style="font-size:11px;color:#80a050;">
-    格子大小
-    <select id="tile-size-sel" onchange="changeTileSize()" style="background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px;">
+  <span style="color:#4a6a2a;">|</span>
+  <label style="font-size:11px;color:#80a050;">格子
+    <select id="tile-size-sel" onchange="changeTileSize()" class="finput" style="padding:2px 4px;">
       <option value="32">32px</option>
       <option value="40" selected>40px</option>
       <option value="48">48px</option>
@@ -192,33 +132,25 @@ body {
   </label>
 </div>
 
-<!-- 主体 -->
 <div id="main">
-
-  <!-- 左侧面板 -->
-  <div id="tileset-panel">
-    <div id="tileset-tabs">
-        <div class="ts-tab active" onclick="switchTab('tileset')" id="tab-tileset">🖼️ 图集</div>
-        <div class="ts-tab" onclick="switchTab('types')" id="tab-types">🎨 地块</div>
-        <div class="ts-tab" onclick="switchTab('tools')" id="tab-tools">🛠️ 工具</div>
+  <div id="sidebar">
+    <div id="tabs">
+      <div class="tab active" onclick="switchTab('tileset')" id="tab-tileset">🖼 图集</div>
+      <div class="tab" onclick="switchTab('types')"   id="tab-types">🎨 地块</div>
+      <div class="tab" onclick="switchTab('tools')"   id="tab-tools">🛠 工具</div>
     </div>
 
     <!-- 图集面板 -->
     <div id="panel-tileset" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-      <div style="padding:5px 6px;border-bottom:1px solid #3a5020;display:flex;gap:4px;flex-shrink:0;">
-        <button class="btn btn-green" style="flex:1;font-size:11px;" onclick="showGroupManager()">⚙️ 管理分组</button>
-        <button class="btn btn-blue"  style="flex:1;font-size:11px;" onclick="autoGenGroups()">✨ 自动生成</button>
-      </div>
       <!-- 层切换 -->
-      <div style="display:flex;border-bottom:1px solid #3a5020;flex-shrink:0;">
-        <div id="layer-btn-0" onclick="setCurrentLayer(0)"
-          style="flex:1;padding:4px;text-align:center;font-size:11px;cursor:pointer;background:#2a3c18;color:#c8e080;border-bottom:2px solid #a0e040;">
-          📋 底层
-        </div>
-        <div id="layer-btn-1" onclick="setCurrentLayer(1)"
-          style="flex:1;padding:4px;text-align:center;font-size:11px;cursor:pointer;color:#80a050;border-bottom:2px solid transparent;">
-          🔼 叠加层
-        </div>
+      <div id="layer-switcher">
+        <div class="ls-title">当前编辑层（点击切换）</div>
+        <div id="layer-btns"></div>
+      </div>
+      <!-- 图集操作栏 -->
+      <div style="padding:4px 5px;border-bottom:1px solid #3a5020;display:flex;gap:3px;flex-shrink:0;">
+        <button class="btn btn-green" style="flex:1;font-size:11px;" onclick="autoGenGroups()">✨ 自动生成</button>
+        <button class="btn btn-blue"  style="flex:1;font-size:11px;" onclick="showGroupManager()">⚙ 管理</button>
       </div>
       <div id="group-list"></div>
     </div>
@@ -231,46 +163,30 @@ body {
     <!-- 工具面板 -->
     <div id="panel-tools" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
       <div id="tool-panel">
-        <div class="tool-item active" id="tool-paint"   onclick="setTool('paint')">  <span>✏️</span> 画笔</div>
-        <div class="tool-item"        id="tool-fill"    onclick="setTool('fill')">   <span>🪣</span> 填充</div>
-        <div class="tool-item"        id="tool-erase"   onclick="setTool('erase')">  <span>🧹</span> 橡皮</div>
+        <div class="tool-item active" id="tool-paint"   onclick="setTool('paint')">  ✏️ 画笔</div>
+        <div class="tool-item"        id="tool-fill"    onclick="setTool('fill')">   🪣 填充</div>
+        <div class="tool-item"        id="tool-erase"   onclick="setTool('erase')">  🧹 橡皮</div>
         <div class="sep"></div>
-        <div style="font-size:11px;color:#80a050;padding:2px 4px;">🚧 阻挡层</div>
-        <div class="tool-item"        id="tool-block"   onclick="setTool('block')">  <span>🚫</span> 刷阻挡</div>
-        <div class="tool-item"        id="tool-unblock" onclick="setTool('unblock')"><span>✅</span> 清阻挡</div>
-        <div class="sep"></div>
-        <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
-          <input type="checkbox" id="show-block" checked onchange="draw()"> 显示阻挡层
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
-          <input type="checkbox" id="show-grid" checked onchange="draw()"> 显示网格
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
-          <input type="checkbox" id="show-overlay" checked onchange="draw()"> 显示叠加层
-        </label>
+        <div style="font-size:11px;color:#607040;padding:2px 4px;">👁 层可见性</div>
       </div>
-      <div id="coord-info">
+      <div id="vis-list" style="padding:0 5px;"></div>
+      <div id="coord-info" style="margin-top:auto;">
         位置：<span id="ci-pos">-</span><br>
         地块：<span id="ci-type">-</span><br>
-        画笔：<span id="ci-brush">草地</span>
+        画笔：<span id="ci-brush">-</span>
       </div>
     </div>
   </div>
 
-  <!-- 地图画布 -->
   <div id="map-wrap">
     <canvas id="map-canvas"></canvas>
   </div>
 </div>
 
-<!-- 底栏 -->
 <div id="bottombar">
   <span id="status">就绪</span>
-  <span style="padding:2px 8px;border-radius:4px;font-size:11px;" id="layer-badge"
-    style="background:#2a4a1a;color:#a0e040;">📋 当前：底层</span>
-  <span style="margin-left:auto;color:#506030;font-size:10px;">
-    左键绘制 · 拖拽连续 · 右键清除 · 图集模式可直接点格子选素材
-  </span>
+  <span id="layer-badge">📋 地块上层</span>
+  <span style="margin-left:auto;color:#4a6030;font-size:10px;">左键绘制 · 拖拽连续 · 右键清除 · 双击格子重命名</span>
 </div>
 
 <!-- 导出弹窗 -->
@@ -289,38 +205,42 @@ body {
 <!-- 分组管理弹窗 -->
 <div class="modal-bg" id="group-modal">
   <div class="modal-box" style="max-width:420px;">
-    <h3>⚙️ 分组管理</h3>
-    <div id="gm-list" style="max-height:260px;overflow-y:auto;margin-bottom:10px;"></div>
-    <div class="form-row">
+    <h3>⚙ 分组管理</h3>
+    <div id="gm-list" style="max-height:240px;overflow-y:auto;margin-bottom:10px;"></div>
+    <div class="frow">
       <label>新建分组名称</label>
-      <input type="text" id="gm-new-name" placeholder="例：夏季草地01" style="margin-bottom:6px;">
-      <label>起始格坐标 (列,行 从0计)</label>
-      <div style="display:flex;gap:6px;">
-        <input type="number" id="gm-new-col" value="0" min="0" style="width:70px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:4px;">
-        <input type="number" id="gm-new-row" value="0" min="0" style="width:70px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:4px;">
-        <span style="font-size:11px;color:#607040;align-self:center;">4×4格组</span>
+      <input type="text" id="gm-new-name" placeholder="例：夏季草地01">
+    </div>
+    <div class="frow" style="display:flex;gap:8px;align-items:flex-end;">
+      <div style="flex:1;">
+        <label>起始列（从0计）</label>
+        <input type="number" id="gm-new-col" value="0" min="0" class="finput" style="width:100%;">
       </div>
+      <div style="flex:1;">
+        <label>起始行（从0计）</label>
+        <input type="number" id="gm-new-row" value="0" min="0" class="finput" style="width:100%;">
+      </div>
+      <button class="btn btn-green" onclick="addGroup()">＋ 新建</button>
     </div>
     <div class="modal-btns">
-      <button class="btn btn-green" onclick="addGroup()">＋ 新建</button>
-      <button class="btn btn-red"   onclick="closeModal('group-modal')">✕ 关闭</button>
+      <button class="btn btn-red" onclick="closeModal('group-modal')">✕ 关闭</button>
     </div>
   </div>
 </div>
 
-<!-- 单格重命名弹窗 -->
+<!-- 重命名弹窗 -->
 <div class="modal-bg" id="rename-modal">
-  <div class="modal-box" style="max-width:340px;">
+  <div class="modal-box" style="max-width:320px;">
     <h3>✏️ 重命名地块</h3>
     <canvas id="rename-preview" width="64" height="64"
       style="width:64px;height:64px;image-rendering:pixelated;border:1px solid #4a6a2a;border-radius:4px;margin-bottom:8px;display:block;"></canvas>
-    <div class="form-row">
-      <label>地块名称</label>
-      <input type="text" id="rename-input" placeholder="名称">
+    <div class="frow">
+      <label>名称</label>
+      <input type="text" id="rename-input">
     </div>
-    <div class="form-row">
+    <div class="frow">
       <label>所属分组</label>
-      <select id="rename-group" style="width:100%;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:5px;padding:6px;font-size:12px;"></select>
+      <select id="rename-group" class="finput" style="width:100%;"></select>
     </div>
     <div class="modal-btns">
       <button class="btn btn-green" onclick="confirmRename()">✓ 确认</button>
@@ -331,145 +251,101 @@ body {
 
 <script>
 // ============================================================
-// Tileset 加载
+// Tileset
 // ============================================================
-const TS_SRC = 'https://weiyi330.github.io/squat-game/tileset.png';
-const TS_COLS = 24, TS_ROWS = 40, TS_PX = 16;
-const tilesetImg = new Image();
-tilesetImg.crossOrigin = 'anonymous';
-tilesetImg.src = TS_SRC;
-let tilesetLoaded = false;
-tilesetImg.onload = () => { tilesetLoaded = true; rebuildGroupList(); draw(); };
+const TS_SRC='https://weiyi330.github.io/squat-game/tileset.png';
+const TS_COLS=24,TS_ROWS=40,TS_PX=16;
+const tilesetImg=new Image(); tilesetImg.crossOrigin='anonymous'; tilesetImg.src=TS_SRC;
+let tilesetLoaded=false;
+tilesetImg.onload=()=>{ tilesetLoaded=true; rebuildGroupList(); draw(); };
 
 // ============================================================
-// 图集分组系统
+// 6层定义
 // ============================================================
-// groups: [ { id, name, col, row, tiles: [ {id, name} × 16 ] } ]
-// tile id = "g{groupId}_r{0..3}_c{0..3}"
-let groups = [];
-let nextGroupId = 1;
+const LAYERS=[
+  { id:'ground_low',  name:'地块下层', icon:'🟫', color:'rgba(60,120,255,0.18)',  desc:'水/泥土/基底' },
+  { id:'ground_high', name:'地块上层', icon:'🟩', color:'rgba(80,200,80,0.18)',   desc:'草地/路径/农田' },
+  { id:'decor',       name:'装饰层',   icon:'🟦', color:'rgba(80,160,255,0.18)',  desc:'花草/石头/小物件' },
+  { id:'overlay',     name:'叠加层',   icon:'🟪', color:'rgba(180,80,255,0.18)', desc:'过渡/边缘混合' },
+  { id:'above',       name:'遮挡层',   icon:'🟥', color:'rgba(255,80,50,0.18)',  desc:'树冠/房顶/遮挡角色' },
+];
+const BLOCK_DEF={ id:'block', name:'阻挡层', icon:'🚧', color:'rgba(255,40,40,0.32)', desc:'碰撞区域' };
 
-// 选中的素材信息
-let selectedTilesetCell = null; // { groupId, localRow, localCol, name }
-let useTilesetMode = false; // 是否用图集素材模式绘制
+let currentLayer='ground_high';
 
-// 自动生成60个分组（4×4一格，tileset 24列×40行 = 6×10 = 60组）
-function autoGenGroups() {
-  if(groups.length > 0 && !confirm('已有分组，重新自动生成会清空现有分组，确认？')) return;
-  groups = [];
-  nextGroupId = 1;
-  const groupCols = TS_COLS / 4; // 6
-  const groupRows = TS_ROWS / 4; // 10
-  let idx = 1;
-  for(let gr=0; gr<groupRows; gr++) {
-    for(let gc=0; gc<groupCols; gc++) {
-      const name = `夏季草地${String(idx).padStart(2,'0')}`;
-      const col = gc * 4, row = gr * 4;
-      const tiles = [];
-      for(let lr=0; lr<4; lr++)
-        for(let lc=0; lc<4; lc++)
-          tiles.push({ id: `g${nextGroupId}_${lr}_${lc}`, name: `${name}_${String(lr*4+lc+1).padStart(2,'0')}` });
-      groups.push({ id: nextGroupId++, name, col, row, tiles });
+// ============================================================
+// 图集分组
+// ============================================================
+let groups=[], nextGroupId=1;
+let selectedTilesetCell=null;
+let useTilesetMode=false;
+
+function autoGenGroups(){
+  if(groups.length>0&&!confirm('重新生成会清空现有分组，确认？')) return;
+  groups=[]; nextGroupId=1;
+  let idx=1;
+  for(let gr=0;gr<(TS_ROWS/4);gr++){
+    for(let gc=0;gc<(TS_COLS/4);gc++){
+      const name=`夏季草地${String(idx).padStart(2,'0')}`;
+      const col=gc*4, row=gr*4;
+      const tiles=[];
+      for(let lr=0;lr<4;lr++) for(let lc=0;lc<4;lc++)
+        tiles.push({id:`g${nextGroupId}_${lr}_${lc}`, name:`${name}_${String(lr*4+lc+1).padStart(2,'0')}`});
+      groups.push({id:nextGroupId++,name,col,row,tiles});
       idx++;
     }
   }
-  rebuildGroupList();
-  setStatus(`已自动生成 ${groups.length} 个图集分组`);
+  rebuildGroupList(); setStatus(`已生成 ${groups.length} 个分组`);
 }
 
-function addGroup() {
-  const name = document.getElementById('gm-new-name').value.trim();
-  const col  = parseInt(document.getElementById('gm-new-col').value);
-  const row  = parseInt(document.getElementById('gm-new-row').value);
-  if(!name) { alert('请输入分组名称'); return; }
-  const tiles = [];
-  for(let lr=0;lr<4;lr++)
-    for(let lc=0;lc<4;lc++)
-      tiles.push({ id:`g${nextGroupId}_${lr}_${lc}`, name:`${name}_${String(lr*4+lc+1).padStart(2,'0')}` });
-  groups.push({ id:nextGroupId++, name, col, row, tiles });
-  rebuildGroupList();
-  renderGroupManager();
-  setStatus(`新建分组：${name}`);
+function addGroup(){
+  const name=document.getElementById('gm-new-name').value.trim();
+  const col=parseInt(document.getElementById('gm-new-col').value);
+  const row=parseInt(document.getElementById('gm-new-row').value);
+  if(!name){alert('请输入名称');return;}
+  const tiles=[];
+  for(let lr=0;lr<4;lr++) for(let lc=0;lc<4;lc++)
+    tiles.push({id:`g${nextGroupId}_${lr}_${lc}`,name:`${name}_${String(lr*4+lc+1).padStart(2,'0')}`});
+  groups.push({id:nextGroupId++,name,col,row,tiles});
+  rebuildGroupList(); renderGM(); setStatus(`新建：${name}`);
 }
 
-function deleteGroup(gid) {
-  if(!confirm('删除此分组？')) return;
-  groups = groups.filter(g=>g.id!==gid);
-  rebuildGroupList();
-  renderGroupManager();
-}
+function deleteGroup(gid){ if(!confirm('删除此分组？')) return; groups=groups.filter(g=>g.id!==gid); rebuildGroupList(); renderGM(); }
+function renameGroup(gid){ const g=groups.find(x=>x.id===gid); if(!g) return; const n=prompt('名称:',g.name); if(n&&n.trim()){g.name=n.trim(); rebuildGroupList(); renderGM();} }
 
-function renameGroup(gid) {
-  const g = groups.find(x=>x.id===gid);
-  if(!g) return;
-  const n = prompt('分组名称:', g.name);
-  if(n && n.trim()) {
-    g.name = n.trim();
-    // 同步更新tiles默认命名前缀（只改没有被自定义的）
-    rebuildGroupList();
-    renderGroupManager();
-  }
-}
+const collapsed=new Set();
+function toggleGroup(gid){ collapsed.has(gid)?collapsed.delete(gid):collapsed.add(gid); rebuildGroupList(); }
 
-// 展开/折叠状态
-const collapsed = new Set();
-function toggleGroup(gid) {
-  collapsed.has(gid) ? collapsed.delete(gid) : collapsed.add(gid);
-  rebuildGroupList();
-}
-
-function rebuildGroupList() {
-  const wrap = document.getElementById('group-list');
-  wrap.innerHTML = '';
-  if(!tilesetLoaded) {
-    wrap.innerHTML = '<div style="padding:12px;color:#607040;font-size:11px;">Tileset 加载中...</div>';
-    return;
-  }
-  if(groups.length === 0) {
-    wrap.innerHTML = '<div style="padding:12px;color:#607040;font-size:11px;">点「自动生成」创建60个图集分组</div>';
-    return;
-  }
-  groups.forEach(g => {
-    const isCollapsed = collapsed.has(g.id);
-    const div = document.createElement('div');
-    div.className = 'group-item';
-    // header
-    div.innerHTML = `
-      <div class="group-header" onclick="toggleGroup(${g.id})">
-        <span class="group-arrow">${isCollapsed?'▶':'▼'}</span>
-        <span class="group-name">${g.name}</span>
-        <span class="group-count">${g.tiles.length}格</span>
-        <span class="group-actions" onclick="event.stopPropagation()">
-          <button onclick="renameGroup(${g.id})">改名</button>
-          <button onclick="deleteGroup(${g.id})">删</button>
-        </span>
-      </div>
-    `;
-    if(!isCollapsed) {
-      const grid = document.createElement('div');
-      grid.className = 'tile-grid';
-      g.tiles.forEach((tile, idx) => {
-        const lr = Math.floor(idx/4), lc = idx%4;
-        const cell = document.createElement('div');
-        cell.className = 'tile-cell';
-        const isSel = selectedTilesetCell && selectedTilesetCell.tileId === tile.id;
-        if(isSel) cell.classList.add('selected');
-        // 小画布
-        const cv = document.createElement('canvas');
-        cv.width = TS_PX; cv.height = TS_PX;
-        const cx = cv.getContext('2d');
-        cx.imageSmoothingEnabled = false;
-        cx.drawImage(tilesetImg,
-          (g.col+lc)*TS_PX, (g.row+lr)*TS_PX, TS_PX, TS_PX,
-          0, 0, TS_PX, TS_PX);
+function rebuildGroupList(){
+  const wrap=document.getElementById('group-list');
+  wrap.innerHTML='';
+  if(!tilesetLoaded){wrap.innerHTML='<div style="padding:10px;color:#607040;font-size:11px;">Tileset 加载中...</div>';return;}
+  if(!groups.length){wrap.innerHTML='<div style="padding:10px;color:#607040;font-size:11px;">点「自动生成」创建图集</div>';return;}
+  groups.forEach(g=>{
+    const isCol=collapsed.has(g.id);
+    const div=document.createElement('div'); div.className='group-item';
+    div.innerHTML=`<div class="group-header" onclick="toggleGroup(${g.id})">
+      <span class="group-arrow">${isCol?'▶':'▼'}</span>
+      <span class="group-name">${g.name}</span>
+      <span class="group-count">${g.tiles.length}</span>
+      <span onclick="event.stopPropagation()">
+        <button class="ga" onclick="renameGroup(${g.id})">改</button>
+        <button class="ga" onclick="deleteGroup(${g.id})">删</button>
+      </span></div>`;
+    if(!isCol){
+      const grid=document.createElement('div'); grid.className='tile-grid';
+      g.tiles.forEach((tile,idx)=>{
+        const lr=Math.floor(idx/4),lc=idx%4;
+        const cell=document.createElement('div'); cell.className='tile-cell';
+        if(selectedTilesetCell&&selectedTilesetCell.tileId===tile.id) cell.classList.add('selected');
+        const cv=document.createElement('canvas'); cv.width=TS_PX; cv.height=TS_PX;
+        const cx=cv.getContext('2d'); cx.imageSmoothingEnabled=false;
+        if(tilesetLoaded) cx.drawImage(tilesetImg,(g.col+lc)*TS_PX,(g.row+lr)*TS_PX,TS_PX,TS_PX,0,0,TS_PX,TS_PX);
         cell.appendChild(cv);
-        const lbl = document.createElement('div');
-        lbl.className = 'tile-label';
-        lbl.title = tile.name;
-        lbl.textContent = tile.name.split('_').slice(-2).join('_');
-        cell.appendChild(lbl);
-        cell.addEventListener('click', () => selectTilesetCell(g.id, lr, lc, tile.id));
-        cell.addEventListener('dblclick', () => openRename(g.id, idx));
+        const lbl=document.createElement('div'); lbl.className='tile-lbl'; lbl.title=tile.name;
+        lbl.textContent=tile.name.split('_').slice(-2).join('_'); cell.appendChild(lbl);
+        cell.addEventListener('click',()=>selectTilesetCell(g.id,lr,lc,tile.id));
+        cell.addEventListener('dblclick',()=>openRename(g.id,idx));
         grid.appendChild(cell);
       });
       div.appendChild(grid);
@@ -478,166 +354,164 @@ function rebuildGroupList() {
   });
 }
 
-function selectTilesetCell(gid, lr, lc, tileId) {
-  const g = groups.find(x=>x.id===gid);
-  if(!g) return;
-  selectedTilesetCell = {
-    gid, lr, lc, tileId,
-    sx: (g.col+lc)*TS_PX, sy: (g.row+lr)*TS_PX,
-    name: g.tiles[lr*4+lc].name
-  };
-  useTilesetMode = true;
-  document.getElementById('ci-brush').textContent = selectedTilesetCell.name;
-  setTool('paint');
-  rebuildGroupList(); // 刷新选中状态
-  setStatus(`已选：${selectedTilesetCell.name}`);
+function selectTilesetCell(gid,lr,lc,tileId){
+  const g=groups.find(x=>x.id===gid); if(!g) return;
+  selectedTilesetCell={gid,lr,lc,tileId,sx:(g.col+lc)*TS_PX,sy:(g.row+lr)*TS_PX,name:g.tiles[lr*4+lc].name};
+  useTilesetMode=true;
+  document.getElementById('ci-brush').textContent=selectedTilesetCell.name;
+  setTool('paint'); rebuildGroupList(); setStatus(`已选：${selectedTilesetCell.name}`);
 }
 
-// 重命名单格
-let renamingGroupId = null, renamingTileIdx = null;
-function openRename(gid, idx) {
-  const g = groups.find(x=>x.id===gid);
-  if(!g) return;
-  renamingGroupId = gid; renamingTileIdx = idx;
-  const tile = g.tiles[idx];
-  const lr = Math.floor(idx/4), lc = idx%4;
-  // 预览
-  const cv = document.getElementById('rename-preview');
-  const cx = cv.getContext('2d');
-  cx.imageSmoothingEnabled = false;
-  cx.clearRect(0,0,64,64);
+let renamingGid=null,renamingIdx=null;
+function openRename(gid,idx){
+  const g=groups.find(x=>x.id===gid); if(!g) return;
+  renamingGid=gid; renamingIdx=idx;
+  const tile=g.tiles[idx]; const lr=Math.floor(idx/4),lc=idx%4;
+  const cv=document.getElementById('rename-preview');
+  const cx=cv.getContext('2d'); cx.imageSmoothingEnabled=false; cx.clearRect(0,0,64,64);
   if(tilesetLoaded) cx.drawImage(tilesetImg,(g.col+lc)*TS_PX,(g.row+lr)*TS_PX,TS_PX,TS_PX,0,0,64,64);
-  document.getElementById('rename-input').value = tile.name;
-  // 分组下拉
-  const sel = document.getElementById('rename-group');
-  sel.innerHTML = groups.map(gg=>`<option value="${gg.id}"${gg.id===gid?' selected':''}>${gg.name}</option>`).join('');
+  document.getElementById('rename-input').value=tile.name;
+  const sel=document.getElementById('rename-group');
+  sel.innerHTML=groups.map(gg=>`<option value="${gg.id}"${gg.id===gid?' selected':''}>${gg.name}</option>`).join('');
   document.getElementById('rename-modal').classList.add('show');
 }
-
-function confirmRename() {
-  const name = document.getElementById('rename-input').value.trim();
-  const toGid = parseInt(document.getElementById('rename-group').value);
-  if(!name) { alert('名称不能为空'); return; }
-  const fromG = groups.find(x=>x.id===renamingGroupId);
-  if(!fromG) return;
-  const tile = fromG.tiles[renamingTileIdx];
-  // 改名
-  tile.name = name;
-  // 移动分组
-  if(toGid !== renamingGroupId) {
-    fromG.tiles.splice(renamingTileIdx, 1);
-    const toG = groups.find(x=>x.id===toGid);
-    if(toG) toG.tiles.push(tile);
-  }
-  closeModal('rename-modal');
-  rebuildGroupList();
-  setStatus(`已重命名为：${name}`);
+function confirmRename(){
+  const name=document.getElementById('rename-input').value.trim();
+  const toGid=parseInt(document.getElementById('rename-group').value);
+  if(!name){alert('名称不能为空');return;}
+  const fromG=groups.find(x=>x.id===renamingGid); if(!fromG) return;
+  const tile=fromG.tiles[renamingIdx]; tile.name=name;
+  if(toGid!==renamingGid){ fromG.tiles.splice(renamingIdx,1); const toG=groups.find(x=>x.id===toGid); if(toG) toG.tiles.push(tile); }
+  closeModal('rename-modal'); rebuildGroupList(); setStatus(`重命名：${name}`);
 }
 
-// ============================================================
-// 分组管理弹窗渲染
-// ============================================================
-function showGroupManager() {
-  renderGroupManager();
-  document.getElementById('group-modal').classList.add('show');
-}
-function renderGroupManager() {
-  const wrap = document.getElementById('gm-list');
-  wrap.innerHTML = '';
-  if(groups.length===0) { wrap.innerHTML='<div style="color:#607040;font-size:11px;">暂无分组</div>'; return; }
-  groups.forEach(g => {
-    const row = document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #3a5020;';
-    row.innerHTML=`
-      <span style="font-size:11px;color:#c0d890;flex:1;">${g.name}</span>
+function showGroupManager(){ renderGM(); document.getElementById('group-modal').classList.add('show'); }
+function renderGM(){
+  const w=document.getElementById('gm-list'); w.innerHTML='';
+  if(!groups.length){w.innerHTML='<div style="color:#607040;font-size:11px;">暂无分组</div>';return;}
+  groups.forEach(g=>{
+    const r=document.createElement('div');
+    r.style.cssText='display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid #3a5020;';
+    r.innerHTML=`<span style="flex:1;font-size:11px;color:#c0d890;">${g.name}</span>
       <span style="font-size:10px;color:#607040;">[${g.col},${g.row}]</span>
-      <button onclick="renameGroup(${g.id})" style="padding:2px 7px;border-radius:3px;border:none;cursor:pointer;background:#3a5020;color:#a0c060;font-size:11px;">改名</button>
-      <button onclick="deleteGroup(${g.id})" style="padding:2px 7px;border-radius:3px;border:none;cursor:pointer;background:#6a2010;color:#f09080;font-size:11px;">删</button>
-    `;
-    wrap.appendChild(row);
+      <button onclick="renameGroup(${g.id})" style="padding:2px 6px;border-radius:3px;border:none;cursor:pointer;background:#3a5020;color:#a0c060;font-size:11px;">改名</button>
+      <button onclick="deleteGroup(${g.id})" style="padding:2px 6px;border-radius:3px;border:none;cursor:pointer;background:#6a2010;color:#f09080;font-size:11px;">删</button>`;
+    w.appendChild(r);
   });
 }
 
 // ============================================================
 // Tab 切换
 // ============================================================
-function switchTab(t) {
+function switchTab(t){
   ['tileset','types','tools'].forEach(x=>{
-    document.getElementById(`tab-${x}`).classList.toggle('active', x===t);
-    document.getElementById(`panel-${x}`).style.display = x===t?'flex':'none';
+    document.getElementById(`tab-${x}`).classList.toggle('active',x===t);
+    document.getElementById(`panel-${x}`).style.display=x===t?'flex':'none';
   });
 }
 
 // ============================================================
-// 地块类型（原有纯色模式）
+// 地块类型
 // ============================================================
-const TILE_TYPES = [
-  { id:0, name:'草地',   color:'#5aaa3a', icon:'🌿' },
-  { id:1, name:'泥土',   color:'#c8945a', icon:'🟫' },
-  { id:2, name:'耕地',   color:'#7a4a22', icon:'🌱' },
-  { id:8, name:'小路',   color:'#d4b870', icon:'🟨' },
-  { id:9, name:'水域',   color:'#5ab8e8', icon:'💧' },
-  { id:7, name:'树木',   color:'#2a7a1a', icon:'🌳' },
-  { id:4, name:'房屋',   color:'#8a6030', icon:'🏠' },
-  { id:5, name:'水井',   color:'#6a7a4a', icon:'🪣' },
-  { id:6, name:'商店',   color:'#7a5a2a', icon:'🏪' },
+const TILE_TYPES=[
+  {id:0,name:'草地',color:'#5aaa3a',icon:'🌿'},
+  {id:1,name:'泥土',color:'#c8945a',icon:'🟫'},
+  {id:2,name:'耕地',color:'#7a4a22',icon:'🌱'},
+  {id:8,name:'小路',color:'#d4b870',icon:'🟨'},
+  {id:9,name:'水域',color:'#5ab8e8',icon:'💧'},
+  {id:7,name:'树木',color:'#2a7a1a',icon:'🌳'},
+  {id:4,name:'房屋',color:'#8a6030',icon:'🏠'},
+  {id:5,name:'水井',color:'#6a7a4a',icon:'🪣'},
+  {id:6,name:'商店',color:'#7a5a2a',icon:'🏪'},
 ];
-const TILE_TYPE_MAP = {};
-TILE_TYPES.forEach(t => TILE_TYPE_MAP[t.id] = t);
+const TILE_TYPE_MAP={};
+TILE_TYPES.forEach(t=>TILE_TYPE_MAP[t.id]=t);
+let selectedTypeId=0;
 
-let selectedTypeId = 0;
-
-function buildTypeList() {
-  const list = document.getElementById('type-list');
-  list.innerHTML = '';
-  TILE_TYPES.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'type-item' + (t.id===selectedTypeId?' active':'');
-    div.id = `type-${t.id}`;
-    div.innerHTML = `<div class="type-dot" style="background:${t.color}">${t.icon}</div><span>${t.name}</span>`;
-    div.onclick = () => { selectedTypeId=t.id; useTilesetMode=false; selectedTilesetCell=null;
-      buildTypeList(); document.getElementById('ci-brush').textContent=t.name; setTool('paint'); };
+function buildTypeList(){
+  const list=document.getElementById('type-list'); list.innerHTML='';
+  TILE_TYPES.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='type-item'+(t.id===selectedTypeId?' active':'');
+    div.id=`type-${t.id}`;
+    div.innerHTML=`<div class="type-dot" style="background:${t.color}">${t.icon}</div><span>${t.name}</span>`;
+    div.onclick=()=>{selectedTypeId=t.id;useTilesetMode=false;selectedTilesetCell=null;
+      buildTypeList();document.getElementById('ci-brush').textContent=t.name;setTool('paint');};
     list.appendChild(div);
   });
 }
 
 // ============================================================
-// 地图状态
+// 层切换面板
 // ============================================================
-let MAP_COLS=18, MAP_ROWS=14;
-let mapData=[], blockData=[];
-// tilesetLayer: 每格存 {sx,sy} 或 null
-let tilesetLayer=[];
-// overlayLayer: 叠加层，每格存 {sx,sy} 或 null
-let overlayLayer=[];
-let TILE_SIZE=40;
-let currentLayer=0; // 0=底层 1=叠加层
+function buildLayerSwitcher(){
+  const wrap=document.getElementById('layer-btns'); wrap.innerHTML='';
+  LAYERS.forEach(l=>{
+    const btn=document.createElement('div');
+    btn.className='layer-btn'+(l.id===currentLayer?' active':'');
+    btn.id=`lbtn-${l.id}`;
+    btn.title=l.desc;
+    btn.textContent=l.icon+' '+l.name;
+    btn.onclick=()=>setCurrentLayer(l.id);
+    wrap.appendChild(btn);
+  });
+  // 阻挡层单独
+  const bb=document.createElement('div');
+  bb.className='layer-btn block-btn'+(currentLayer==='block'?' active':'');
+  bb.id='lbtn-block'; bb.title=BLOCK_DEF.desc;
+  bb.textContent=BLOCK_DEF.icon+' '+BLOCK_DEF.name;
+  bb.onclick=()=>setCurrentLayer('block');
+  wrap.appendChild(bb);
+}
 
-function initMap(cols, rows) {
-  MAP_COLS=cols; MAP_ROWS=rows;
-  mapData=[]; blockData=[]; tilesetLayer=[]; overlayLayer=[];
+function buildVisList(){
+  const wrap=document.getElementById('vis-list'); wrap.innerHTML='';
+  [...LAYERS,BLOCK_DEF].forEach(l=>{
+    const row=document.createElement('label');
+    row.className='vis-row';
+    row.innerHTML=`<input type="checkbox" id="vis-${l.id}" checked onchange="draw()"> ${l.icon} ${l.name}`;
+    wrap.appendChild(row);
+  });
+}
+
+function setCurrentLayer(lid){
+  currentLayer=lid;
+  buildLayerSwitcher();
+  const all=[...LAYERS,BLOCK_DEF];
+  const l=all.find(x=>x.id===lid);
+  const badge=document.getElementById('layer-badge');
+  if(badge) badge.textContent=(l?l.icon+' '+l.name:'?');
+  setStatus(l?`编辑层: ${l.name}（${l.desc}）`:'');
+}
+
+// ============================================================
+// 地图数据
+// ============================================================
+let MAP_COLS=18,MAP_ROWS=14,TILE_SIZE=40;
+let mapData=[],blockData={};
+let layerData={};
+
+function initMap(cols,rows){
+  MAP_COLS=cols;MAP_ROWS=rows;
+  mapData=[];blockData=[];layerData={};
   for(let r=0;r<rows;r++){
     mapData[r]=new Array(cols).fill(0);
     blockData[r]=new Array(cols).fill(0);
-    tilesetLayer[r]=new Array(cols).fill(null);
-    overlayLayer[r]=new Array(cols).fill(null);
   }
+  LAYERS.forEach(l=>{ layerData[l.id]=[]; for(let r=0;r<rows;r++) layerData[l.id][r]=new Array(cols).fill(null); });
   if(cols===18&&rows===14) applyDefaultTerrain();
 }
 
 function applyDefaultTerrain(){
   for(let c=3;c<15;c++) mapData[MAP_ROWS-1][c]=8;
   for(let r=4;r<MAP_ROWS;r++) mapData[r][8]=8;
-  mapData[2][3]=4; mapData[2][13]=6; mapData[5][14]=5;
-  [[1,7],[1,8],[1,9],[2,7],[2,8]].forEach(([r,c])=>mapData[r][c]=9);
-  [[0,0],[0,1],[0,16],[0,17],[1,0],[1,17],[12,0],[12,17],[13,0],[13,17],
-   [0,5],[0,11],[3,1],[3,16]].forEach(([r,c])=>{
-    if(r<MAP_ROWS&&c<MAP_COLS){ mapData[r][c]=7; blockData[r][c]=1; }
+  mapData[2][3]=4;mapData[2][13]=6;mapData[5][14]=5;
+  [[1,7],[1,8],[1,9],[2,7],[2,8]].forEach(([r,c])=>{mapData[r][c]=9;blockData[r][c]=1;});
+  [[0,0],[0,1],[0,16],[0,17],[1,0],[1,17],[12,0],[12,17],[13,0],[13,17],[0,5],[0,11],[3,1],[3,16]].forEach(([r,c])=>{
+    if(r<MAP_ROWS&&c<MAP_COLS){mapData[r][c]=7;blockData[r][c]=1;}
   });
-  [[1,7],[1,8],[1,9],[2,7],[2,8]].forEach(([r,c])=>blockData[r][c]=1);
-  mapData[2][3]&&(blockData[2][3]=1);
-  mapData[2][13]&&(blockData[2][13]=1);
-  mapData[5][14]&&(blockData[5][14]=1);
+  [mapData[2][3],mapData[2][13],mapData[5][14]];
+  [[2,3],[2,13],[5,14]].forEach(([r,c])=>blockData[r][c]=1);
 }
 
 // ============================================================
@@ -645,313 +519,217 @@ function applyDefaultTerrain(){
 // ============================================================
 const canvas=document.getElementById('map-canvas');
 const ctx=canvas.getContext('2d');
+let hoverR=-1,hoverC=-1;
 
-function resizeCanvas(){
-  canvas.width=MAP_COLS*TILE_SIZE; canvas.height=MAP_ROWS*TILE_SIZE;
+function resizeCanvas(){ canvas.width=MAP_COLS*TILE_SIZE; canvas.height=MAP_ROWS*TILE_SIZE; }
+
+function isLayerVisible(lid){ return document.getElementById(`vis-${lid}`)?.checked!==false; }
+
+function drawCell(r,c){
+  const x=c*TILE_SIZE,y=r*TILE_SIZE;
+
+  // 地块下层
+  if(isLayerVisible('ground_low')){
+    const cell=layerData['ground_low']?.[r]?.[c];
+    if(cell&&tilesetLoaded){ ctx.imageSmoothingEnabled=false; ctx.drawImage(tilesetImg,cell.sx,cell.sy,TS_PX,TS_PX,x,y,TILE_SIZE,TILE_SIZE); }
+    else{ ctx.fillStyle='#2a4a18'; ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE); }
+  }
+
+  // 地块上层（含 mapData 类型）
+  if(isLayerVisible('ground_high')){
+    const cell=layerData['ground_high']?.[r]?.[c];
+    if(cell&&tilesetLoaded){ ctx.imageSmoothingEnabled=false; ctx.drawImage(tilesetImg,cell.sx,cell.sy,TS_PX,TS_PX,x,y,TILE_SIZE,TILE_SIZE); }
+    else{
+      const tid=mapData[r][c];const type=TILE_TYPE_MAP[tid]||TILE_TYPE_MAP[0];
+      ctx.fillStyle=type.color; ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
+      if(tid!==0){ ctx.font=`${TILE_SIZE*0.48}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(type.icon,x+TILE_SIZE/2,y+TILE_SIZE/2); }
+      else if(tilesetLoaded&&groups.length){ const g=groups[0]; ctx.imageSmoothingEnabled=false;
+        ctx.drawImage(tilesetImg,g.col*TS_PX,g.row*TS_PX,TS_PX,TS_PX,x,y,TILE_SIZE,TILE_SIZE); }
+    }
+  }
+
+  // 装饰层 / 叠加层 / 遮挡层
+  ['decor','overlay','above'].forEach(lid=>{
+    if(!isLayerVisible(lid)) return;
+    const cell=layerData[lid]?.[r]?.[c];
+    if(cell&&tilesetLoaded){ ctx.imageSmoothingEnabled=false; ctx.drawImage(tilesetImg,cell.sx,cell.sy,TS_PX,TS_PX,x,y,TILE_SIZE,TILE_SIZE); }
+  });
+
+  // 阻挡层
+  if(isLayerVisible('block')&&blockData[r]?.[c]){
+    ctx.fillStyle='rgba(255,40,40,0.28)'; ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
+    ctx.font=`${TILE_SIZE*0.3}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🚫',x+TILE_SIZE/2,y+TILE_SIZE/2);
+  }
 }
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const showGrid=document.getElementById('show-grid')?.checked!==false;
-  const showBlock=document.getElementById('show-block')?.checked!==false;
-  const showOverlay=document.getElementById('show-overlay')?.checked!==false;
+  for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++) drawCell(r,c);
 
+  // 当前层颜色覆盖 + 网格
+  const allL=[...LAYERS,BLOCK_DEF];
+  const curL=allL.find(l=>l.id===currentLayer);
   for(let r=0;r<MAP_ROWS;r++){
     for(let c=0;c<MAP_COLS;c++){
-      const x=c*TILE_SIZE, y=r*TILE_SIZE;
-      const tid=mapData[r][c];
-      const type=TILE_TYPE_MAP[tid]||TILE_TYPE_MAP[0];
-
-      // 底色
-      ctx.fillStyle=type.color;
-      ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
-
-      // tileset 贴图层
-      const ts=tilesetLayer[r][c];
-      if(ts && tilesetLoaded){
-        ctx.imageSmoothingEnabled=false;
-        ctx.drawImage(tilesetImg, ts.sx, ts.sy, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
-      } else if(tid===0 && tilesetLoaded && groups.length>0){
-        // 草地默认贴第1组第1格
-        const g=groups[0];
-        ctx.imageSmoothingEnabled=false;
-        ctx.drawImage(tilesetImg, g.col*TS_PX, g.row*TS_PX, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
-      }
-
-      // 建筑图标
-      if(tid!==0){
-        ctx.font=`${TILE_SIZE*0.5}px serif`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(type.icon, x+TILE_SIZE/2, y+TILE_SIZE/2);
-      }
-
-      // 叠加层
-      const ov=overlayLayer[r][c];
-      if(ov && tilesetLoaded && showOverlay){
-        ctx.imageSmoothingEnabled=false;
-        ctx.drawImage(tilesetImg, ov.sx, ov.sy, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
-      }
-
-      // 当前层高亮边框
-      if(currentLayer===1 && hoverR===r && hoverC===c){
-        ctx.strokeStyle='rgba(160,120,255,0.9)'; ctx.lineWidth=2;
-        ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE);
-      }
-      if(showGrid){
-        ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=0.5;
-        ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE);
-      }
+      const x=c*TILE_SIZE,y=r*TILE_SIZE;
+      if(showGrid){ ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE); }
     }
-  }
-
-  // 阻挡层
-  if(showBlock){
-    for(let r=0;r<MAP_ROWS;r++)
-      for(let c=0;c<MAP_COLS;c++)
-        if(blockData[r][c]){
-          const x=c*TILE_SIZE,y=r*TILE_SIZE;
-          ctx.fillStyle='rgba(255,40,40,0.3)';
-          ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
-          ctx.font=`${TILE_SIZE*0.38}px serif`;
-          ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillText('🚫',x+TILE_SIZE/2,y+TILE_SIZE/2);
-        }
   }
 
   // 悬停高亮
   if(hoverR>=0&&hoverC>=0&&hoverR<MAP_ROWS&&hoverC<MAP_COLS){
-    ctx.strokeStyle='rgba(255,220,60,0.9)'; ctx.lineWidth=2;
-    ctx.strokeRect(hoverC*TILE_SIZE,hoverR*TILE_SIZE,TILE_SIZE,TILE_SIZE);
+    const x=hoverC*TILE_SIZE,y=hoverR*TILE_SIZE;
+    if(curL){ ctx.fillStyle=curL.color; ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE); }
+    ctx.strokeStyle='rgba(255,220,60,0.9)';ctx.lineWidth=2;ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE);
   }
 }
 
 // ============================================================
 // 绘制操作
 // ============================================================
+let currentTool='paint',isDrawing=false;
+
 function paintCell(r,c){
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
-  if(currentLayer===1){
-    // 叠加层：只记录 tileset 坐标
-    if(useTilesetMode && selectedTilesetCell){
-      overlayLayer[r][c]={ sx:selectedTilesetCell.sx, sy:selectedTilesetCell.sy };
-    }
-    return;
-  }
-  // 底层
-  if(useTilesetMode && selectedTilesetCell){
-    mapData[r][c]=0;
-    tilesetLayer[r][c]={ sx:selectedTilesetCell.sx, sy:selectedTilesetCell.sy };
-  } else {
+  if(currentLayer==='block'){ blockData[r][c]=1; return; }
+  const lid=currentLayer;
+  if(!layerData[lid]) return;
+  if(useTilesetMode&&selectedTilesetCell){
+    if(lid==='ground_high') mapData[r][c]=0;
+    layerData[lid][r][c]={sx:selectedTilesetCell.sx,sy:selectedTilesetCell.sy};
+  } else if(lid==='ground_high'){
     mapData[r][c]=selectedTypeId;
-    tilesetLayer[r][c]=null;
+    layerData[lid][r][c]=null;
     if([4,5,6,7,9].includes(selectedTypeId)) blockData[r][c]=1;
   }
 }
 
 function eraseCell(r,c){
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
-  if(currentLayer===1){
-    overlayLayer[r][c]=null;
-    return;
-  }
-  mapData[r][c]=0; tilesetLayer[r][c]=null;
+  if(currentLayer==='block'){ blockData[r][c]=0; return; }
+  const lid=currentLayer;
+  if(!layerData[lid]) return;
+  layerData[lid][r][c]=null;
+  if(lid==='ground_high') mapData[r][c]=0;
 }
 
-function blockCell(r,c,v){
-  if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
-  blockData[r][c]=v;
-}
-
-// 填充（BFS）
 function floodFill(sr,sc){
   if(sr<0||sr>=MAP_ROWS||sc<0||sc>=MAP_COLS) return;
-  const oldT=mapData[sr][sc], oldTS=JSON.stringify(tilesetLayer[sr][sc]);
-  const queue=[[sr,sc]], visited=new Set();
+  const lid=currentLayer;
+  if(lid==='block') return;
+  const oldT=mapData[sr][sc],oldC=JSON.stringify(layerData[lid]?.[sr]?.[sc]);
+  const queue=[[sr,sc]],visited=new Set();
   while(queue.length){
-    const [r,c]=queue.shift();
-    const key=r*1000+c;
-    if(visited.has(key)) continue;
-    if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) continue;
-    if(mapData[r][c]!==oldT || JSON.stringify(tilesetLayer[r][c])!==oldTS) continue;
-    visited.add(key);
-    paintCell(r,c);
+    const [r,c]=queue.shift();const key=r*1000+c;
+    if(visited.has(key)||r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) continue;
+    if(mapData[r][c]!==oldT||JSON.stringify(layerData[lid]?.[r]?.[c])!==oldC) continue;
+    visited.add(key); paintCell(r,c);
     queue.push([r-1,c],[r+1,c],[r,c-1],[r,c+1]);
   }
 }
 
-// ============================================================
-// 鼠标/触摸交互
-// ============================================================
-let isDrawing=false, hoverR=-1, hoverC=-1;
-let currentTool='paint';
-
-function getCell(e){
-  const rect=canvas.getBoundingClientRect();
-  const sx=canvas.width/rect.width, sy=canvas.height/rect.height;
-  return {
-    r:Math.floor((e.clientY-rect.top)*sy/TILE_SIZE),
-    c:Math.floor((e.clientX-rect.left)*sx/TILE_SIZE)
-  };
-}
-
 function applyTool(r,c,btn=0){
   if(btn===2||currentTool==='erase'){ eraseCell(r,c); return; }
-  if(currentTool==='block')   { blockCell(r,c,1); return; }
-  if(currentTool==='unblock') { blockCell(r,c,0); return; }
-  if(currentTool==='fill')    { floodFill(r,c); return; }
+  if(currentTool==='fill'){ floodFill(r,c); return; }
   paintCell(r,c);
 }
 
-canvas.addEventListener('mousedown',e=>{
-  e.preventDefault(); isDrawing=true;
-  const {r,c}=getCell(e);
-  applyTool(r,c,e.button); draw(); setStatus(`(${c},${r})`);
-});
-canvas.addEventListener('mousemove',e=>{
-  const {r,c}=getCell(e); hoverR=r; hoverC=c;
+// 鼠标/触摸
+function getCell(e){ const rect=canvas.getBoundingClientRect();const sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+  return{r:Math.floor((e.clientY-rect.top)*sy/TILE_SIZE),c:Math.floor((e.clientX-rect.left)*sx/TILE_SIZE)};}
+
+canvas.addEventListener('mousedown',e=>{e.preventDefault();isDrawing=true;const{r,c}=getCell(e);applyTool(r,c,e.button);draw();setStatus(`(${c},${r})`);});
+canvas.addEventListener('mousemove',e=>{const{r,c}=getCell(e);hoverR=r;hoverC=c;
   document.getElementById('ci-pos').textContent=`(${c},${r})`;
   const tid=(r>=0&&r<MAP_ROWS&&c>=0&&c<MAP_COLS)?mapData[r][c]:-1;
   document.getElementById('ci-type').textContent=tid>=0?(TILE_TYPE_MAP[tid]?.name||'?'):'-';
-  if(isDrawing){
-    if(e.buttons===1) applyTool(r,c,0);
-    else if(e.buttons===2) eraseCell(r,c);
-  }
-  draw();
-});
-canvas.addEventListener('mouseup',()=>{ isDrawing=false; });
-canvas.addEventListener('mouseleave',()=>{ isDrawing=false; hoverR=-1; hoverC=-1; draw(); });
+  if(isDrawing){if(e.buttons===1)applyTool(r,c,0);else if(e.buttons===2)eraseCell(r,c);}
+  draw();});
+canvas.addEventListener('mouseup',()=>isDrawing=false);
+canvas.addEventListener('mouseleave',()=>{isDrawing=false;hoverR=-1;hoverC=-1;draw();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('touchstart',e=>{e.preventDefault();const{r,c}=getCell(e.touches[0]);applyTool(r,c,0);draw();},{passive:false});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();const{r,c}=getCell(e.touches[0]);
+  if(currentTool==='erase')eraseCell(r,c);else paintCell(r,c);draw();},{passive:false});
 
-canvas.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  const {r,c}=getCell(e.touches[0]);
-  applyTool(r,c,0); draw();
-},{passive:false});
-canvas.addEventListener('touchmove',e=>{
-  e.preventDefault();
-  const {r,c}=getCell(e.touches[0]);
-  if(currentTool==='block') blockCell(r,c,1);
-  else if(currentTool==='unblock') blockCell(r,c,0);
-  else if(currentTool==='erase') eraseCell(r,c);
-  else if(currentTool==='paint') paintCell(r,c);
-  draw();
-},{passive:false});
-
-// ============================================================
-// 工具选择
-// ============================================================
-function setTool(tool){
-  currentTool=tool;
-  ['paint','fill','erase','block','unblock'].forEach(t=>{
-    document.getElementById(`tool-${t}`)?.classList.toggle('active',t===tool);
-  });
-}
-
-function setCurrentLayer(layer){
-  currentLayer=layer;
-  [0,1].forEach(i=>{
-    const btn=document.getElementById(`layer-btn-${i}`);
-    if(!btn) return;
-    btn.style.borderBottom = i===layer ? '2px solid #a0e040' : '2px solid transparent';
-    btn.style.color = i===layer ? '#c8e080' : '#80a050';
-    btn.style.background = i===layer ? '#2a3c18' : 'transparent';
-  });
-  const badge=document.getElementById('layer-badge');
-  if(badge) badge.textContent = layer===0 ? '📋 当前：底层' : '🔼 当前：叠加层';
-  setStatus(layer===0 ? '切换到底层' : '切换到叠加层（仅支持图集素材）');
+function setTool(t){
+  currentTool=t;
+  ['paint','fill','erase'].forEach(x=>document.getElementById(`tool-${x}`)?.classList.toggle('active',x===t));
 }
 
 // ============================================================
 // 地图操作
 // ============================================================
-function fillAll(){
-  for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++) paintCell(r,c);
-  draw(); setStatus('全图填充完成');
-}
+function fillAll(){for(let r=0;r<MAP_ROWS;r++)for(let c=0;c<MAP_COLS;c++)paintCell(r,c);draw();setStatus('全填完成');}
 function clearMap(){
-  if(!confirm('清空地图？')) return;
-  for(let r=0;r<MAP_ROWS;r++){
-  mapData[r].fill(0); blockData[r].fill(0); tilesetLayer[r].fill(null); overlayLayer[r].fill(null);
-  }
-  draw(); setStatus('地图已清空');
+  if(!confirm('清空当前层？')) return;
+  if(currentLayer==='block'){for(let r=0;r<MAP_ROWS;r++)blockData[r].fill(0);}
+  else{const lid=currentLayer;for(let r=0;r<MAP_ROWS;r++){layerData[lid][r].fill(null);if(lid==='ground_high')mapData[r].fill(0);}}
+  draw();setStatus('已清空当前层');
 }
 function resizeMap(){
   const cols=parseInt(document.getElementById('inp-cols').value);
   const rows=parseInt(document.getElementById('inp-rows').value);
-  if(cols<5||rows<5||cols>60||rows>60){ alert('范围 5-60'); return; }
-  const oldMap=mapData.map(r=>[...r]);
-  const oldBlock=blockData.map(r=>[...r]);
-  const oldTs=tilesetLayer.map(r=>[...r]);
-  const oldOv=overlayLayer.map(r=>[...r]);
+  if(cols<5||rows<5||cols>60||rows>60){alert('范围5-60');return;}
+  const oMap=mapData.map(r=>[...r]),oBlock=blockData.map(r=>[...r]);
+  const oLayers={};LAYERS.forEach(l=>{oLayers[l.id]=layerData[l.id].map(r=>[...r]);});
   initMap(cols,rows);
-  for(let r=0;r<Math.min(rows,oldMap.length);r++)
-    for(let c=0;c<Math.min(cols,(oldMap[r]||[]).length);c++){
-      mapData[r][c]=oldMap[r][c];
-      blockData[r][c]=(oldBlock[r]||[])[c]||0;
-      tilesetLayer[r][c]=(oldTs[r]||[])[c]||null;
-      overlayLayer[r][c]=(oldOv[r]||[])[c]||null;
-    }
-  resizeCanvas(); draw(); setStatus(`地图 ${cols}×${rows}`);
+  for(let r=0;r<Math.min(rows,oMap.length);r++)for(let c=0;c<Math.min(cols,(oMap[r]||[]).length);c++){
+    mapData[r][c]=oMap[r][c]; blockData[r][c]=(oBlock[r]||[])[c]||0;
+    LAYERS.forEach(l=>{layerData[l.id][r][c]=(oLayers[l.id]?.[r]||[])[c]||null;});
+  }
+  resizeCanvas();draw();setStatus(`地图 ${cols}×${rows}`);
 }
-function changeTileSize(){
-  TILE_SIZE=parseInt(document.getElementById('tile-size-sel').value);
-  resizeCanvas(); draw();
-}
+function changeTileSize(){TILE_SIZE=parseInt(document.getElementById('tile-size-sel').value);resizeCanvas();draw();}
 
 // ============================================================
-// 导入导出
+// 导出/导入
 // ============================================================
 function exportMap(){
-  const data={
-    cols:MAP_COLS, rows:MAP_ROWS,
-    tiles:mapData.map(r=>[...r]),
-    blocked:blockData.map(r=>[...r]),
-    tilesetLayer:tilesetLayer.map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null)),
-    overlayLayer:overlayLayer.map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null)),
-    groups:groups.map(g=>({id:g.id,name:g.name,col:g.col,row:g.row,
-      tiles:g.tiles.map(t=>({id:t.id,name:t.name}))}))
-  };
-  document.getElementById('export-text').value=JSON.stringify(data,null,2);
+  const d={cols:MAP_COLS,rows:MAP_ROWS,tiles:mapData.map(r=>[...r]),blocked:blockData.map(r=>[...r]),layers:{}};
+  LAYERS.forEach(l=>{d.layers[l.id]=layerData[l.id].map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null));});
+  d.groups=groups.map(g=>({id:g.id,name:g.name,col:g.col,row:g.row,tiles:g.tiles.map(t=>({id:t.id,name:t.name}))}));
+  document.getElementById('export-text').value=JSON.stringify(d,null,2);
   document.getElementById('export-modal').classList.add('show');
 }
 function importMap(){
-  const raw=prompt('粘贴地图JSON:');
-  if(!raw) return;
+  const raw=prompt('粘贴地图JSON:'); if(!raw) return;
   try{
     const d=JSON.parse(raw);
-    MAP_COLS=d.cols; MAP_ROWS=d.rows;
-    mapData=d.tiles.map(r=>[...r]);
+    MAP_COLS=d.cols;MAP_ROWS=d.rows;mapData=d.tiles.map(r=>[...r]);
     blockData=d.blocked?d.blocked.map(r=>[...r]):mapData.map(r=>r.map(t=>[4,5,6,7,9].includes(t)?1:0));
-    tilesetLayer=d.tilesetLayer?d.tilesetLayer.map(r=>r.map(c=>c)):mapData.map(r=>new Array(r.length).fill(null));
-    overlayLayer=d.overlayLayer?d.overlayLayer.map(r=>r.map(c=>c)):mapData.map(r=>new Array(r.length).fill(null));
-    if(d.groups) groups=d.groups, nextGroupId=Math.max(...groups.map(g=>g.id))+1;
+    layerData={};
+    LAYERS.forEach(l=>{
+      layerData[l.id]=d.layers?.[l.id]?d.layers[l.id].map(r=>r.map(c=>c)):
+        mapData.map(r=>new Array(r.length).fill(null));
+    });
+    if(d.groups){groups=d.groups;nextGroupId=Math.max(...groups.map(g=>g.id))+1;}
     document.getElementById('inp-cols').value=MAP_COLS;
     document.getElementById('inp-rows').value=MAP_ROWS;
-    resizeCanvas(); rebuildGroupList(); draw();
-    setStatus(`已导入 ${MAP_COLS}×${MAP_ROWS}`);
-  }catch(e){ alert('JSON错误:'+e.message); }
+    resizeCanvas();rebuildGroupList();draw();setStatus(`已导入 ${MAP_COLS}×${MAP_ROWS}`);
+  }catch(e){alert('JSON错误:'+e.message);}
 }
-function copyExport(){ const ta=document.getElementById('export-text'); ta.select(); document.execCommand('copy'); setStatus('已复制 ✅'); }
+function copyExport(){const ta=document.getElementById('export-text');ta.select();document.execCommand('copy');setStatus('已复制 ✅');}
 function downloadExport(){
   const blob=new Blob([document.getElementById('export-text').value],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`farm_map_${MAP_COLS}x${MAP_ROWS}.json`; a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`farm_map_${MAP_COLS}x${MAP_ROWS}.json`;a.click();
 }
-
-// ============================================================
-// 工具函数
-// ============================================================
-function closeModal(id){ document.getElementById(id).classList.remove('show'); }
-function setStatus(msg){ document.getElementById('status').textContent=msg; }
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function setStatus(msg){document.getElementById('status').textContent=msg;}
 
 // ============================================================
 // 初始化
 // ============================================================
 initMap(18,14);
 resizeCanvas();
+buildLayerSwitcher();
+buildVisList();
 buildTypeList();
 draw();
-setStatus('就绪 — 点「自动生成」加载图集分组，或直接绘制地图');
+setStatus('就绪 — 选择图集素材或地块类型，点击地图绘制');
 </script>
 </body>
 </html>
