@@ -186,6 +186,7 @@ canvas { display:block; }
     <div id="toolbar">
       <div class="tool-btn active" data-tool="hoe" onclick="setTool(this,'hoe')"><span class="tool-icon">⛏️</span><span class="tool-name">锄地</span></div>
       <div class="tool-btn" data-tool="seed" onclick="setTool(this,'seed')"><span class="tool-icon">🌱</span><span class="tool-name">播种</span></div>
+      <div class="tool-btn" id="seed-switch-btn" onclick="switchSeed()" title="切换种子"><span class="tool-icon" id="seed-switch-icon">🌾</span><span class="tool-name" id="seed-switch-name">小麦</span></div>
       <div class="tool-btn" data-tool="water" onclick="setTool(this,'water')"><span class="tool-icon">💧</span><span class="tool-name">浇水</span></div>
       <div class="tool-btn" data-tool="harvest" onclick="setTool(this,'harvest')"><span class="tool-icon">🌾</span><span class="tool-name">收获</span></div>
       <div class="tool-btn" data-tool="shop" onclick="openShop()"><span class="tool-icon">🏪</span><span class="tool-name">商店</span></div>
@@ -230,6 +231,7 @@ function resize() {
   canvas.height = wrap.clientHeight;
 }
 resize();
+updateSeedSwitchUI();
 window.addEventListener('resize', resize);
 
 // ============================================================
@@ -683,6 +685,31 @@ function setTool(el,tool){
   el.classList.add('active'); currentTool=tool;
 }
 
+function switchSeed(){
+  // 循环切换所有有库存的种子
+  const allTypes = Object.keys(CROPS);
+  const withStock = allTypes.filter(t => (seedBag[t]||0) > 0);
+  if(withStock.length === 0){ showToast('没有任何种子，去商店购买！'); return; }
+  const idx = withStock.indexOf(selectedSeed);
+  const nextIdx = (idx + 1) % withStock.length;
+  selectedSeed = withStock[nextIdx];
+  // 自动切换到播种工具
+  const seedBtn = document.querySelector('[data-tool="seed"]');
+  setTool(seedBtn, 'seed');
+  updateSeedSwitchUI();
+  showToast(`切换种子：${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}(剩${seedBag[selectedSeed]}袋)`);
+}
+
+function updateSeedSwitchUI(){
+  const cfg = CROPS[selectedSeed];
+  const stock = seedBag[selectedSeed] || 0;
+  document.getElementById('seed-switch-icon').textContent = cfg.icon;
+  document.getElementById('seed-switch-name').textContent = cfg.name + (stock>0 ? `x${stock}` : '无');
+  // 没库存时变灯
+  const btn = document.getElementById('seed-switch-btn');
+  btn.style.opacity = stock > 0 ? '1' : '0.4';
+}
+
 function nextDay(){
   day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
   for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
@@ -700,7 +727,7 @@ function buySeed(type){
   const cfg=CROPS[type];
   if(coins<cfg.cost){ showToast('铜钱不够！'); return; }
   coins-=cfg.cost; seedBag[type]=(seedBag[type]||0)+1;
-  selectedSeed=type; updateHUD();
+  selectedSeed=type; updateHUD(); updateSeedSwitchUI();
   document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('[data-tool="seed"]').classList.add('active');
   currentTool='seed';
