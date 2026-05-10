@@ -216,6 +216,10 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
         <button class="btn btn-teal"   style="flex:1;font-size:11px;" onclick="autoGenGroups()">✨ 自动生成</button>
         <button class="btn btn-green"  style="flex:1;font-size:11px;" onclick="openAddParent()">＋ 父组</button>
       </div>
+      <div style="display:flex;gap:3px;padding:3px 5px;border-bottom:1px solid #3a5020;flex-shrink:0;">
+        <button class="btn btn-blue" style="flex:1;font-size:10px;" onclick="openAddChildFromBar()">＋ 新建子组</button>
+        <button class="btn btn-orange" style="flex:1;font-size:10px;" onclick="openAppendTileFromBar()">+ 新增素材</button>
+      </div>
       <!-- 分组树 -->
       <div id="group-tree"></div>
     </div>
@@ -317,7 +321,20 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
   </div>
 </div>
 
-<!-- ══════════════════ 弹窗：重命名 ══════════════════ -->
+<!-- 弹窗：移动子组 -->
+<div class="modal-bg" id="move-child-modal">
+  <div class="modal-box" style="max-width:320px;">
+    <h3>➡️ 移动子组</h3>
+    <div class="frow">
+      <label>选择目标父组</label>
+      <select id="move-target-pg" class="finput" style="width:100%;"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-green" onclick="confirmMoveChild()">✓ 移动</button>
+      <button class="btn btn-red"   onclick="closeModal('move-child-modal')">✕ 取消</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="rename-modal">
   <div class="modal-box" style="max-width:300px;">
     <h3>✏️ 重命名</h3>
@@ -383,6 +400,7 @@ tilesetImg.crossOrigin = 'anonymous';
 tilesetImg.src = TS_SRC;
 let tilesetLoaded = false;
 tilesetImg.onload = () => { tilesetLoaded = true; rebuildGroupTree(); draw(); };
+tilesetImg.onerror = () => { console.warn('Tileset 加载失败'); rebuildGroupTree(); };
 
 // ═══════════════════════════════════════════════
 // 6层定义
@@ -576,6 +594,66 @@ function deleteChildGroup(pgId, cgId) {
   rebuildGroupTree();
 }
 
+// 移动子组
+let _movePgId = null, _moveCgId = null;
+function openMoveChild(pgId, cgId) {
+  _movePgId = pgId; _moveCgId = cgId;
+  const sel = document.getElementById('move-target-pg');
+  sel.innerHTML = parentGroups
+    .filter(p => p.id !== pgId)
+    .map(p => `<option value="${p.id}">${p.name}</option>`)
+    .join('');
+  if (!sel.innerHTML) { alert('没有其他父组可移动'); return; }
+  document.getElementById('move-child-modal').classList.add('show');
+}
+function confirmMoveChild() {
+  const toPgId = parseInt(document.getElementById('move-target-pg').value);
+  const fromPg = parentGroups.find(p => p.id === _movePgId);
+  const toPg   = parentGroups.find(p => p.id === toPgId);
+  if (!fromPg || !toPg) return;
+  const cgIdx = fromPg.children.findIndex(c => c.id === _moveCgId);
+  if (cgIdx === -1) return;
+  const [cg] = fromPg.children.splice(cgIdx, 1);
+  toPg.children.push(cg);
+  saveTilesetConfig();
+  rebuildGroupTree();
+  closeModal('move-child-modal');
+  setStatus(`已移动「${cg.name}」到「${toPg.name}」`);
+}
+
+// 工具栏快捏新建子组
+let _barAddChildPgId = null;
+function openAddChildFromBar() {
+  if (!parentGroups.length) { alert('请先创建父组'); return; }
+  // 如果只有一个父组直接用，多个则先选
+  if (parentGroups.length === 1) {
+    _pendingAddChildPgId = parentGroups[0].id;
+    document.getElementById('ac-name').value = '';
+    document.getElementById('add-child-modal').classList.add('show');
+    setTimeout(() => document.getElementById('ac-name').focus(), 50);
+  } else {
+    const names = parentGroups.map((p,i) => `${i+1}. ${p.name}`).join('\n');
+    const input = prompt(`选择父组（输入序号）:\n${names}`);
+    if (!input) return;
+    const idx = parseInt(input) - 1;
+    if (idx < 0 || idx >= parentGroups.length) { alert('序号不对'); return; }
+    _pendingAddChildPgId = parentGroups[idx].id;
+    document.getElementById('ac-name').value = '';
+    document.getElementById('add-child-modal').classList.add('show');
+    setTimeout(() => document.getElementById('ac-name').focus(), 50);
+  }
+}
+
+// 工具栏新增素材快捏
+function openAppendTileFromBar() {
+  // 找到当前选中的子组，或者让用户选
+  if (selectedTile) {
+    appendTileToChild(selectedTile.pgId, selectedTile.cgId);
+  } else {
+    alert('请先在图集中点击选择一个子组的某个格子，再点新增素材');
+  }
+}
+
 function appendTileToChild(pgId, cgId) {
   const pg = parentGroups.find(p => p.id === pgId);
   const cg = pg?.children.find(c => c.id === cgId);
@@ -705,7 +783,11 @@ function rebuildGroupTree() {
   const wrap = document.getElementById('group-tree');
   wrap.innerHTML = '';
   if (!tilesetLoaded) {
-    wrap.innerHTML = '<div style="padding:10px;color:#607040;font-size:11px;">Tileset 加载中...</div>';
+    // 图片未加载但配置已有数据，显示加载中
+    const hint = parentGroups.length
+      ? `<div style="padding:10px;color:#a0c060;font-size:11px;">Tileset 加载中，已有 ${parentGroups.reduce((s,p)=>s+p.children.length,0)} 个分组等待显示...</div>`
+      : '<div style="padding:10px;color:#607040;font-size:11px;">Tileset 加载中...</div>';
+    wrap.innerHTML = hint;
     return;
   }
   if (!parentGroups.length) {
@@ -741,6 +823,7 @@ function rebuildGroupTree() {
             <span class="ch-name">${escH(cg.name)}</span>
             <span class="ch-cnt">${cg.tiles.length}</span>
             <span class="ch-btns" onclick="event.stopPropagation()">
+              <button class="ga" onclick="openMoveChild(${pg.id},${cg.id})">移</button>
               <button class="ga" onclick="openRenameChild(${pg.id},${cg.id})">改</button>
               <button class="ga ga-red" onclick="deleteChildGroup(${pg.id},${cg.id})">删</button>
             </span>
