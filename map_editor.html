@@ -10,173 +10,236 @@ body {
   background:#1a2a1a; color:#e8e0c8;
   font-family:'STKaiti','KaiTi',sans-serif;
   display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  font-size:13px;
 }
 
 /* 顶栏 */
 #topbar {
   background:#2a3a1a; border-bottom:1px solid #4a6a2a;
-  padding:8px 12px;
-  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:6px 12px;
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  flex-shrink:0;
 }
-#topbar h1 { font-size:15px; color:#c8e080; margin-right:8px; }
+#topbar h1 { font-size:14px; color:#c8e080; margin-right:4px; }
 .btn {
-  padding:5px 12px; border-radius:6px; border:none; cursor:pointer;
+  padding:4px 10px; border-radius:5px; border:none; cursor:pointer;
   font-size:12px; font-family:inherit;
 }
 .btn-green  { background:#4a8a2a; color:#e0f0a0; }
 .btn-blue   { background:#2a5a8a; color:#a0d0f0; }
 .btn-orange { background:#8a5a1a; color:#f0d0a0; }
 .btn-red    { background:#7a2a1a; color:#f0a090; }
+.btn-purple { background:#5a2a8a; color:#d0a0f0; }
 .btn:hover { opacity:0.85; }
 
-/* 主体 */
-#main {
-  display:flex; flex:1; overflow:hidden;
+/* 主体三栏 */
+#main { display:flex; flex:1; overflow:hidden; }
+
+/* ===== 左：图集管理 ===== */
+#tileset-panel {
+  width:220px; background:#1e2e14; border-right:1px solid #3a5020;
+  display:flex; flex-direction:column; flex-shrink:0; overflow:hidden;
+}
+#tileset-tabs {
+  display:flex; border-bottom:1px solid #3a5020; flex-shrink:0;
+}
+.ts-tab {
+  flex:1; padding:5px 4px; text-align:center; cursor:pointer;
+  font-size:11px; color:#80a050; background:#1e2e14;
+  border-bottom:2px solid transparent;
+}
+.ts-tab.active { color:#c8e080; border-bottom-color:#a0e040; background:#243018; }
+
+/* 图集列表 */
+#group-list {
+  flex:1; overflow-y:auto; padding:4px;
+}
+.group-item {
+  border:1px solid #3a5020; border-radius:6px; margin-bottom:4px;
+  background:#1a2810; overflow:hidden;
+}
+.group-header {
+  display:flex; align-items:center; padding:5px 7px; cursor:pointer;
+  gap:5px; background:#243018;
+}
+.group-header:hover { background:#2e3c1e; }
+.group-arrow { font-size:10px; color:#80a050; width:12px; }
+.group-name { flex:1; font-size:12px; color:#c0d890; }
+.group-count { font-size:10px; color:#607040; }
+.group-actions { display:flex; gap:3px; }
+.group-actions button {
+  padding:1px 5px; border-radius:3px; border:none; cursor:pointer;
+  font-size:10px; background:#3a5020; color:#a0c060;
+}
+.group-actions button:hover { background:#4a6a2a; }
+
+.tile-grid {
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:2px; padding:6px;
+}
+.tile-cell {
+  position:relative; cursor:pointer; border-radius:3px;
+  border:1px solid #3a5020; overflow:hidden;
+  aspect-ratio:1;
+}
+.tile-cell:hover { border-color:#a0e040; }
+.tile-cell.selected { border-color:#ffe040; box-shadow:0 0 0 1px #ffe040; }
+.tile-cell canvas { display:block; width:100%; height:100%; image-rendering:pixelated; }
+.tile-label {
+  position:absolute; bottom:0; left:0; right:0;
+  background:rgba(0,0,0,0.65); color:#e0e0c0;
+  font-size:8px; text-align:center; padding:1px 2px;
+  line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
-/* 左侧面板 */
-#sidebar {
-  width:200px; background:#243018; border-right:1px solid #3a5020;
-  overflow-y:auto; padding:8px;
-  flex-shrink:0;
-}
-#sidebar h2 { font-size:12px; color:#a0c060; margin:8px 0 4px; }
-.tile-btn {
+/* 地块类型面板 */
+#type-list { flex:1; overflow-y:auto; padding:6px; }
+.type-item {
   display:flex; align-items:center; gap:6px;
-  padding:6px 8px; border-radius:6px; cursor:pointer;
-  font-size:13px; margin-bottom:3px;
-  background:#1a2810; border:2px solid transparent;
-  transition: border-color 0.15s;
+  padding:5px 7px; border-radius:5px; cursor:pointer;
+  margin-bottom:2px; background:#1a2810; border:2px solid transparent;
 }
-.tile-btn:hover { background:#2a3818; }
-.tile-btn.active { border-color:#a0e040; background:#2a3818; }
-.tile-color {
-  width:20px; height:20px; border-radius:3px;
-  border:1px solid rgba(255,255,255,0.2);
-  display:flex; align-items:center; justify-content:center;
-  font-size:14px; flex-shrink:0;
-}
+.type-item:hover { background:#243018; }
+.type-item.active { border-color:#a0e040; background:#243018; }
+.type-dot { width:18px;height:18px;border-radius:3px;border:1px solid rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0; }
 
-/* 图层控制 */
-#layer-ctrl {
-  margin-top:12px;
-}
-.layer-item {
+/* 工具面板 */
+#tool-panel { flex:1; overflow-y:auto; padding:6px; }
+.tool-item {
   display:flex; align-items:center; gap:6px;
-  padding:4px 6px; font-size:12px; cursor:pointer;
+  padding:5px 7px; border-radius:5px; cursor:pointer;
+  margin-bottom:2px; background:#1a2810; border:2px solid transparent;
 }
-.layer-item input { cursor:pointer; }
-
-/* 阻挡层 */
-.blocked-overlay {
-  position:absolute; pointer-events:none;
-}
-#block-toggle {
-  margin-top:6px;
-}
-
-/* 信息栏 */
+.tool-item:hover { background:#243018; }
+.tool-item.active { border-color:#a0e040; }
+.sep { border-top:1px solid #3a5020; margin:6px 0; }
 #coord-info {
-  margin-top:12px; padding:6px;
-  background:#1a2810; border-radius:6px;
-  font-size:11px; color:#80a050; line-height:1.8;
+  padding:6px; background:#1a2810; border-radius:5px; margin:4px;
+  font-size:10px; color:#80a050; line-height:1.7; flex-shrink:0;
 }
 
-/* 地图区域 */
+/* ===== 中：地图画布 ===== */
 #map-wrap {
-  flex:1; overflow:auto; position:relative;
-  background:#111;
+  flex:1; overflow:auto; background:#111; position:relative;
 }
-#map-canvas {
-  display:block; cursor:crosshair;
-  image-rendering: pixelated;
-}
+#map-canvas { display:block; cursor:crosshair; image-rendering:pixelated; }
 
-/* 底栏 */
+/* ===== 底栏 ===== */
 #bottombar {
   background:#2a3a1a; border-top:1px solid #4a6a2a;
-  padding:6px 12px; display:flex; align-items:center; gap:10px;
-  font-size:12px; flex-wrap:wrap;
+  padding:5px 12px; display:flex; align-items:center; gap:8px;
+  font-size:11px; flex-shrink:0; flex-wrap:wrap;
 }
 #status { color:#80a050; }
 
-/* 导出弹窗 */
-#export-modal {
+/* ===== 弹窗 ===== */
+.modal-bg {
   display:none; position:fixed; inset:0;
-  background:rgba(0,0,0,0.7); z-index:100;
+  background:rgba(0,0,0,0.7); z-index:200;
   align-items:center; justify-content:center;
 }
-#export-modal.show { display:flex; }
+.modal-bg.show { display:flex; }
 .modal-box {
-  background:#2a3a1a; border:1px solid #4a6a2a;
-  border-radius:10px; padding:16px; width:90%; max-width:500px;
+  background:#243018; border:1px solid #4a6a2a;
+  border-radius:10px; padding:16px; width:92%; max-width:520px;
 }
 .modal-box h3 { color:#c8e080; margin-bottom:10px; font-size:14px; }
-.modal-box textarea {
-  width:100%; height:150px; background:#1a2810; color:#c8e080;
-  border:1px solid #4a6a2a; border-radius:6px; padding:8px;
-  font-size:11px; font-family:monospace; resize:none;
+.modal-box textarea, .modal-box input[type=text] {
+  width:100%; background:#1a2810; color:#c8e080;
+  border:1px solid #4a6a2a; border-radius:5px; padding:7px;
+  font-size:12px; font-family:inherit;
 }
+.modal-box textarea { height:140px; resize:none; }
+.modal-box label { font-size:12px; color:#a0b880; display:block; margin-bottom:4px; }
 .modal-btns { display:flex; gap:8px; margin-top:10px; }
+.form-row { margin-bottom:10px; }
+
+/* 名称编辑弹窗 */
+#rename-modal .tile-preview {
+  width:64px; height:64px; image-rendering:pixelated;
+  border:1px solid #4a6a2a; border-radius:4px; margin-bottom:8px;
+}
 </style>
 </head>
 <body>
 
+<!-- 顶栏 -->
 <div id="topbar">
   <h1>🗺️ 地图编辑器</h1>
-  <button class="btn btn-green" onclick="exportMap()">📤 导出地图</button>
-  <button class="btn btn-blue"  onclick="importMap()">📥 导入地图</button>
+  <button class="btn btn-green"  onclick="exportMap()">📤 导出</button>
+  <button class="btn btn-blue"   onclick="importMap()">📥 导入</button>
   <button class="btn btn-orange" onclick="fillAll()">🖌️ 全填</button>
-  <button class="btn btn-red"   onclick="clearMap()">🗑️ 清空</button>
-  <span style="font-size:11px; color:#80a050;">地图: <span id="map-size-label">18×14</span></span>
-  <label style="font-size:11px; color:#80a050;">
-    列: <input id="inp-cols" type="number" value="18" min="5" max="40"
-      style="width:44px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px 4px;font-size:11px;">
+  <button class="btn btn-red"    onclick="clearMap()">🗑️ 清空</button>
+  <span style="color:#607040;">|</span>
+  <label style="font-size:11px;color:#80a050;">
+    列<input id="inp-cols" type="number" value="18" min="5" max="60"
+      style="width:42px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px 4px;margin-left:4px;">
   </label>
-  <label style="font-size:11px; color:#80a050;">
-    行: <input id="inp-rows" type="number" value="14" min="5" max="40"
-      style="width:44px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;padding:2px 4px;font-size:11px;border-radius:4px;">
+  <label style="font-size:11px;color:#80a050;">
+    行<input id="inp-rows" type="number" value="14" min="5" max="60"
+      style="width:42px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px 4px;margin-left:4px;">
   </label>
   <button class="btn btn-green" onclick="resizeMap()">↩ 调整</button>
+  <span style="color:#607040;">|</span>
+  <label style="font-size:11px;color:#80a050;">
+    格子大小
+    <select id="tile-size-sel" onchange="changeTileSize()" style="background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:2px;">
+      <option value="32">32px</option>
+      <option value="40" selected>40px</option>
+      <option value="48">48px</option>
+      <option value="64">64px</option>
+    </select>
+  </label>
 </div>
 
+<!-- 主体 -->
 <div id="main">
-  <!-- 左侧地块选择 -->
-  <div id="sidebar">
-    <h2>🎨 地块类型</h2>
-    <div id="tile-list"></div>
 
-    <h2 style="margin-top:12px;">🖌️ 工具</h2>
-    <div class="tile-btn" id="tool-paint" onclick="setTool('paint')" style="border-color:#a0e040;">
-      <div class="tile-color">✏️</div> 画笔
-    </div>
-    <div class="tile-btn" id="tool-fill" onclick="setTool('fill')">
-      <div class="tile-color">🪣</div> 填充
-    </div>
-    <div class="tile-btn" id="tool-erase" onclick="setTool('erase')">
-      <div class="tile-color">🧹</div> 橡皮
+  <!-- 左侧面板 -->
+  <div id="tileset-panel">
+    <div id="tileset-tabs">
+      <div class="ts-tab active" onclick="switchTab('tileset')" id="tab-tileset">🖼️ 图集</div>
+      <div class="ts-tab" onclick="switchTab('types')" id="tab-types">🎨 地块</div>
+      <div class="ts-tab" onclick="switchTab('tools')" id="tab-tools">🛠️ 工具</div>
     </div>
 
-    <h2 style="margin-top:12px;">🚧 阻挡层</h2>
-    <div class="tile-btn" id="tool-block" onclick="setTool('block')">
-      <div class="tile-color" style="background:rgba(255,60,60,0.5)">🚫</div> 刷阻挡
+    <!-- 图集面板 -->
+    <div id="panel-tileset" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div style="padding:5px 6px;border-bottom:1px solid #3a5020;display:flex;gap:4px;flex-shrink:0;">
+        <button class="btn btn-green" style="flex:1;font-size:11px;" onclick="showGroupManager()">⚙️ 管理分组</button>
+        <button class="btn btn-blue"  style="flex:1;font-size:11px;" onclick="autoGenGroups()">✨ 自动生成</button>
+      </div>
+      <div id="group-list"></div>
     </div>
-    <div class="tile-btn" id="tool-unblock" onclick="setTool('unblock')">
-      <div class="tile-color" style="background:rgba(60,200,60,0.3)">✅</div> 清阻挡
-    </div>
-    <div style="padding:4px 6px; font-size:11px; color:#80a050; line-height:1.6;">
-      阻挡格显示红色半透明<br>
-      导出JSON含blocked数组
-    </div>
-    <label style="display:flex;align-items:center;gap:6px;padding:4px 6px;font-size:12px;cursor:pointer;">
-      <input type="checkbox" id="show-block" checked onchange="draw()">
-      显示阻挡层
-    </label>
 
-    <div id="coord-info">
-      鼠标位置：<span id="ci-pos">-</span><br>
-      当前地块：<span id="ci-type">-</span><br>
-      画笔：<span id="ci-brush">草地</span>
+    <!-- 地块类型面板 -->
+    <div id="panel-types" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div id="type-list"></div>
+    </div>
+
+    <!-- 工具面板 -->
+    <div id="panel-tools" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div id="tool-panel">
+        <div class="tool-item active" id="tool-paint"   onclick="setTool('paint')">  <span>✏️</span> 画笔</div>
+        <div class="tool-item"        id="tool-fill"    onclick="setTool('fill')">   <span>🪣</span> 填充</div>
+        <div class="tool-item"        id="tool-erase"   onclick="setTool('erase')">  <span>🧹</span> 橡皮</div>
+        <div class="sep"></div>
+        <div style="font-size:11px;color:#80a050;padding:2px 4px;">🚧 阻挡层</div>
+        <div class="tool-item"        id="tool-block"   onclick="setTool('block')">  <span>🚫</span> 刷阻挡</div>
+        <div class="tool-item"        id="tool-unblock" onclick="setTool('unblock')"><span>✅</span> 清阻挡</div>
+        <div class="sep"></div>
+        <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" id="show-block" checked onchange="draw()"> 显示阻挡层
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" id="show-grid" checked onchange="draw()"> 显示网格
+        </label>
+      </div>
+      <div id="coord-info">
+        位置：<span id="ci-pos">-</span><br>
+        地块：<span id="ci-type">-</span><br>
+        画笔：<span id="ci-brush">草地</span>
+      </div>
     </div>
   </div>
 
@@ -186,31 +249,313 @@ body {
   </div>
 </div>
 
+<!-- 底栏 -->
 <div id="bottombar">
   <span id="status">就绪</span>
-  <span style="margin-left:auto; color:#607040; font-size:11px;">
-    点击绘制 · 拖拽连续绘制 · 右键清除
+  <span style="margin-left:auto;color:#506030;font-size:10px;">
+    左键绘制 · 拖拽连续 · 右键清除 · 图集模式可直接点格子选素材
   </span>
 </div>
 
 <!-- 导出弹窗 -->
-<div id="export-modal">
+<div class="modal-bg" id="export-modal">
   <div class="modal-box">
     <h3>📤 导出地图数据</h3>
     <textarea id="export-text" readonly></textarea>
     <div class="modal-btns">
-      <button class="btn btn-green" onclick="copyExport()">📋 复制</button>
-      <button class="btn btn-blue"  onclick="downloadExport()">💾 下载</button>
-      <button class="btn btn-red"   onclick="closeExport()">✕ 关闭</button>
+      <button class="btn btn-green"  onclick="copyExport()">📋 复制</button>
+      <button class="btn btn-blue"   onclick="downloadExport()">💾 下载</button>
+      <button class="btn btn-red"    onclick="closeModal('export-modal')">✕ 关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分组管理弹窗 -->
+<div class="modal-bg" id="group-modal">
+  <div class="modal-box" style="max-width:420px;">
+    <h3>⚙️ 分组管理</h3>
+    <div id="gm-list" style="max-height:260px;overflow-y:auto;margin-bottom:10px;"></div>
+    <div class="form-row">
+      <label>新建分组名称</label>
+      <input type="text" id="gm-new-name" placeholder="例：夏季草地01" style="margin-bottom:6px;">
+      <label>起始格坐标 (列,行 从0计)</label>
+      <div style="display:flex;gap:6px;">
+        <input type="number" id="gm-new-col" value="0" min="0" style="width:70px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:4px;">
+        <input type="number" id="gm-new-row" value="0" min="0" style="width:70px;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:4px;padding:4px;">
+        <span style="font-size:11px;color:#607040;align-self:center;">4×4格组</span>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-green" onclick="addGroup()">＋ 新建</button>
+      <button class="btn btn-red"   onclick="closeModal('group-modal')">✕ 关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 单格重命名弹窗 -->
+<div class="modal-bg" id="rename-modal">
+  <div class="modal-box" style="max-width:340px;">
+    <h3>✏️ 重命名地块</h3>
+    <canvas id="rename-preview" width="64" height="64"
+      style="width:64px;height:64px;image-rendering:pixelated;border:1px solid #4a6a2a;border-radius:4px;margin-bottom:8px;display:block;"></canvas>
+    <div class="form-row">
+      <label>地块名称</label>
+      <input type="text" id="rename-input" placeholder="名称">
+    </div>
+    <div class="form-row">
+      <label>所属分组</label>
+      <select id="rename-group" style="width:100%;background:#1a2810;color:#c8e080;border:1px solid #4a6a2a;border-radius:5px;padding:6px;font-size:12px;"></select>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-green" onclick="confirmRename()">✓ 确认</button>
+      <button class="btn btn-red"   onclick="closeModal('rename-modal')">✕ 取消</button>
     </div>
   </div>
 </div>
 
 <script>
 // ============================================================
-// 地块定义
+// Tileset 加载
 // ============================================================
-const TILES = [
+const TS_SRC = 'https://weiyi330.github.io/squat-game/tileset.png';
+const TS_COLS = 24, TS_ROWS = 40, TS_PX = 16;
+const tilesetImg = new Image();
+tilesetImg.crossOrigin = 'anonymous';
+tilesetImg.src = TS_SRC;
+let tilesetLoaded = false;
+tilesetImg.onload = () => { tilesetLoaded = true; rebuildGroupList(); draw(); };
+
+// ============================================================
+// 图集分组系统
+// ============================================================
+// groups: [ { id, name, col, row, tiles: [ {id, name} × 16 ] } ]
+// tile id = "g{groupId}_r{0..3}_c{0..3}"
+let groups = [];
+let nextGroupId = 1;
+
+// 选中的素材信息
+let selectedTilesetCell = null; // { groupId, localRow, localCol, name }
+let useTilesetMode = false; // 是否用图集素材模式绘制
+
+// 自动生成60个分组（4×4一格，tileset 24列×40行 = 6×10 = 60组）
+function autoGenGroups() {
+  if(groups.length > 0 && !confirm('已有分组，重新自动生成会清空现有分组，确认？')) return;
+  groups = [];
+  nextGroupId = 1;
+  const groupCols = TS_COLS / 4; // 6
+  const groupRows = TS_ROWS / 4; // 10
+  let idx = 1;
+  for(let gr=0; gr<groupRows; gr++) {
+    for(let gc=0; gc<groupCols; gc++) {
+      const name = `夏季草地${String(idx).padStart(2,'0')}`;
+      const col = gc * 4, row = gr * 4;
+      const tiles = [];
+      for(let lr=0; lr<4; lr++)
+        for(let lc=0; lc<4; lc++)
+          tiles.push({ id: `g${nextGroupId}_${lr}_${lc}`, name: `${name}_${String(lr*4+lc+1).padStart(2,'0')}` });
+      groups.push({ id: nextGroupId++, name, col, row, tiles });
+      idx++;
+    }
+  }
+  rebuildGroupList();
+  setStatus(`已自动生成 ${groups.length} 个图集分组`);
+}
+
+function addGroup() {
+  const name = document.getElementById('gm-new-name').value.trim();
+  const col  = parseInt(document.getElementById('gm-new-col').value);
+  const row  = parseInt(document.getElementById('gm-new-row').value);
+  if(!name) { alert('请输入分组名称'); return; }
+  const tiles = [];
+  for(let lr=0;lr<4;lr++)
+    for(let lc=0;lc<4;lc++)
+      tiles.push({ id:`g${nextGroupId}_${lr}_${lc}`, name:`${name}_${String(lr*4+lc+1).padStart(2,'0')}` });
+  groups.push({ id:nextGroupId++, name, col, row, tiles });
+  rebuildGroupList();
+  renderGroupManager();
+  setStatus(`新建分组：${name}`);
+}
+
+function deleteGroup(gid) {
+  if(!confirm('删除此分组？')) return;
+  groups = groups.filter(g=>g.id!==gid);
+  rebuildGroupList();
+  renderGroupManager();
+}
+
+function renameGroup(gid) {
+  const g = groups.find(x=>x.id===gid);
+  if(!g) return;
+  const n = prompt('分组名称:', g.name);
+  if(n && n.trim()) {
+    g.name = n.trim();
+    // 同步更新tiles默认命名前缀（只改没有被自定义的）
+    rebuildGroupList();
+    renderGroupManager();
+  }
+}
+
+// 展开/折叠状态
+const collapsed = new Set();
+function toggleGroup(gid) {
+  collapsed.has(gid) ? collapsed.delete(gid) : collapsed.add(gid);
+  rebuildGroupList();
+}
+
+function rebuildGroupList() {
+  const wrap = document.getElementById('group-list');
+  wrap.innerHTML = '';
+  if(!tilesetLoaded) {
+    wrap.innerHTML = '<div style="padding:12px;color:#607040;font-size:11px;">Tileset 加载中...</div>';
+    return;
+  }
+  if(groups.length === 0) {
+    wrap.innerHTML = '<div style="padding:12px;color:#607040;font-size:11px;">点「自动生成」创建60个图集分组</div>';
+    return;
+  }
+  groups.forEach(g => {
+    const isCollapsed = collapsed.has(g.id);
+    const div = document.createElement('div');
+    div.className = 'group-item';
+    // header
+    div.innerHTML = `
+      <div class="group-header" onclick="toggleGroup(${g.id})">
+        <span class="group-arrow">${isCollapsed?'▶':'▼'}</span>
+        <span class="group-name">${g.name}</span>
+        <span class="group-count">${g.tiles.length}格</span>
+        <span class="group-actions" onclick="event.stopPropagation()">
+          <button onclick="renameGroup(${g.id})">改名</button>
+          <button onclick="deleteGroup(${g.id})">删</button>
+        </span>
+      </div>
+    `;
+    if(!isCollapsed) {
+      const grid = document.createElement('div');
+      grid.className = 'tile-grid';
+      g.tiles.forEach((tile, idx) => {
+        const lr = Math.floor(idx/4), lc = idx%4;
+        const cell = document.createElement('div');
+        cell.className = 'tile-cell';
+        const isSel = selectedTilesetCell && selectedTilesetCell.tileId === tile.id;
+        if(isSel) cell.classList.add('selected');
+        // 小画布
+        const cv = document.createElement('canvas');
+        cv.width = TS_PX; cv.height = TS_PX;
+        const cx = cv.getContext('2d');
+        cx.imageSmoothingEnabled = false;
+        cx.drawImage(tilesetImg,
+          (g.col+lc)*TS_PX, (g.row+lr)*TS_PX, TS_PX, TS_PX,
+          0, 0, TS_PX, TS_PX);
+        cell.appendChild(cv);
+        const lbl = document.createElement('div');
+        lbl.className = 'tile-label';
+        lbl.title = tile.name;
+        lbl.textContent = tile.name.split('_').slice(-2).join('_');
+        cell.appendChild(lbl);
+        cell.addEventListener('click', () => selectTilesetCell(g.id, lr, lc, tile.id));
+        cell.addEventListener('dblclick', () => openRename(g.id, idx));
+        grid.appendChild(cell);
+      });
+      div.appendChild(grid);
+    }
+    wrap.appendChild(div);
+  });
+}
+
+function selectTilesetCell(gid, lr, lc, tileId) {
+  const g = groups.find(x=>x.id===gid);
+  if(!g) return;
+  selectedTilesetCell = {
+    gid, lr, lc, tileId,
+    sx: (g.col+lc)*TS_PX, sy: (g.row+lr)*TS_PX,
+    name: g.tiles[lr*4+lc].name
+  };
+  useTilesetMode = true;
+  document.getElementById('ci-brush').textContent = selectedTilesetCell.name;
+  setTool('paint');
+  rebuildGroupList(); // 刷新选中状态
+  setStatus(`已选：${selectedTilesetCell.name}`);
+}
+
+// 重命名单格
+let renamingGroupId = null, renamingTileIdx = null;
+function openRename(gid, idx) {
+  const g = groups.find(x=>x.id===gid);
+  if(!g) return;
+  renamingGroupId = gid; renamingTileIdx = idx;
+  const tile = g.tiles[idx];
+  const lr = Math.floor(idx/4), lc = idx%4;
+  // 预览
+  const cv = document.getElementById('rename-preview');
+  const cx = cv.getContext('2d');
+  cx.imageSmoothingEnabled = false;
+  cx.clearRect(0,0,64,64);
+  if(tilesetLoaded) cx.drawImage(tilesetImg,(g.col+lc)*TS_PX,(g.row+lr)*TS_PX,TS_PX,TS_PX,0,0,64,64);
+  document.getElementById('rename-input').value = tile.name;
+  // 分组下拉
+  const sel = document.getElementById('rename-group');
+  sel.innerHTML = groups.map(gg=>`<option value="${gg.id}"${gg.id===gid?' selected':''}>${gg.name}</option>`).join('');
+  document.getElementById('rename-modal').classList.add('show');
+}
+
+function confirmRename() {
+  const name = document.getElementById('rename-input').value.trim();
+  const toGid = parseInt(document.getElementById('rename-group').value);
+  if(!name) { alert('名称不能为空'); return; }
+  const fromG = groups.find(x=>x.id===renamingGroupId);
+  if(!fromG) return;
+  const tile = fromG.tiles[renamingTileIdx];
+  // 改名
+  tile.name = name;
+  // 移动分组
+  if(toGid !== renamingGroupId) {
+    fromG.tiles.splice(renamingTileIdx, 1);
+    const toG = groups.find(x=>x.id===toGid);
+    if(toG) toG.tiles.push(tile);
+  }
+  closeModal('rename-modal');
+  rebuildGroupList();
+  setStatus(`已重命名为：${name}`);
+}
+
+// ============================================================
+// 分组管理弹窗渲染
+// ============================================================
+function showGroupManager() {
+  renderGroupManager();
+  document.getElementById('group-modal').classList.add('show');
+}
+function renderGroupManager() {
+  const wrap = document.getElementById('gm-list');
+  wrap.innerHTML = '';
+  if(groups.length===0) { wrap.innerHTML='<div style="color:#607040;font-size:11px;">暂无分组</div>'; return; }
+  groups.forEach(g => {
+    const row = document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #3a5020;';
+    row.innerHTML=`
+      <span style="font-size:11px;color:#c0d890;flex:1;">${g.name}</span>
+      <span style="font-size:10px;color:#607040;">[${g.col},${g.row}]</span>
+      <button onclick="renameGroup(${g.id})" style="padding:2px 7px;border-radius:3px;border:none;cursor:pointer;background:#3a5020;color:#a0c060;font-size:11px;">改名</button>
+      <button onclick="deleteGroup(${g.id})" style="padding:2px 7px;border-radius:3px;border:none;cursor:pointer;background:#6a2010;color:#f09080;font-size:11px;">删</button>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+// ============================================================
+// Tab 切换
+// ============================================================
+function switchTab(t) {
+  ['tileset','types','tools'].forEach(x=>{
+    document.getElementById(`tab-${x}`).classList.toggle('active', x===t);
+    document.getElementById(`panel-${x}`).style.display = x===t?'flex':'none';
+  });
+}
+
+// ============================================================
+// 地块类型（原有纯色模式）
+// ============================================================
+const TILE_TYPES = [
   { id:0, name:'草地',   color:'#5aaa3a', icon:'🌿' },
   { id:1, name:'泥土',   color:'#c8945a', icon:'🟫' },
   { id:2, name:'耕地',   color:'#7a4a22', icon:'🌱' },
@@ -221,381 +566,331 @@ const TILES = [
   { id:5, name:'水井',   color:'#6a7a4a', icon:'🪣' },
   { id:6, name:'商店',   color:'#7a5a2a', icon:'🏪' },
 ];
+const TILE_TYPE_MAP = {};
+TILE_TYPES.forEach(t => TILE_TYPE_MAP[t.id] = t);
 
-const TILE_MAP = {};
-TILES.forEach(t => TILE_MAP[t.id] = t);
+let selectedTypeId = 0;
+
+function buildTypeList() {
+  const list = document.getElementById('type-list');
+  list.innerHTML = '';
+  TILE_TYPES.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'type-item' + (t.id===selectedTypeId?' active':'');
+    div.id = `type-${t.id}`;
+    div.innerHTML = `<div class="type-dot" style="background:${t.color}">${t.icon}</div><span>${t.name}</span>`;
+    div.onclick = () => { selectedTypeId=t.id; useTilesetMode=false; selectedTilesetCell=null;
+      buildTypeList(); document.getElementById('ci-brush').textContent=t.name; setTool('paint'); };
+    list.appendChild(div);
+  });
+}
 
 // ============================================================
 // 地图状态
 // ============================================================
-let MAP_COLS = 18, MAP_ROWS = 14;
-let mapData = [];
-let blockData = []; // 阻挡层
-let selectedTile = 0;
-let currentTool = 'paint';
-let TILE_SIZE = 40; // 编辑器显示用
+let MAP_COLS=18, MAP_ROWS=14;
+let mapData=[], blockData=[];
+// tilesetLayer: 每格存 {sx,sy} 或 null
+let tilesetLayer=[];
+let TILE_SIZE=40;
 
-function initMap(cols, rows, fill=0) {
-  MAP_COLS = cols; MAP_ROWS = rows;
-  mapData = [];
-  blockData = [];
-  for(let r=0; r<rows; r++) {
-    mapData[r] = new Array(cols).fill(fill);
-    blockData[r] = new Array(cols).fill(0);
+function initMap(cols, rows) {
+  MAP_COLS=cols; MAP_ROWS=rows;
+  mapData=[]; blockData=[]; tilesetLayer=[];
+  for(let r=0;r<rows;r++){
+    mapData[r]=new Array(cols).fill(0);
+    blockData[r]=new Array(cols).fill(0);
+    tilesetLayer[r]=new Array(cols).fill(null);
   }
-  // 预设一些默认地形（和游戏一致）
-  if(cols===18 && rows===14) applyDefaultTerrain();
+  if(cols===18&&rows===14) applyDefaultTerrain();
 }
 
-function applyDefaultTerrain() {
-  // 小路
+function applyDefaultTerrain(){
   for(let c=3;c<15;c++) mapData[MAP_ROWS-1][c]=8;
   for(let r=4;r<MAP_ROWS;r++) mapData[r][8]=8;
-  // 建筑
   mapData[2][3]=4; mapData[2][13]=6; mapData[5][14]=5;
-  // 水塘
   [[1,7],[1,8],[1,9],[2,7],[2,8]].forEach(([r,c])=>mapData[r][c]=9);
-  // 树木
   [[0,0],[0,1],[0,16],[0,17],[1,0],[1,17],[12,0],[12,17],[13,0],[13,17],
    [0,5],[0,11],[3,1],[3,16]].forEach(([r,c])=>{
-    if(r<MAP_ROWS && c<MAP_COLS) mapData[r][c]=7;
+    if(r<MAP_ROWS&&c<MAP_COLS){ mapData[r][c]=7; blockData[r][c]=1; }
   });
-  // 默认阻挡：水塘+建筑+树木自动标记阻挡
-  for(let r=0;r<MAP_ROWS;r++)
-    for(let c=0;c<MAP_COLS;c++) {
-      const t = mapData[r][c];
-      if(t===9||t===4||t===5||t===6||t===7) blockData[r][c]=1;
-    }
+  [[1,7],[1,8],[1,9],[2,7],[2,8]].forEach(([r,c])=>blockData[r][c]=1);
+  mapData[2][3]&&(blockData[2][3]=1);
+  mapData[2][13]&&(blockData[2][13]=1);
+  mapData[5][14]&&(blockData[5][14]=1);
 }
 
 // ============================================================
 // 画布渲染
 // ============================================================
-const canvas = document.getElementById('map-canvas');
-const ctx = canvas.getContext('2d');
+const canvas=document.getElementById('map-canvas');
+const ctx=canvas.getContext('2d');
 
-// tileset
-const tilesetImg = new Image();
-tilesetImg.src = 'https://weiyi330.github.io/squat-game/tileset.png';
-let tilesetLoaded = false;
-tilesetImg.onload = () => { tilesetLoaded = true; draw(); };
-const TS = 16;
-const GRASS_UV = { col:0, row:3 };
-
-function resizeCanvas() {
-  canvas.width  = MAP_COLS * TILE_SIZE;
-  canvas.height = MAP_ROWS * TILE_SIZE;
-  document.getElementById('map-size-label').textContent = `${MAP_COLS}×${MAP_ROWS}`;
+function resizeCanvas(){
+  canvas.width=MAP_COLS*TILE_SIZE; canvas.height=MAP_ROWS*TILE_SIZE;
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const showGrid=document.getElementById('show-grid')?.checked!==false;
+  const showBlock=document.getElementById('show-block')?.checked!==false;
 
-  for(let r=0; r<MAP_ROWS; r++) {
-    for(let c=0; c<MAP_COLS; c++) {
-      const tid = mapData[r][c];
-      const tile = TILE_MAP[tid] || TILE_MAP[0];
-      const x = c * TILE_SIZE, y = r * TILE_SIZE;
+  for(let r=0;r<MAP_ROWS;r++){
+    for(let c=0;c<MAP_COLS;c++){
+      const x=c*TILE_SIZE, y=r*TILE_SIZE;
+      const tid=mapData[r][c];
+      const type=TILE_TYPE_MAP[tid]||TILE_TYPE_MAP[0];
 
       // 底色
-      ctx.fillStyle = tile.color;
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+      ctx.fillStyle=type.color;
+      ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
 
-      // 草地用tileset贴图
-      if(tid === 0 && tilesetLoaded) {
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(tilesetImg,
-          GRASS_UV.col * TS, GRASS_UV.row * TS, TS, TS,
-          x, y, TILE_SIZE, TILE_SIZE
-        );
+      // tileset 贴图层
+      const ts=tilesetLayer[r][c];
+      if(ts && tilesetLoaded){
+        ctx.imageSmoothingEnabled=false;
+        ctx.drawImage(tilesetImg, ts.sx, ts.sy, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
+      } else if(tid===0 && tilesetLoaded && groups.length>0){
+        // 草地默认贴第1组第1格
+        const g=groups[0];
+        ctx.imageSmoothingEnabled=false;
+        ctx.drawImage(tilesetImg, g.col*TS_PX, g.row*TS_PX, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
       }
 
-      // 图标
-      ctx.font = `${TILE_SIZE * 0.55}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      if(tid !== 0) {
-        ctx.fillText(tile.icon, x + TILE_SIZE/2, y + TILE_SIZE/2);
+      // 建筑图标
+      if(tid!==0){
+        ctx.font=`${TILE_SIZE*0.5}px serif`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(type.icon, x+TILE_SIZE/2, y+TILE_SIZE/2);
       }
 
       // 网格线
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-      ctx.lineWidth = 0.5;
-      ctx.strokeRect(x, y, TILE_SIZE, TILE_SIZE);
-    }
-  }
-
-  // 阻挡层叠加显示
-  const showBlock = document.getElementById('show-block')?.checked !== false;
-  if(showBlock) {
-    for(let r=0; r<MAP_ROWS; r++) {
-      for(let c=0; c<MAP_COLS; c++) {
-        if(blockData[r][c]) {
-          const x = c * TILE_SIZE, y = r * TILE_SIZE;
-          ctx.fillStyle = 'rgba(255,40,40,0.35)';
-          ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-          ctx.font = `${TILE_SIZE*0.4}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('🚫', x + TILE_SIZE/2, y + TILE_SIZE/2);
-        }
+      if(showGrid){
+        ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=0.5;
+        ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE);
       }
     }
   }
 
-  // 高亮选中地块
-  if(hoverR >= 0 && hoverC >= 0 && hoverR < MAP_ROWS && hoverC < MAP_COLS) {
-    ctx.strokeStyle = 'rgba(255,220,60,0.9)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(hoverC * TILE_SIZE, hoverR * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+  // 阻挡层
+  if(showBlock){
+    for(let r=0;r<MAP_ROWS;r++)
+      for(let c=0;c<MAP_COLS;c++)
+        if(blockData[r][c]){
+          const x=c*TILE_SIZE,y=r*TILE_SIZE;
+          ctx.fillStyle='rgba(255,40,40,0.3)';
+          ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE);
+          ctx.font=`${TILE_SIZE*0.38}px serif`;
+          ctx.textAlign='center'; ctx.textBaseline='middle';
+          ctx.fillText('🚫',x+TILE_SIZE/2,y+TILE_SIZE/2);
+        }
+  }
+
+  // 悬停高亮
+  if(hoverR>=0&&hoverC>=0&&hoverR<MAP_ROWS&&hoverC<MAP_COLS){
+    ctx.strokeStyle='rgba(255,220,60,0.9)'; ctx.lineWidth=2;
+    ctx.strokeRect(hoverC*TILE_SIZE,hoverR*TILE_SIZE,TILE_SIZE,TILE_SIZE);
   }
 }
 
 // ============================================================
-// 鼠标交互
+// 绘制操作
 // ============================================================
-let isDrawing = false;
-let hoverR = -1, hoverC = -1;
-
-function getCell(e) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const px = (e.clientX - rect.left) * scaleX;
-  const py = (e.clientY - rect.top)  * scaleY;
-  return {
-    r: Math.floor(py / TILE_SIZE),
-    c: Math.floor(px / TILE_SIZE),
-  };
-}
-
-function paintCell(r, c, tileId) {
+function paintCell(r,c){
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
-  mapData[r][c] = tileId;
-  // 放置障碍类地块时自动勾上阻挡
-  if([4,5,6,7,9].includes(tileId)) blockData[r][c] = 1;
-}
-
-function blockCell(r, c, val) {
-  if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
-  blockData[r][c] = val;
-}
-
-canvas.addEventListener('mousedown', e => {
-  e.preventDefault();
-  isDrawing = true;
-  const {r,c} = getCell(e);
-  if(e.button === 2) {
-    if(currentTool==='block'||currentTool==='unblock') blockCell(r,c,0);
-    else paintCell(r,c,0);
-  } else if(currentTool === 'fill') {
-    floodFill(r, c, selectedTile);
-  } else if(currentTool === 'erase') {
-    paintCell(r,c,0);
-  } else if(currentTool === 'block') {
-    blockCell(r,c,1);
-  } else if(currentTool === 'unblock') {
-    blockCell(r,c,0);
+  if(useTilesetMode && selectedTilesetCell){
+    // 图集模式：记录tileset坐标，底色用草地(0)
+    mapData[r][c]=0;
+    tilesetLayer[r][c]={ sx:selectedTilesetCell.sx, sy:selectedTilesetCell.sy };
   } else {
-    paintCell(r,c,selectedTile);
+    mapData[r][c]=selectedTypeId;
+    tilesetLayer[r][c]=null;
+    if([4,5,6,7,9].includes(selectedTypeId)) blockData[r][c]=1;
   }
-  draw(); setStatus(`绘制 (${c},${r})`);
-});
+}
 
-canvas.addEventListener('mousemove', e => {
-  const {r,c} = getCell(e);
-  hoverR=r; hoverC=c;
-  document.getElementById('ci-pos').textContent = `(${c}, ${r})`;
-  const tid = (r>=0&&r<MAP_ROWS&&c>=0&&c<MAP_COLS) ? mapData[r][c] : -1;
-  document.getElementById('ci-type').textContent = tid>=0 ? (TILE_MAP[tid]?.name||'?') : '-';
+function eraseCell(r,c){
+  if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
+  mapData[r][c]=0; tilesetLayer[r][c]=null;
+}
 
-  if(isDrawing && e.buttons===1) {
-    if(currentTool==='erase') paintCell(r,c,0);
-    else if(currentTool==='paint') paintCell(r,c,selectedTile);
-    else if(currentTool==='block') blockCell(r,c,1);
-    else if(currentTool==='unblock') blockCell(r,c,0);
-  } else if(isDrawing && e.buttons===2) {
-    if(currentTool==='block'||currentTool==='unblock') blockCell(r,c,0);
-    else paintCell(r,c,0);
-  }
-  draw();
-});
+function blockCell(r,c,v){
+  if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
+  blockData[r][c]=v;
+}
 
-canvas.addEventListener('mouseup', () => { isDrawing=false; });
-canvas.addEventListener('mouseleave', () => { isDrawing=false; hoverR=-1; hoverC=-1; draw(); });
-canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-// touch支持（手机）
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  const t = e.touches[0];
-  const {r,c} = getCell(t);
-  if(currentTool==='fill') floodFill(r,c,selectedTile);
-  else if(currentTool==='erase') paintCell(r,c,0);
-  else paintCell(r,c,selectedTile);
-  draw();
-}, {passive:false});
-
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  const t = e.touches[0];
-  const {r,c} = getCell(t);
-  if(currentTool==='erase') paintCell(r,c,0);
-  else if(currentTool==='paint') paintCell(r,c,selectedTile);
-  draw();
-}, {passive:false});
-
-// ============================================================
-// 填充工具
-// ============================================================
-function floodFill(startR, startC, newTile) {
-  if(startR<0||startR>=MAP_ROWS||startC<0||startC>=MAP_COLS) return;
-  const oldTile = mapData[startR][startC];
-  if(oldTile === newTile) return;
-  const queue = [[startR, startC]];
-  const visited = new Set();
-  while(queue.length) {
-    const [r,c] = queue.shift();
-    const key = r*1000+c;
+// 填充（BFS）
+function floodFill(sr,sc){
+  if(sr<0||sr>=MAP_ROWS||sc<0||sc>=MAP_COLS) return;
+  const oldT=mapData[sr][sc], oldTS=JSON.stringify(tilesetLayer[sr][sc]);
+  const queue=[[sr,sc]], visited=new Set();
+  while(queue.length){
+    const [r,c]=queue.shift();
+    const key=r*1000+c;
     if(visited.has(key)) continue;
     if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) continue;
-    if(mapData[r][c] !== oldTile) continue;
+    if(mapData[r][c]!==oldT || JSON.stringify(tilesetLayer[r][c])!==oldTS) continue;
     visited.add(key);
-    mapData[r][c] = newTile;
+    paintCell(r,c);
     queue.push([r-1,c],[r+1,c],[r,c-1],[r,c+1]);
   }
 }
 
 // ============================================================
-// 地块选择面板
+// 鼠标/触摸交互
 // ============================================================
-function buildTileList() {
-  const list = document.getElementById('tile-list');
-  list.innerHTML = '';
-  TILES.forEach(t => {
-    const div = document.createElement('div');
-    div.className = 'tile-btn' + (t.id===selectedTile?' active':'');
-    div.id = `tbtn-${t.id}`;
-    div.innerHTML = `
-      <div class="tile-color" style="background:${t.color}">${t.icon}</div>
-      <span>${t.name}</span>
-    `;
-    div.onclick = () => selectTile(t.id);
-    list.appendChild(div);
-  });
+let isDrawing=false, hoverR=-1, hoverC=-1;
+let currentTool='paint';
+
+function getCell(e){
+  const rect=canvas.getBoundingClientRect();
+  const sx=canvas.width/rect.width, sy=canvas.height/rect.height;
+  return {
+    r:Math.floor((e.clientY-rect.top)*sy/TILE_SIZE),
+    c:Math.floor((e.clientX-rect.left)*sx/TILE_SIZE)
+  };
 }
 
-function selectTile(id) {
-  selectedTile = id;
-  document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`tbtn-${id}`)?.classList.add('active');
-  document.getElementById('ci-brush').textContent = TILE_MAP[id]?.name || '?';
-  setTool('paint'); // 选地块自动切换到画笔
+function applyTool(r,c,btn=0){
+  if(btn===2||currentTool==='erase'){ eraseCell(r,c); return; }
+  if(currentTool==='block')   { blockCell(r,c,1); return; }
+  if(currentTool==='unblock') { blockCell(r,c,0); return; }
+  if(currentTool==='fill')    { floodFill(r,c); return; }
+  paintCell(r,c);
 }
 
-function setTool(tool) {
-  currentTool = tool;
-  ['paint','fill','erase','block','unblock'].forEach(t => {
-    const el = document.getElementById(`tool-${t}`);
-    if(el) el.style.borderColor = t===tool ? '#a0e040' : 'transparent';
+canvas.addEventListener('mousedown',e=>{
+  e.preventDefault(); isDrawing=true;
+  const {r,c}=getCell(e);
+  applyTool(r,c,e.button); draw(); setStatus(`(${c},${r})`);
+});
+canvas.addEventListener('mousemove',e=>{
+  const {r,c}=getCell(e); hoverR=r; hoverC=c;
+  document.getElementById('ci-pos').textContent=`(${c},${r})`;
+  const tid=(r>=0&&r<MAP_ROWS&&c>=0&&c<MAP_COLS)?mapData[r][c]:-1;
+  document.getElementById('ci-type').textContent=tid>=0?(TILE_TYPE_MAP[tid]?.name||'?'):'-';
+  if(isDrawing){
+    if(e.buttons===1) applyTool(r,c,0);
+    else if(e.buttons===2) eraseCell(r,c);
+  }
+  draw();
+});
+canvas.addEventListener('mouseup',()=>{ isDrawing=false; });
+canvas.addEventListener('mouseleave',()=>{ isDrawing=false; hoverR=-1; hoverC=-1; draw(); });
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const {r,c}=getCell(e.touches[0]);
+  applyTool(r,c,0); draw();
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const {r,c}=getCell(e.touches[0]);
+  if(currentTool==='block') blockCell(r,c,1);
+  else if(currentTool==='unblock') blockCell(r,c,0);
+  else if(currentTool==='erase') eraseCell(r,c);
+  else if(currentTool==='paint') paintCell(r,c);
+  draw();
+},{passive:false});
+
+// ============================================================
+// 工具选择
+// ============================================================
+function setTool(tool){
+  currentTool=tool;
+  ['paint','fill','erase','block','unblock'].forEach(t=>{
+    document.getElementById(`tool-${t}`)?.classList.toggle('active',t===tool);
   });
 }
 
 // ============================================================
 // 地图操作
 // ============================================================
-function fillAll() {
-  for(let r=0;r<MAP_ROWS;r++)
-    for(let c=0;c<MAP_COLS;c++)
-      mapData[r][c] = selectedTile;
+function fillAll(){
+  for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++) paintCell(r,c);
   draw(); setStatus('全图填充完成');
 }
-
-function clearMap() {
+function clearMap(){
   if(!confirm('清空地图？')) return;
-  for(let r=0;r<MAP_ROWS;r++) mapData[r].fill(0);
+  for(let r=0;r<MAP_ROWS;r++){
+    mapData[r].fill(0); blockData[r].fill(0); tilesetLayer[r].fill(null);
+  }
   draw(); setStatus('地图已清空');
 }
-
-function resizeMap() {
-  const cols = parseInt(document.getElementById('inp-cols').value);
-  const rows = parseInt(document.getElementById('inp-rows').value);
-  if(cols<5||rows<5||cols>40||rows>40) { alert('尺寸范围 5-40'); return; }
-  // 保留现有数据
-  const old = mapData.map(r=>[...r]);
-  const oldBlock = blockData.map(r=>[...r]);
-  initMap(cols, rows, 0);
-  for(let r=0;r<Math.min(rows,old.length);r++)
-    for(let c=0;c<Math.min(cols,(old[r]||[]).length);c++) {
-      mapData[r][c] = old[r][c];
-      blockData[r][c] = (oldBlock[r]||[])[c] || 0;
+function resizeMap(){
+  const cols=parseInt(document.getElementById('inp-cols').value);
+  const rows=parseInt(document.getElementById('inp-rows').value);
+  if(cols<5||rows<5||cols>60||rows>60){ alert('范围 5-60'); return; }
+  const oldMap=mapData.map(r=>[...r]);
+  const oldBlock=blockData.map(r=>[...r]);
+  const oldTs=tilesetLayer.map(r=>[...r]);
+  initMap(cols,rows);
+  for(let r=0;r<Math.min(rows,oldMap.length);r++)
+    for(let c=0;c<Math.min(cols,(oldMap[r]||[]).length);c++){
+      mapData[r][c]=oldMap[r][c];
+      blockData[r][c]=(oldBlock[r]||[])[c]||0;
+      tilesetLayer[r][c]=(oldTs[r]||[])[c]||null;
     }
+  resizeCanvas(); draw(); setStatus(`地图 ${cols}×${rows}`);
+}
+function changeTileSize(){
+  TILE_SIZE=parseInt(document.getElementById('tile-size-sel').value);
   resizeCanvas(); draw();
-  setStatus(`地图调整为 ${cols}×${rows}`);
 }
 
 // ============================================================
-// 导入 / 导出
+// 导入导出
 // ============================================================
-function exportMap() {
-  const data = {
-    cols: MAP_COLS, rows: MAP_ROWS,
-    tiles: mapData.map(row => [...row]),
-    blocked: blockData.map(row => [...row])
+function exportMap(){
+  const data={
+    cols:MAP_COLS, rows:MAP_ROWS,
+    tiles:mapData.map(r=>[...r]),
+    blocked:blockData.map(r=>[...r]),
+    tilesetLayer:tilesetLayer.map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null)),
+    groups:groups.map(g=>({id:g.id,name:g.name,col:g.col,row:g.row,
+      tiles:g.tiles.map(t=>({id:t.id,name:t.name}))}))
   };
-  document.getElementById('export-text').value = JSON.stringify(data, null, 2);
+  document.getElementById('export-text').value=JSON.stringify(data,null,2);
   document.getElementById('export-modal').classList.add('show');
 }
-
-function importMap() {
-  const raw = prompt('粘贴地图JSON数据：');
+function importMap(){
+  const raw=prompt('粘贴地图JSON:');
   if(!raw) return;
-  try {
-    const data = JSON.parse(raw);
-    MAP_COLS = data.cols; MAP_ROWS = data.rows;
-    mapData = data.tiles.map(r=>[...r]);
-    blockData = data.blocked
-      ? data.blocked.map(r=>[...r])
-      : mapData.map(row => row.map(t => [4,5,6,7,9].includes(t)?1:0));
-    document.getElementById('inp-cols').value = MAP_COLS;
-    document.getElementById('inp-rows').value = MAP_ROWS;
-    resizeCanvas(); draw();
-    setStatus(`已导入 ${MAP_COLS}×${MAP_ROWS} 地图`);
-  } catch(e) {
-    alert('JSON格式错误：' + e.message);
-  }
+  try{
+    const d=JSON.parse(raw);
+    MAP_COLS=d.cols; MAP_ROWS=d.rows;
+    mapData=d.tiles.map(r=>[...r]);
+    blockData=d.blocked?d.blocked.map(r=>[...r]):mapData.map(r=>r.map(t=>[4,5,6,7,9].includes(t)?1:0));
+    tilesetLayer=d.tilesetLayer?d.tilesetLayer.map(r=>r.map(c=>c)):mapData.map(r=>new Array(r.length).fill(null));
+    if(d.groups) groups=d.groups, nextGroupId=Math.max(...groups.map(g=>g.id))+1;
+    document.getElementById('inp-cols').value=MAP_COLS;
+    document.getElementById('inp-rows').value=MAP_ROWS;
+    resizeCanvas(); rebuildGroupList(); draw();
+    setStatus(`已导入 ${MAP_COLS}×${MAP_ROWS}`);
+  }catch(e){ alert('JSON错误:'+e.message); }
+}
+function copyExport(){ const ta=document.getElementById('export-text'); ta.select(); document.execCommand('copy'); setStatus('已复制 ✅'); }
+function downloadExport(){
+  const blob=new Blob([document.getElementById('export-text').value],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`farm_map_${MAP_COLS}x${MAP_ROWS}.json`; a.click();
 }
 
-function copyExport() {
-  const ta = document.getElementById('export-text');
-  ta.select(); document.execCommand('copy');
-  setStatus('已复制到剪贴板 ✅');
-}
-
-function downloadExport() {
-  const blob = new Blob([document.getElementById('export-text').value], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `farm_map_${MAP_COLS}x${MAP_ROWS}.json`;
-  a.click();
-}
-
-function closeExport() {
-  document.getElementById('export-modal').classList.remove('show');
-}
-
-function setStatus(msg) {
-  document.getElementById('status').textContent = msg;
-}
+// ============================================================
+// 工具函数
+// ============================================================
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function setStatus(msg){ document.getElementById('status').textContent=msg; }
 
 // ============================================================
 // 初始化
 // ============================================================
-initMap(18, 14);
+initMap(18,14);
 resizeCanvas();
-buildTileList();
+buildTypeList();
 draw();
-setStatus('地图编辑器已就绪 — 点击或拖拽绘制地块');
+setStatus('就绪 — 点「自动生成」加载图集分组，或直接绘制地图');
 </script>
 </body>
 </html>
