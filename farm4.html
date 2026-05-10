@@ -601,11 +601,36 @@ function loop(ts){
 
     // 边界+碰撞
     const BLOCKED=[T.HOUSE,T.TREE,T.WATER];
-    const nr=Math.round(ny), nc=Math.round(nx);
-    if(nx>=0&&nx<MAP_COLS&&ny>=0&&ny<MAP_ROWS){
-      if(!BLOCKED.includes(tileMap[Math.max(0,Math.min(MAP_ROWS-1,nr))][Math.max(0,Math.min(MAP_COLS-1,nc))])){
-        player.wx=nx; player.wy=ny;
+    const HALF = 0.4; // 角色碰撞半径（格子单位）
+
+    // 检查某个坐标是否可行走
+    function canWalk(wx, wy) {
+      // 越界判断
+      if (wx - HALF < 0 || wx + HALF > MAP_COLS - 1) return false;
+      if (wy - HALF < 0 || wy + HALF > MAP_ROWS - 1) return false;
+      // 检查角色占据的四个角
+      const corners = [
+        [Math.floor(wy - HALF), Math.floor(wx - HALF)],
+        [Math.floor(wy - HALF), Math.floor(wx + HALF)],
+        [Math.floor(wy + HALF), Math.floor(wx - HALF)],
+        [Math.floor(wy + HALF), Math.floor(wx + HALF)],
+      ];
+      for (const [r, c] of corners) {
+        const rr = Math.max(0, Math.min(MAP_ROWS-1, r));
+        const cc = Math.max(0, Math.min(MAP_COLS-1, c));
+        if (BLOCKED.includes(tileMap[rr][cc])) return false;
       }
+      return true;
+    }
+
+    if (canWalk(nx, ny)) {
+      player.wx = nx; player.wy = ny;
+    } else if (canWalk(nx, player.wy)) {
+      // X方向可以滑动
+      player.wx = nx;
+    } else if (canWalk(player.wx, ny)) {
+      // Y方向可以滑动
+      player.wy = ny;
     }
     if(Math.abs(joyDX)>Math.abs(joyDY)) player.dir=joyDX>0?'right':'left';
     else player.dir=joyDY>0?'down':'up';
