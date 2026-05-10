@@ -399,7 +399,7 @@ select.topbar-select {
     <div class="panel-content" id="tab-atlas" style="display:none;">
       <div style="padding:6px;border-bottom:1px solid #2e7d32;flex-shrink:0;">
         <button class="btn" style="width:100%;" onclick="syncAtlas()">🔄 同步图集</button>
-        <div id="atlas-sync-hint" style="font-size:10px;color:#81c784;padding:4px 2px 0;">从 assets/images/map/index.json 加载</div>
+        <div id="atlas-sync-hint" style="font-size:10px;color:#81c784;padding:4px 2px 0;">从 assets/map_editor/index.json 加载</div>
       </div>
       <div id="atlas-panel" style="flex:1;overflow-y:auto;padding:4px;"></div>
     </div>
@@ -1386,9 +1386,9 @@ function deleteTemplate(idx) {
 }
 
 // ============================================================
-// ATLAS 图集同步（从 assets/images/map/index.json 加载）
+// ATLAS 图集同步（从 assets/map_editor/index.json 加载）
 // ============================================================
-const ATLAS_INDEX_URL = 'https://weiyi330.github.io/farm-game/assets/images/map/index.json';
+const ATLAS_INDEX_URL = 'https://weiyi330.github.io/farm-game/assets/map_editor/index.json';
 const ATLAS_BASE_URL  = 'https://weiyi330.github.io/farm-game/';
 let atlasData = null;          // 加载的图集配置
 let selectedAtlasTile = null;  // { src, sx, sy, tileSize, label }
