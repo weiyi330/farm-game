@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "name": "tiles",
+      "label": "地块",
+      "children": [
+        {
+          "name": "map_tiles_grass_summer",
+          "label": "夏季草地",
+          "src": "assets/images/map/tiles/map_tiles_grass_summer.png",
+          "tileSize": 16,
+          "cols": 24,
+          "rows": 40
+        }
+      ]
+    },
+    {
+      "name": "decor",
+      "label": "装饰物",
+      "children": []
+    },
+    {
+      "name": "buildings",
+      "label": "建筑",
+      "children": []
+    }
+  ]
+}
