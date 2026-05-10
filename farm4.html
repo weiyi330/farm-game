@@ -320,6 +320,57 @@ const GROUND_COLORS = {
   [T.SHOP]:   {top:'#6abf50',lft:'#3d7a2a',rgt:'#4e9e38'},
 };
 
+// ============================================================
+// 加载 Tileset
+// ============================================================
+const tilesetImg = new Image();
+tilesetImg.src = 'https://weiyi330.github.io/squat-game/tileset.png';
+let tilesetLoaded = false;
+tilesetImg.onload = () => { tilesetLoaded = true; };
+
+const TS = 16; // tileset 单格大小
+// 各地块类型对应的 tileset 坐标 {col, row}
+const TILE_UV = {
+  [T.GRASS]:  { col:0, row:3 },  // 老危指定：第1列第4行（从0计）
+  [T.SOIL]:   { col:0, row:3 },  // 暂用草地
+  [T.TILLED]: { col:0, row:3 },  // 暂用草地（后续更换耕地素材）
+  [T.PATH]:   { col:0, row:3 },
+  [T.WATER]:  { col:0, row:3 },
+  [T.CROP]:   { col:0, row:3 },
+  [T.TREE]:   { col:0, row:3 },
+  [T.HOUSE]:  { col:0, row:3 },
+  [T.WELL]:   { col:0, row:3 },
+  [T.SHOP]:   { col:0, row:3 },
+};
+
+// 绘制等距地块顶面（素材贴图版）
+function drawIsoTileTop(x, y, tileCol, tileRow, highlight=false) {
+  if (!tilesetLoaded) return;
+  // 剩菑形路径
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x,        y);
+  ctx.lineTo(x+TW/2,   y+TH/2);
+  ctx.lineTo(x,        y+TH);
+  ctx.lineTo(x-TW/2,   y+TH/2);
+  ctx.closePath();
+  ctx.clip();
+
+  // 将 tileset 小格拉伸到菱形内（拉伸以内接矩形覆盖）
+  const sx = tileCol * TS;
+  const sy = tileRow * TS;
+  ctx.drawImage(tilesetImg, sx, sy, TS, TS, x - TW/2, y, TW, TH);
+
+  // 高亮覆盖
+  if (highlight) {
+    ctx.fillStyle = 'rgba(255,220,80,0.35)';
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,220,80,0.9)'; ctx.lineWidth=1.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 const DEPTH = 12;
 
 function drawIsoTile(x, y, colors, highlight=false) {
@@ -365,6 +416,12 @@ function drawTile(r, c) {
 
   const colors = GROUND_COLORS[type] || GROUND_COLORS[T.GRASS];
   drawIsoTile(x, y, colors, isPlayerTile);
+
+  // 草地类用 tileset 贴图覆盖顶面
+  if (type === T.GRASS || type === T.TREE || type === T.HOUSE || type === T.WELL || type === T.SHOP) {
+    const uv = TILE_UV[type];
+    drawIsoTileTop(x, y, uv.col, uv.row, isPlayerTile);
+  }
 
   const crop = cropMap[r][c];
 
