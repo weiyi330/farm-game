@@ -697,6 +697,12 @@ function buildTileGrid() {
 
 function selectTile(id) {
   state.currentTile = id;
+  // 选择地块类型时，清除图集选中（地块模式和图集模式互斥）
+  selectedAtlasTile = null;
+  document.querySelectorAll('[data-atlas-cell]').forEach(el => {
+    el.style.borderColor = '#3a5020';
+    el.style.boxShadow = '';
+  });
   document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
   if (id === null) {
     const nb = document.getElementById('tbtn-none');
@@ -1591,52 +1597,100 @@ function renderAtlasPanel() {
 function renderAtlasChild(container, group, child) {
   const img = new Image();
   img.crossOrigin = 'anonymous';
-  img.src = ATLAS_BASE_URL + child.src + '?t=' + Date.now();
+  img.src = ATLAS_BASE_URL + child.src + '?t=1';
+  const TS = child.tileSize || 16;
+
+  // 缓存图片
+  if (!atlasImgCache[child.src]) atlasImgCache[child.src] = 'loading';
+  img.onload = () => { atlasImgCache[child.src] = img; };
+
   const cDiv = document.createElement('div');
   cDiv.style.cssText = 'margin:4px 0 4px 8px;';
   const cHeader = document.createElement('div');
   cHeader.style.cssText = 'font-size:10px;color:#c8e6c9;padding:2px 4px;cursor:pointer;display:flex;align-items:center;gap:3px;';
-  const TS = child.tileSize || 16;
   const totalTiles = child.cols * child.rows;
-  cHeader.innerHTML = `<span>▼</span>${child.label || child.name} <span style="color:#607040">(${totalTiles}格)</span>`;
+  cHeader.innerHTML = `<span>▼</span>${child.label||child.name} <span style="color:#607040">(${totalTiles}格)</span>`;
   let collapsed = false;
-  const grid = document.createElement('div');
-  grid.style.cssText = `display:grid;grid-template-columns:repeat(${Math.min(child.cols,8)},28px);gap:2px;padding:4px 0;`;
-  cHeader.onclick = () => { collapsed = !collapsed; grid.style.display = collapsed ? 'none' : ''; cHeader.querySelector('span').textContent = collapsed ? '▶' : '▼'; };
+  const body = document.createElement('div');
+  cHeader.onclick = () => { collapsed = !collapsed; body.style.display = collapsed?'none':''; cHeader.querySelector('span').textContent = collapsed?'▶':'▼'; };
 
-  img.onload = () => {
-    for (let r = 0; r < child.rows; r++) {
-      for (let c = 0; c < child.cols; c++) {
-        const idx = r * child.cols + c;
-        const num = String(idx + 1).padStart(2, '0');
-        const tileName = `${child.name}_${num}`;
-        const sx = c * TS, sy = r * TS;
-        const cell = document.createElement('div');
-        cell.style.cssText = 'width:28px;height:28px;border:1px solid #3a5020;border-radius:2px;cursor:pointer;overflow:hidden;position:relative;';
-        cell.title = tileName;
-        const cv = document.createElement('canvas');
-        cv.width = TS; cv.height = TS;
-        cv.style.cssText = 'width:28px;height:28px;image-rendering:pixelated;display:block;';
-        const cx = cv.getContext('2d');
-        cx.drawImage(img, sx, sy, TS, TS, 0, 0, TS, TS);
-        cell.appendChild(cv);
-        cell.addEventListener('click', () => {
-          document.querySelectorAll('.atlas-cell-selected').forEach(el => el.classList.remove('atlas-cell-selected'));
-          cell.classList.add('atlas-cell-selected');
-          cell.style.borderColor = '#ffe040';
-          selectedAtlasTile = { img, sx, sy, tileSize: TS, label: tileName, src: child.src };
-          // 同步到渲染缓存
-          if (!atlasImgCache[child.src] || atlasImgCache[child.src] === 'loading') atlasImgCache[child.src] = img;
-          setStatus('已选图集：' + tileName);
-        });
-        grid.appendChild(cell);
+  const makeCell = (sx, sy, tileName) => {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'width:28px;height:28px;border:1px solid #3a5020;border-radius:2px;cursor:pointer;overflow:hidden;flex-shrink:0;';
+    cell.title = tileName;
+    cell.dataset.atlasCell = '1';
+    const cv = document.createElement('canvas');
+    cv.width = TS; cv.height = TS;
+    cv.style.cssText = 'width:28px;height:28px;image-rendering:pixelated;display:block;';
+    const cx = cv.getContext('2d');
+    const drawCell = () => {
+      if (atlasImgCache[child.src] && atlasImgCache[child.src] !== 'loading') {
+        cx.drawImage(atlasImgCache[child.src], sx, sy, TS, TS, 0, 0, TS, TS);
+      } else {
+        img.onload = () => { atlasImgCache[child.src] = img; cx.drawImage(img, sx, sy, TS, TS, 0, 0, TS, TS); };
+      }
+    };
+    drawCell();
+    cell.appendChild(cv);
+    cell.addEventListener('click', () => {
+      // 清除全部选中样式
+      document.querySelectorAll('[data-atlas-cell]').forEach(el => {
+        el.style.borderColor = '#3a5020';
+        el.style.boxShadow = '';
+      });
+      cell.style.borderColor = '#ffe040';
+      cell.style.boxShadow = '0 0 0 1px #ffe040';
+      selectedAtlasTile = { img: atlasImgCache[child.src], sx, sy, tileSize: TS, label: tileName, src: child.src };
+      setStatus('已选图集：' + tileName);
+    });
+    return cell;
+  };
+
+  if (child.subgroups && child.subgroups.length > 0) {
+    // 按 subgroup 分组显示
+    const SGC = child.subgroupCols || 4;
+    const SGR = child.subgroupRows || 4;
+    child.subgroups.forEach(sg => {
+      const sgDiv = document.createElement('div');
+      sgDiv.style.cssText = 'margin:2px 0;';
+      const sgHeader = document.createElement('div');
+      sgHeader.style.cssText = 'font-size:10px;color:#a5d6a7;padding:1px 4px;cursor:pointer;display:flex;align-items:center;gap:3px;background:#1a3a1a;border-radius:2px;';
+      sgHeader.innerHTML = `<span>▼</span>${sg.label}`;
+      let sgCollapsed = true; // 默认折叠
+      const sgGrid = document.createElement('div');
+      sgGrid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:3px 0;display:none;`;
+      sgHeader.onclick = () => { sgCollapsed=!sgCollapsed; sgGrid.style.display=sgCollapsed?'none':'flex'; sgHeader.querySelector('span').textContent=sgCollapsed?'▶':'▼'; };
+      for (let dr=0; dr<SGR; dr++) {
+        for (let dc=0; dc<SGC; dc++) {
+          const c = sg.col + dc, r = sg.row + dr;
+          if (c >= child.cols || r >= child.rows) continue;
+          const idx = r * child.cols + c;
+          const num = String(idx+1).padStart(2,'0');
+          const tileName = `${child.name}_${num}`;
+          sgGrid.appendChild(makeCell(c*TS, r*TS, tileName));
+        }
+      }
+      sgDiv.appendChild(sgHeader);
+      sgDiv.appendChild(sgGrid);
+      body.appendChild(sgDiv);
+    });
+  } else {
+    // 没有 subgroup，直接全列
+    const grid = document.createElement('div');
+    grid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:4px 0;`;
+    for (let r=0; r<child.rows; r++) {
+      for (let c=0; c<child.cols; c++) {
+        const idx = r*child.cols+c;
+        const num = String(idx+1).padStart(2,'0');
+        grid.appendChild(makeCell(c*TS, r*TS, `${child.name}_${num}`));
       }
     }
-  };
-  img.onerror = () => { cHeader.innerHTML += ' <span style="color:#f44">加载失败</span>'; };
+    body.appendChild(grid);
+  }
 
+  img.onerror = () => { cHeader.innerHTML += ' <span style="color:#f44">加载失败</span>'; };
   cDiv.appendChild(cHeader);
-  cDiv.appendChild(grid);
+  cDiv.appendChild(body);
   container.appendChild(cDiv);
 }
 
