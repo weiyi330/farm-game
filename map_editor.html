@@ -89,8 +89,9 @@ select.topbar-select {
 .panel-tab.active { background: #1e3a1e; color: #a5d6a7; }
 .panel-tab:hover:not(.active) { background: #162816; }
 
-.panel-content { display: none; flex: 1; overflow-y: auto; padding: 8px; }
-.panel-content.active { display: block; }
+.panel-content { display: none; flex: 1; overflow-y: auto; flex-direction: column; padding: 8px; }
+.panel-content.active { display: flex; }
+.atlas-cell-selected { border-color: #ffe040 !important; box-shadow: 0 0 0 1px #ffe040; }
 
 /* LAYER TAB */
 .layer-btn {
@@ -378,6 +379,7 @@ select.topbar-select {
     <div id="panel-tabs">
       <button class="panel-tab active" onclick="switchTab('layers')">📐 层</button>
       <button class="panel-tab" onclick="switchTab('tiles')">🎨 地块</button>
+      <button class="panel-tab" onclick="switchTab('atlas')">🖼 图集</button>
       <button class="panel-tab" onclick="switchTab('tools')">🛠 工具</button>
     </div>
 
@@ -391,6 +393,15 @@ select.topbar-select {
     <div class="panel-content" id="tab-tiles">
       <div class="tile-note">仅 ground_high 层有效</div>
       <div class="tile-grid" id="tile-grid"></div>
+    </div>
+
+    <!-- ATLAS TAB -->
+    <div class="panel-content" id="tab-atlas" style="display:none;">
+      <div style="padding:6px;border-bottom:1px solid #2e7d32;flex-shrink:0;">
+        <button class="btn" style="width:100%;" onclick="syncAtlas()">🔄 同步图集</button>
+        <div id="atlas-sync-hint" style="font-size:10px;color:#81c784;padding:4px 2px 0;">从 assets/images/map/index.json 加载</div>
+      </div>
+      <div id="atlas-panel" style="flex:1;overflow-y:auto;padding:4px;"></div>
     </div>
 
     <!-- TOOLS TAB -->
@@ -591,6 +602,7 @@ window.addEventListener('load', () => {
   render();
   updateStatus();
   loadLatestSave();
+  initAtlas();
 });
 
 // ============================================================
@@ -598,11 +610,15 @@ window.addEventListener('load', () => {
 // ============================================================
 function switchTab(tab) {
   document.querySelectorAll('.panel-tab').forEach((b,i) => {
-    const ids = ['layers','tiles','tools'];
+    const ids = ['layers','tiles','atlas','tools'];
     b.classList.toggle('active', ids[i] === tab);
   });
-  document.querySelectorAll('.panel-content').forEach(c => c.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.panel-content').forEach(c => {
+    c.classList.remove('active');
+    c.style.display = 'none';
+  });
+  const el = document.getElementById('tab-' + tab);
+  if(el){ el.classList.add('active'); el.style.display = 'flex'; }
 }
 
 function buildLayerButtons() {
@@ -1370,8 +1386,119 @@ function deleteTemplate(idx) {
 }
 
 // ============================================================
-// MODAL HELPERS
+// ATLAS 图集同步（从 assets/images/map/index.json 加载）
 // ============================================================
+const ATLAS_INDEX_URL = 'https://weiyi330.github.io/farm-game/assets/images/map/index.json';
+const ATLAS_BASE_URL  = 'https://weiyi330.github.io/farm-game/';
+let atlasData = null;          // 加载的图集配置
+let selectedAtlasTile = null;  // { src, sx, sy, tileSize, label }
+
+async function syncAtlas() {
+  const hint = document.getElementById('atlas-sync-hint');
+  hint.textContent = '加载中...';
+  try {
+    const res = await fetch(ATLAS_INDEX_URL + '?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    atlasData = await res.json();
+    localStorage.setItem('farm_atlas_cache', JSON.stringify(atlasData));
+    hint.textContent = `同步成功，共 ${atlasData.groups.length} 个分组`;
+    renderAtlasPanel();
+  } catch(e) {
+    // 尝试读缓存
+    const cached = localStorage.getItem('farm_atlas_cache');
+    if (cached) {
+      atlasData = JSON.parse(cached);
+      hint.textContent = '网络失败，使用缓存（' + atlasData.groups.length + '个分组）';
+      renderAtlasPanel();
+    } else {
+      hint.textContent = '加载失败：' + e.message;
+    }
+  }
+}
+
+function renderAtlasPanel() {
+  const panel = document.getElementById('atlas-panel');
+  if (!atlasData) { panel.innerHTML = '<div style="padding:10px;color:#81c784;font-size:11px;">点「🔄 同步图集」加载</div>'; return; }
+  panel.innerHTML = '';
+  atlasData.groups.forEach(group => {
+    const gDiv = document.createElement('div');
+    gDiv.style.cssText = 'margin-bottom:6px;';
+    const gHeader = document.createElement('div');
+    gHeader.style.cssText = 'font-size:11px;color:#a5d6a7;padding:3px 4px;background:#1a3a1a;border-radius:3px;cursor:pointer;display:flex;align-items:center;gap:4px;';
+    gHeader.innerHTML = `<span>▼</span><b>${group.label || group.name}</b><span style="color:#607040;font-size:10px;">(${group.children.length})</span>`;
+    let collapsed = false;
+    const gBody = document.createElement('div');
+    gHeader.onclick = () => { collapsed = !collapsed; gBody.style.display = collapsed ? 'none' : ''; gHeader.querySelector('span').textContent = collapsed ? '▶' : '▼'; };
+    gDiv.appendChild(gHeader);
+    group.children.forEach(child => {
+      renderAtlasChild(gBody, group, child);
+    });
+    gDiv.appendChild(gBody);
+    panel.appendChild(gDiv);
+  });
+}
+
+function renderAtlasChild(container, group, child) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = ATLAS_BASE_URL + child.src + '?t=' + Date.now();
+  const cDiv = document.createElement('div');
+  cDiv.style.cssText = 'margin:4px 0 4px 8px;';
+  const cHeader = document.createElement('div');
+  cHeader.style.cssText = 'font-size:10px;color:#c8e6c9;padding:2px 4px;cursor:pointer;display:flex;align-items:center;gap:3px;';
+  const TS = child.tileSize || 16;
+  const totalTiles = child.cols * child.rows;
+  cHeader.innerHTML = `<span>▼</span>${child.label || child.name} <span style="color:#607040">(${totalTiles}格)</span>`;
+  let collapsed = false;
+  const grid = document.createElement('div');
+  grid.style.cssText = `display:grid;grid-template-columns:repeat(${Math.min(child.cols,8)},28px);gap:2px;padding:4px 0;`;
+  cHeader.onclick = () => { collapsed = !collapsed; grid.style.display = collapsed ? 'none' : ''; cHeader.querySelector('span').textContent = collapsed ? '▶' : '▼'; };
+
+  img.onload = () => {
+    for (let r = 0; r < child.rows; r++) {
+      for (let c = 0; c < child.cols; c++) {
+        const idx = r * child.cols + c;
+        const num = String(idx + 1).padStart(2, '0');
+        const tileName = `${child.name}_${num}`;
+        const sx = c * TS, sy = r * TS;
+        const cell = document.createElement('div');
+        cell.style.cssText = 'width:28px;height:28px;border:1px solid #3a5020;border-radius:2px;cursor:pointer;overflow:hidden;position:relative;';
+        cell.title = tileName;
+        const cv = document.createElement('canvas');
+        cv.width = TS; cv.height = TS;
+        cv.style.cssText = 'width:28px;height:28px;image-rendering:pixelated;display:block;';
+        const cx = cv.getContext('2d');
+        cx.drawImage(img, sx, sy, TS, TS, 0, 0, TS, TS);
+        cell.appendChild(cv);
+        cell.addEventListener('click', () => {
+          document.querySelectorAll('.atlas-cell-selected').forEach(el => el.classList.remove('atlas-cell-selected'));
+          cell.classList.add('atlas-cell-selected');
+          cell.style.borderColor = '#ffe040';
+          selectedAtlasTile = { img, sx, sy, tileSize: TS, label: tileName, src: child.src };
+          setStatus('已选图集：' + tileName);
+        });
+        grid.appendChild(cell);
+      }
+    }
+  };
+  img.onerror = () => { cHeader.innerHTML += ' <span style="color:#f44">加载失败</span>'; };
+
+  cDiv.appendChild(cHeader);
+  cDiv.appendChild(grid);
+  container.appendChild(cDiv);
+}
+
+// 启动时从缓存加载
+function initAtlas() {
+  const cached = localStorage.getItem('farm_atlas_cache');
+  if (cached) {
+    try {
+      atlasData = JSON.parse(cached);
+      document.getElementById('atlas-sync-hint').textContent = `已加载缓存（${atlasData.groups.length}个分组），点同步获取最新`;
+      renderAtlasPanel();
+    } catch(e) {}
+  }
+}
 function openModal(id) {
   document.getElementById(id).classList.add('active');
 }
