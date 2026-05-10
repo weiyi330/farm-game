@@ -198,9 +198,9 @@ body {
   <!-- 左侧面板 -->
   <div id="tileset-panel">
     <div id="tileset-tabs">
-      <div class="ts-tab active" onclick="switchTab('tileset')" id="tab-tileset">🖼️ 图集</div>
-      <div class="ts-tab" onclick="switchTab('types')" id="tab-types">🎨 地块</div>
-      <div class="ts-tab" onclick="switchTab('tools')" id="tab-tools">🛠️ 工具</div>
+        <div class="ts-tab active" onclick="switchTab('tileset')" id="tab-tileset">🖼️ 图集</div>
+        <div class="ts-tab" onclick="switchTab('types')" id="tab-types">🎨 地块</div>
+        <div class="ts-tab" onclick="switchTab('tools')" id="tab-tools">🛠️ 工具</div>
     </div>
 
     <!-- 图集面板 -->
@@ -208,6 +208,17 @@ body {
       <div style="padding:5px 6px;border-bottom:1px solid #3a5020;display:flex;gap:4px;flex-shrink:0;">
         <button class="btn btn-green" style="flex:1;font-size:11px;" onclick="showGroupManager()">⚙️ 管理分组</button>
         <button class="btn btn-blue"  style="flex:1;font-size:11px;" onclick="autoGenGroups()">✨ 自动生成</button>
+      </div>
+      <!-- 层切换 -->
+      <div style="display:flex;border-bottom:1px solid #3a5020;flex-shrink:0;">
+        <div id="layer-btn-0" onclick="setCurrentLayer(0)"
+          style="flex:1;padding:4px;text-align:center;font-size:11px;cursor:pointer;background:#2a3c18;color:#c8e080;border-bottom:2px solid #a0e040;">
+          📋 底层
+        </div>
+        <div id="layer-btn-1" onclick="setCurrentLayer(1)"
+          style="flex:1;padding:4px;text-align:center;font-size:11px;cursor:pointer;color:#80a050;border-bottom:2px solid transparent;">
+          🔼 叠加层
+        </div>
       </div>
       <div id="group-list"></div>
     </div>
@@ -234,6 +245,9 @@ body {
         <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
           <input type="checkbox" id="show-grid" checked onchange="draw()"> 显示网格
         </label>
+        <label style="display:flex;align-items:center;gap:6px;padding:4px 7px;font-size:12px;cursor:pointer;">
+          <input type="checkbox" id="show-overlay" checked onchange="draw()"> 显示叠加层
+        </label>
       </div>
       <div id="coord-info">
         位置：<span id="ci-pos">-</span><br>
@@ -252,6 +266,8 @@ body {
 <!-- 底栏 -->
 <div id="bottombar">
   <span id="status">就绪</span>
+  <span style="padding:2px 8px;border-radius:4px;font-size:11px;" id="layer-badge"
+    style="background:#2a4a1a;color:#a0e040;">📋 当前：底层</span>
   <span style="margin-left:auto;color:#506030;font-size:10px;">
     左键绘制 · 拖拽连续 · 右键清除 · 图集模式可直接点格子选素材
   </span>
@@ -592,15 +608,19 @@ let MAP_COLS=18, MAP_ROWS=14;
 let mapData=[], blockData=[];
 // tilesetLayer: 每格存 {sx,sy} 或 null
 let tilesetLayer=[];
+// overlayLayer: 叠加层，每格存 {sx,sy} 或 null
+let overlayLayer=[];
 let TILE_SIZE=40;
+let currentLayer=0; // 0=底层 1=叠加层
 
 function initMap(cols, rows) {
   MAP_COLS=cols; MAP_ROWS=rows;
-  mapData=[]; blockData=[]; tilesetLayer=[];
+  mapData=[]; blockData=[]; tilesetLayer=[]; overlayLayer=[];
   for(let r=0;r<rows;r++){
     mapData[r]=new Array(cols).fill(0);
     blockData[r]=new Array(cols).fill(0);
     tilesetLayer[r]=new Array(cols).fill(null);
+    overlayLayer[r]=new Array(cols).fill(null);
   }
   if(cols===18&&rows===14) applyDefaultTerrain();
 }
@@ -634,6 +654,7 @@ function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const showGrid=document.getElementById('show-grid')?.checked!==false;
   const showBlock=document.getElementById('show-block')?.checked!==false;
+  const showOverlay=document.getElementById('show-overlay')?.checked!==false;
 
   for(let r=0;r<MAP_ROWS;r++){
     for(let c=0;c<MAP_COLS;c++){
@@ -664,7 +685,18 @@ function draw(){
         ctx.fillText(type.icon, x+TILE_SIZE/2, y+TILE_SIZE/2);
       }
 
-      // 网格线
+      // 叠加层
+      const ov=overlayLayer[r][c];
+      if(ov && tilesetLoaded && showOverlay){
+        ctx.imageSmoothingEnabled=false;
+        ctx.drawImage(tilesetImg, ov.sx, ov.sy, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
+      }
+
+      // 当前层高亮边框
+      if(currentLayer===1 && hoverR===r && hoverC===c){
+        ctx.strokeStyle='rgba(160,120,255,0.9)'; ctx.lineWidth=2;
+        ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE);
+      }
       if(showGrid){
         ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=0.5;
         ctx.strokeRect(x,y,TILE_SIZE,TILE_SIZE);
@@ -698,8 +730,15 @@ function draw(){
 // ============================================================
 function paintCell(r,c){
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
+  if(currentLayer===1){
+    // 叠加层：只记录 tileset 坐标
+    if(useTilesetMode && selectedTilesetCell){
+      overlayLayer[r][c]={ sx:selectedTilesetCell.sx, sy:selectedTilesetCell.sy };
+    }
+    return;
+  }
+  // 底层
   if(useTilesetMode && selectedTilesetCell){
-    // 图集模式：记录tileset坐标，底色用草地(0)
     mapData[r][c]=0;
     tilesetLayer[r][c]={ sx:selectedTilesetCell.sx, sy:selectedTilesetCell.sy };
   } else {
@@ -711,6 +750,10 @@ function paintCell(r,c){
 
 function eraseCell(r,c){
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
+  if(currentLayer===1){
+    overlayLayer[r][c]=null;
+    return;
+  }
   mapData[r][c]=0; tilesetLayer[r][c]=null;
 }
 
@@ -804,6 +847,20 @@ function setTool(tool){
   });
 }
 
+function setCurrentLayer(layer){
+  currentLayer=layer;
+  [0,1].forEach(i=>{
+    const btn=document.getElementById(`layer-btn-${i}`);
+    if(!btn) return;
+    btn.style.borderBottom = i===layer ? '2px solid #a0e040' : '2px solid transparent';
+    btn.style.color = i===layer ? '#c8e080' : '#80a050';
+    btn.style.background = i===layer ? '#2a3c18' : 'transparent';
+  });
+  const badge=document.getElementById('layer-badge');
+  if(badge) badge.textContent = layer===0 ? '📋 当前：底层' : '🔼 当前：叠加层';
+  setStatus(layer===0 ? '切换到底层' : '切换到叠加层（仅支持图集素材）');
+}
+
 // ============================================================
 // 地图操作
 // ============================================================
@@ -814,7 +871,7 @@ function fillAll(){
 function clearMap(){
   if(!confirm('清空地图？')) return;
   for(let r=0;r<MAP_ROWS;r++){
-    mapData[r].fill(0); blockData[r].fill(0); tilesetLayer[r].fill(null);
+  mapData[r].fill(0); blockData[r].fill(0); tilesetLayer[r].fill(null); overlayLayer[r].fill(null);
   }
   draw(); setStatus('地图已清空');
 }
@@ -825,12 +882,14 @@ function resizeMap(){
   const oldMap=mapData.map(r=>[...r]);
   const oldBlock=blockData.map(r=>[...r]);
   const oldTs=tilesetLayer.map(r=>[...r]);
+  const oldOv=overlayLayer.map(r=>[...r]);
   initMap(cols,rows);
   for(let r=0;r<Math.min(rows,oldMap.length);r++)
     for(let c=0;c<Math.min(cols,(oldMap[r]||[]).length);c++){
       mapData[r][c]=oldMap[r][c];
       blockData[r][c]=(oldBlock[r]||[])[c]||0;
       tilesetLayer[r][c]=(oldTs[r]||[])[c]||null;
+      overlayLayer[r][c]=(oldOv[r]||[])[c]||null;
     }
   resizeCanvas(); draw(); setStatus(`地图 ${cols}×${rows}`);
 }
@@ -848,6 +907,7 @@ function exportMap(){
     tiles:mapData.map(r=>[...r]),
     blocked:blockData.map(r=>[...r]),
     tilesetLayer:tilesetLayer.map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null)),
+    overlayLayer:overlayLayer.map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null)),
     groups:groups.map(g=>({id:g.id,name:g.name,col:g.col,row:g.row,
       tiles:g.tiles.map(t=>({id:t.id,name:t.name}))}))
   };
@@ -863,6 +923,7 @@ function importMap(){
     mapData=d.tiles.map(r=>[...r]);
     blockData=d.blocked?d.blocked.map(r=>[...r]):mapData.map(r=>r.map(t=>[4,5,6,7,9].includes(t)?1:0));
     tilesetLayer=d.tilesetLayer?d.tilesetLayer.map(r=>r.map(c=>c)):mapData.map(r=>new Array(r.length).fill(null));
+    overlayLayer=d.overlayLayer?d.overlayLayer.map(r=>r.map(c=>c)):mapData.map(r=>new Array(r.length).fill(null));
     if(d.groups) groups=d.groups, nextGroupId=Math.max(...groups.map(g=>g.id))+1;
     document.getElementById('inp-cols').value=MAP_COLS;
     document.getElementById('inp-rows').value=MAP_ROWS;
