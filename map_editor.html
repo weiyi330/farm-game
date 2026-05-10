@@ -179,10 +179,10 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
   <button class="btn btn-red"    onclick="clearLayer()">🗑️ 清空</button>
   <span class="sep-v">|</span>
   <label style="font-size:11px;color:#80a050;">列
-    <input id="inp-cols" type="number" value="18" min="5" max="60" class="finput" style="width:42px;margin-left:3px;">
+    <input id="inp-cols" type="number" value="18" min="1" max="9999" class="finput" style="width:52px;margin-left:3px;">
   </label>
   <label style="font-size:11px;color:#80a050;">行
-    <input id="inp-rows" type="number" value="14" min="5" max="60" class="finput" style="width:42px;margin-left:3px;">
+    <input id="inp-rows" type="number" value="14" min="1" max="9999" class="finput" style="width:52px;margin-left:3px;">
   </label>
   <button class="btn btn-green" onclick="resizeMap()">↩ 调整</button>
   <span class="sep-v">|</span>
@@ -215,6 +215,10 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
       <div class="tileset-toolbar">
         <button class="btn btn-teal"   style="flex:1;font-size:11px;" onclick="autoGenGroups()">✨ 自动生成</button>
         <button class="btn btn-green"  style="flex:1;font-size:11px;" onclick="openAddParent()">＋ 父组</button>
+      </div>
+      <div style="padding:3px 5px;border-bottom:1px solid #3a5020;display:flex;gap:3px;flex-shrink:0;">
+        <button class="btn btn-blue" style="flex:1;font-size:11px;" onclick="importLocalTileset()">📂 导入本地图集</button>
+        <input type="file" id="tileset-file-input" accept="image/*" style="display:none;" onchange="onLocalTilesetSelected(event)">
       </div>
       <div style="display:flex;gap:3px;padding:3px 5px;border-bottom:1px solid #3a5020;flex-shrink:0;">
         <button class="btn btn-blue" style="flex:1;font-size:10px;" onclick="openAddChildFromBar()">＋ 新建子组</button>
@@ -299,6 +303,12 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
       <label>父组名称</label>
       <input type="text" id="ap-name" placeholder="例：草地组">
     </div>
+    <div class="frow">
+      <label>上级父组（可不选，选后嵌套在其下）</label>
+      <select id="ap-parent" class="finput" style="width:100%;">
+        <option value="">（根级，无上级）</option>
+      </select>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-green" onclick="confirmAddParent()">✓ 创建</button>
       <button class="btn btn-red"   onclick="closeModal('add-parent-modal')">✕ 取消</button>
@@ -351,21 +361,15 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
 
 <!-- ══════════════════ 弹窗：素材编辑 ══════════════════ -->
 <div class="modal-bg" id="tile-edit-modal">
-  <div class="modal-box" style="max-width:460px;">
+  <div class="modal-box" style="max-width:360px;">
     <h3>✏️ 编辑素材</h3>
     <div id="te-preview-wrap">
       <canvas id="te-preview" width="64" height="64" style="width:64px;height:64px;"></canvas>
-      <div style="flex:1;">
-        <div style="font-size:11px;color:#80a050;margin-bottom:4px;">点击下方Tileset选格</div>
-        <div style="font-size:10px;color:#607040;">sx=<span id="te-sx-show">0</span> sy=<span id="te-sy-show">0</span></div>
+      <div id="te-coords-hint">
+        Tileset: 24列×40行<br>每格16px<br><br>
+        sx = 列 × 16<br>
+        sy = 行 × 16
       </div>
-    </div>
-    <!-- 可点击选格的 Tileset -->
-    <div style="margin-bottom:8px;">
-      <canvas id="te-tileset-picker" width="384" height="640"
-        style="width:192px;height:320px;image-rendering:pixelated;border:1px solid #4a6a2a;border-radius:4px;cursor:crosshair;display:block;"
-        onclick="onTilesetPickerClick(event)">
-      </canvas>
     </div>
     <div class="frow">
       <label>素材名称</label>
@@ -436,10 +440,48 @@ const TILESET_CFG_KEY = 'farm_tileset_config';
  *   ]}
  * ]
  */
-let parentGroups = [];
+// 多个 tileset 源（默认远端 + 本地导入）
+const tilesetSources = [];
+let activeTilesetIdx = 0;
+
+function initTilesetSources() {
+  tilesetSources.push({ name: '默认图集', src: TS_SRC, img: tilesetImg });
+}
+
+// 导入本地图集
+function importLocalTileset() {
+  document.getElementById('tileset-file-input').click();
+}
+
+function onLocalTilesetSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const src = ev.target.result; // base64
+      tilesetSources.push({ name: file.name.replace(/\.[^.]+$/, ''), src, img });
+      // 展示导入后的対话：让用户为新图集创建父组
+      openAddParentWithTileset(tilesetSources.length - 1, file.name.replace(/\.[^.]+$/, ''));
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function getActiveImg() {
+  return tilesetSources[activeTilesetIdx]?.img || tilesetImg;
+}
+
 let _pgNextId = 1;
 let _cgNextId = 1;
 let _tileNextId = 1;
+// 父组支持嵌套：每个父组可有 parentId 字段（引用另一个父组id）
+// 没有 parentId 或 parentId=null 表示根级
+// 三级示例：草地组(pg) → 夏季草地组(pg, parentId=草地组.id) → 子组(cg)
+let parentGroups = [];
 
 function loadTilesetConfig() {
   try {
@@ -450,18 +492,30 @@ function loadTilesetConfig() {
       _pgNextId    = cfg._pgNextId    || 1;
       _cgNextId    = cfg._cgNextId    || 1;
       _tileNextId  = cfg._tileNextId  || 1;
-      // 兼容：确保 collapsed 字段存在
       parentGroups.forEach(pg => {
         pg.collapsed = !!pg.collapsed;
+        if (pg.parentId === undefined) pg.parentId = null;
         (pg.children || []).forEach(cg => { cg.collapsed = !!cg.collapsed; });
       });
+      // 加载本地图集源信息
+      if (cfg.extraSources) {
+        cfg.extraSources.forEach(s => {
+          if (tilesetSources.find(x => x.name === s.name)) return;
+          const img = new Image();
+          img.src = s.src;
+          tilesetSources.push({ name: s.name, src: s.src, img });
+        });
+      }
     }
   } catch(e) { parentGroups = []; }
 }
 
 function saveTilesetConfig() {
-  const cfg = { parentGroups, _pgNextId, _cgNextId, _tileNextId };
-  try { localStorage.setItem(TILESET_CFG_KEY, JSON.stringify(cfg)); } catch(e) {}
+  const extraSources = tilesetSources.slice(1).map(s => ({ name: s.name, src: s.src }));
+  const cfg = { parentGroups, _pgNextId, _cgNextId, _tileNextId, extraSources };
+  try { localStorage.setItem(TILESET_CFG_KEY, JSON.stringify(cfg)); } catch(e) {
+    alert('存储失败，可能是本地图集过大导致 localStorage 满额');
+  }
 }
 
 // ─── 折叠/展开 state ───
@@ -519,15 +573,38 @@ let _pendingAddChildPgId = null;
 let _pendingRenamePgId   = null;
 let _pendingRenameCgId   = null;
 
-function openAddParent() {
+function openAddParent(parentId = null) {
   document.getElementById('ap-name').value = '';
+  // 填充上级父组选项
+  const sel = document.getElementById('ap-parent');
+  sel.innerHTML = '<option value="">（根级，无上级）</option>';
+  parentGroups.forEach(pg => {
+    const opt = document.createElement('option');
+    opt.value = pg.id;
+    opt.textContent = '  '.repeat(getPgDepth(pg.id)) + pg.name;
+    if (pg.id === parentId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (parentId) sel.value = parentId;
   document.getElementById('add-parent-modal').classList.add('show');
   setTimeout(() => document.getElementById('ap-name').focus(), 50);
+}
+function openAddParentWithTileset(tsIdx, suggestName) {
+  openAddParent();
+  activeTilesetIdx = tsIdx;
+  document.getElementById('ap-name').value = suggestName;
+}
+function getPgDepth(pgId, depth = 0) {
+  const pg = parentGroups.find(p => p.id === pgId);
+  if (!pg || !pg.parentId) return depth;
+  return getPgDepth(pg.parentId, depth + 1);
 }
 function confirmAddParent() {
   const name = document.getElementById('ap-name').value.trim();
   if (!name) { alert('请输入名称'); return; }
-  parentGroups.push({ id: _pgNextId++, name, collapsed: false, children: [] });
+  const selVal = document.getElementById('ap-parent').value;
+  const parentId = selVal ? parseInt(selVal) : null;
+  parentGroups.push({ id: _pgNextId++, name, parentId, collapsed: false, children: [] });
   saveTilesetConfig();
   rebuildGroupTree();
   closeModal('add-parent-modal');
@@ -665,12 +742,9 @@ function appendTileToChild(pgId, cgId) {
   const cg = pg?.children.find(c => c.id === cgId);
   if (!cg) return;
   const n = cg.tiles.length + 1;
-  const newTile = { id: _tileNextId++, name: `${cg.name}_${String(n).padStart(2,'0')}`, sx:0, sy:0 };
-  cg.tiles.push(newTile);
+  cg.tiles.push({ id: _tileNextId++, name: `${cg.name}_${String(n).padStart(2,'0')}`, sx:0, sy:0 });
   saveTilesetConfig();
   rebuildGroupTree();
-  // 新增后立即弹出编辑弹窗设置坐标
-  openTileEdit(pgId, cgId, newTile.id);
 }
 
 // ─── 折叠 ───
@@ -725,60 +799,17 @@ function openTileEdit(pgId, cgId, tileId) {
     });
   });
   updateTilePreview();
-  // 加载后立即画一次 picker
-  setTimeout(() => drawTilesetPicker(t.sx, t.sy), 50);
   document.getElementById('tile-edit-modal').classList.add('show');
 }
 
 function updateTilePreview() {
   const sx = parseInt(document.getElementById('te-sx').value) || 0;
   const sy = parseInt(document.getElementById('te-sy').value) || 0;
-  document.getElementById('te-sx-show').textContent = sx;
-  document.getElementById('te-sy-show').textContent = sy;
-  // 小预览
   const cv = document.getElementById('te-preview');
   const cx = cv.getContext('2d');
   cx.clearRect(0, 0, 64, 64);
   cx.imageSmoothingEnabled = false;
   if (tilesetLoaded) cx.drawImage(tilesetImg, sx, sy, TS_PX, TS_PX, 0, 0, 64, 64);
-  // 小地图高亮当前选中格
-  drawTilesetPicker(sx, sy);
-}
-
-function drawTilesetPicker(selSx, selSy) {
-  const cv = document.getElementById('te-tileset-picker');
-  if (!cv) return;
-  const cx = cv.getContext('2d');
-  cx.clearRect(0, 0, cv.width, cv.height);
-  if (tilesetLoaded) {
-    cx.imageSmoothingEnabled = false;
-    cx.drawImage(tilesetImg, 0, 0, cv.width, cv.height);
-  }
-  // 画网格线
-  cx.strokeStyle = 'rgba(0,0,0,0.2)'; cx.lineWidth = 0.5;
-  for (let c = 0; c < TS_COLS; c++) { cx.beginPath(); cx.moveTo(c*TS_PX,0); cx.lineTo(c*TS_PX,cv.height); cx.stroke(); }
-  for (let r = 0; r < TS_ROWS; r++) { cx.beginPath(); cx.moveTo(0,r*TS_PX); cx.lineTo(cv.width,r*TS_PX); cx.stroke(); }
-  // 高亮选中格
-  cx.strokeStyle = 'rgba(255,220,60,0.95)'; cx.lineWidth = 1.5;
-  cx.strokeRect(selSx, selSy, TS_PX, TS_PX);
-  cx.fillStyle = 'rgba(255,220,60,0.25)';
-  cx.fillRect(selSx, selSy, TS_PX, TS_PX);
-}
-
-function onTilesetPickerClick(e) {
-  const cv = document.getElementById('te-tileset-picker');
-  const rect = cv.getBoundingClientRect();
-  const scaleX = cv.width  / rect.width;
-  const scaleY = cv.height / rect.height;
-  const px = (e.clientX - rect.left) * scaleX;
-  const py = (e.clientY - rect.top)  * scaleY;
-  const col = Math.floor(px / TS_PX);
-  const row = Math.floor(py / TS_PX);
-  const sx = col * TS_PX;
-  const sy = row * TS_PX;
-  document.getElementById('te-sx').value = sx;
-  document.getElementById('te-sy').value = sy;
-  updateTilePreview();
 }
 
 function confirmTileEdit() {
@@ -835,7 +866,6 @@ function rebuildGroupTree() {
   const wrap = document.getElementById('group-tree');
   wrap.innerHTML = '';
   if (!tilesetLoaded) {
-    // 图片未加载但配置已有数据，显示加载中
     const hint = parentGroups.length
       ? `<div style="padding:10px;color:#a0c060;font-size:11px;">Tileset 加载中，已有 ${parentGroups.reduce((s,p)=>s+p.children.length,0)} 个分组等待显示...</div>`
       : '<div style="padding:10px;color:#607040;font-size:11px;">Tileset 加载中...</div>';
@@ -846,24 +876,36 @@ function rebuildGroupTree() {
     wrap.innerHTML = '<div style="padding:10px;color:#607040;font-size:11px;">点「✨ 自动生成」或「＋ 父组」创建图集</div>';
     return;
   }
-  parentGroups.forEach(pg => {
-    const pgEl = document.createElement('div');
-    pgEl.className = 'parent-group';
-    const isPgCol = pgCollapsed.has(pg.id);
-    pgEl.innerHTML = `
-      <div class="parent-header" onclick="toggleParent(${pg.id})">
-        <span class="ph-arrow">${isPgCol ? '▶' : '▼'}</span>
-        <span class="ph-name">${escH(pg.name)}</span>
-        <span class="ph-cnt">${pg.children.length}组</span>
-        <span class="ph-btns" onclick="event.stopPropagation()">
-          <button class="ga" onclick="openAddChild(${pg.id})">+子</button>
-          <button class="ga" onclick="openRenameParent(${pg.id})">改</button>
-          <button class="ga ga-red" onclick="deleteParentGroup(${pg.id})">删</button>
-        </span>
-      </div>`;
-    if (!isPgCol) {
-      const childWrap = document.createElement('div');
-      childWrap.className = 'child-groups';
+  // 只渲染根级父组（parentId=null）
+  const rootPgs = parentGroups.filter(pg => !pg.parentId);
+  rootPgs.forEach(pg => renderParentGroup(wrap, pg, 0));
+}
+
+function renderParentGroup(container, pg, depth) {
+  const pgEl = document.createElement('div');
+  pgEl.className = 'parent-group';
+  pgEl.style.marginLeft = depth * 10 + 'px';
+  const isPgCol = pgCollapsed.has(pg.id);
+  const childPgs = parentGroups.filter(p => p.parentId === pg.id); // 嵌套子父组
+  const totalChildCnt = pg.children.length + childPgs.length;
+  pgEl.innerHTML = `
+    <div class="parent-header" onclick="toggleParent(${pg.id})">
+      <span class="ph-arrow">${isPgCol ? '▶' : '▼'}</span>
+      <span class="ph-name">${escH(pg.name)}</span>
+      <span class="ph-cnt">${pg.children.length}子组，${childPgs.length}嵌套</span>
+      <span class="ph-btns" onclick="event.stopPropagation()">
+        <button class="ga" onclick="openAddChild(${pg.id})">+子</button>
+        <button class="ga" onclick="openAddParent(${pg.id})">+嵌套</button>
+        <button class="ga" onclick="openRenameParent(${pg.id})">改</button>
+        <button class="ga ga-red" onclick="deleteParentGroup(${pg.id})">删</button>
+      </span>
+    </div>`;
+  if (!isPgCol) {
+    // 嵌套子父组
+    childPgs.forEach(cpg => renderParentGroup(pgEl, cpg, depth + 1));
+    // 子组列表
+    const childWrap = document.createElement('div');
+    childWrap.className = 'child-groups';
       pg.children.forEach(cg => {
         const cgKey    = `${pg.id}-${cg.id}`;
         const isCgCol  = cgCollapsed.has(cgKey);
@@ -913,8 +955,7 @@ function rebuildGroupTree() {
       });
       pgEl.appendChild(childWrap);
     }
-    wrap.appendChild(pgEl);
-  });
+    container.appendChild(pgEl);
 }
 
 function escH(str) {
@@ -1079,9 +1120,6 @@ function drawCell(r, c) {
 
   // ground_high
   if (isLayerVisible('ground_high')) {
-    // 当前编辑地块下层时，降低上层透明度，让下层可见
-    const alpha = (currentLayer === 'ground_low') ? 0.3 : 1.0;
-    ctx.globalAlpha = alpha;
     const cell = layerData['ground_high']?.[r]?.[c];
     if (cell && tilesetLoaded) {
       ctx.drawImage(tilesetImg, cell.sx, cell.sy, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
@@ -1095,7 +1133,6 @@ function drawCell(r, c) {
         ctx.fillText(type.icon, x + TILE_SIZE / 2, y + TILE_SIZE / 2);
       }
     }
-    ctx.globalAlpha = 1.0; // 重置透明度
   }
 
   // decor / overlay / above
@@ -1148,13 +1185,17 @@ function paintCell(r, c) {
   const lid = currentLayer;
   if (!layerData[lid]) return;
   if (useTilesetMode && selectedTile) {
+    // 地块上层：贴图集时同时清除地块类型（原逐辑逻辑）
     if (lid === 'ground_high') mapData[r][c] = 0;
+    // 地块下层 / 装饰层 / 叠加层 / 遮挡层：直接写图集（不动mapData）
     layerData[lid][r][c] = { sx: selectedTile.sx, sy: selectedTile.sy };
   } else if (lid === 'ground_high') {
+    // 地块上层：未选图集时用地块类型画刷（地块类型面板选中的类型）
     mapData[r][c] = selectedTypeId;
     layerData[lid][r][c] = null;
     if ([4,5,6,7,9].includes(selectedTypeId)) blockData[r][c] = 1;
   }
+  // 地块下层在未选图集时不画刷（需选图集）
 }
 
 function eraseCell(r, c) {
@@ -1242,7 +1283,7 @@ function clearLayer() {
 function resizeMap() {
   const cols = parseInt(document.getElementById('inp-cols').value);
   const rows = parseInt(document.getElementById('inp-rows').value);
-  if (cols < 5 || rows < 5 || cols > 60 || rows > 60) { alert('范围5-60'); return; }
+  if (cols < 1 || rows < 1 || cols > 9999 || rows > 9999) { alert('范围1-9999'); return; }
   const oMap = mapData.map(r=>[...r]), oBlock = blockData.map(r=>[...r]);
   const oL   = {}; LAYERS.forEach(l => { oL[l.id] = layerData[l.id].map(r=>[...r]); });
   initMap(cols, rows);
@@ -1421,15 +1462,30 @@ document.getElementById('rename-input').addEventListener('keydown', e => { if(e.
 // ═══════════════════════════════════════════════
 // 初始化
 // ═══════════════════════════════════════════════
-loadTilesetConfig();   // ← 先加载图集配置（全局持久化）
-initMap(18, 14);
+initTilesetSources();
+loadTilesetConfig();
+
+// 自动加载最新存档
+const _saves = getSaves();
+const _saveKeys = Object.keys(_saves);
+if (_saveKeys.length > 0) {
+  const _latestKey = _saveKeys.reduce((a, b) =>
+    new Date(_saves[a]?.savedAt||0) > new Date(_saves[b]?.savedAt||0) ? a : b);
+  try { applyMapSnapshot(_saves[_latestKey].data); setStatus('自动载入「'+_saves[_latestKey].name+'」'); }
+  catch(e) { initMap(18, 14); }
+} else {
+  initMap(18, 14);
+}
+
+document.getElementById('inp-cols').value = MAP_COLS;
+document.getElementById('inp-rows').value = MAP_ROWS;
 resizeCanvas();
 buildLayerSwitcher();
 buildVisList();
 buildTypeList();
 rebuildGroupTree();
 draw();
-setStatus('就绪 — 选择图集素材或地块类型，点击地图绘制');
+if (!_saveKeys.length) setStatus('就绪 — 选择图集素材或地块类型，点击地图绘制');
 </script>
 </body>
 </html>
