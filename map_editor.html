@@ -351,15 +351,21 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
 
 <!-- ══════════════════ 弹窗：素材编辑 ══════════════════ -->
 <div class="modal-bg" id="tile-edit-modal">
-  <div class="modal-box" style="max-width:360px;">
+  <div class="modal-box" style="max-width:460px;">
     <h3>✏️ 编辑素材</h3>
     <div id="te-preview-wrap">
       <canvas id="te-preview" width="64" height="64" style="width:64px;height:64px;"></canvas>
-      <div id="te-coords-hint">
-        Tileset: 24列×40行<br>每格16px<br><br>
-        sx = 列 × 16<br>
-        sy = 行 × 16
+      <div style="flex:1;">
+        <div style="font-size:11px;color:#80a050;margin-bottom:4px;">点击下方Tileset选格</div>
+        <div style="font-size:10px;color:#607040;">sx=<span id="te-sx-show">0</span> sy=<span id="te-sy-show">0</span></div>
       </div>
+    </div>
+    <!-- 可点击选格的 Tileset -->
+    <div style="margin-bottom:8px;">
+      <canvas id="te-tileset-picker" width="384" height="640"
+        style="width:192px;height:320px;image-rendering:pixelated;border:1px solid #4a6a2a;border-radius:4px;cursor:crosshair;display:block;"
+        onclick="onTilesetPickerClick(event)">
+      </canvas>
     </div>
     <div class="frow">
       <label>素材名称</label>
@@ -659,9 +665,12 @@ function appendTileToChild(pgId, cgId) {
   const cg = pg?.children.find(c => c.id === cgId);
   if (!cg) return;
   const n = cg.tiles.length + 1;
-  cg.tiles.push({ id: _tileNextId++, name: `${cg.name}_${String(n).padStart(2,'0')}`, sx:0, sy:0 });
+  const newTile = { id: _tileNextId++, name: `${cg.name}_${String(n).padStart(2,'0')}`, sx:0, sy:0 };
+  cg.tiles.push(newTile);
   saveTilesetConfig();
   rebuildGroupTree();
+  // 新增后立即弹出编辑弹窗设置坐标
+  openTileEdit(pgId, cgId, newTile.id);
 }
 
 // ─── 折叠 ───
@@ -716,17 +725,60 @@ function openTileEdit(pgId, cgId, tileId) {
     });
   });
   updateTilePreview();
+  // 加载后立即画一次 picker
+  setTimeout(() => drawTilesetPicker(t.sx, t.sy), 50);
   document.getElementById('tile-edit-modal').classList.add('show');
 }
 
 function updateTilePreview() {
   const sx = parseInt(document.getElementById('te-sx').value) || 0;
   const sy = parseInt(document.getElementById('te-sy').value) || 0;
+  document.getElementById('te-sx-show').textContent = sx;
+  document.getElementById('te-sy-show').textContent = sy;
+  // 小预览
   const cv = document.getElementById('te-preview');
   const cx = cv.getContext('2d');
   cx.clearRect(0, 0, 64, 64);
   cx.imageSmoothingEnabled = false;
   if (tilesetLoaded) cx.drawImage(tilesetImg, sx, sy, TS_PX, TS_PX, 0, 0, 64, 64);
+  // 小地图高亮当前选中格
+  drawTilesetPicker(sx, sy);
+}
+
+function drawTilesetPicker(selSx, selSy) {
+  const cv = document.getElementById('te-tileset-picker');
+  if (!cv) return;
+  const cx = cv.getContext('2d');
+  cx.clearRect(0, 0, cv.width, cv.height);
+  if (tilesetLoaded) {
+    cx.imageSmoothingEnabled = false;
+    cx.drawImage(tilesetImg, 0, 0, cv.width, cv.height);
+  }
+  // 画网格线
+  cx.strokeStyle = 'rgba(0,0,0,0.2)'; cx.lineWidth = 0.5;
+  for (let c = 0; c < TS_COLS; c++) { cx.beginPath(); cx.moveTo(c*TS_PX,0); cx.lineTo(c*TS_PX,cv.height); cx.stroke(); }
+  for (let r = 0; r < TS_ROWS; r++) { cx.beginPath(); cx.moveTo(0,r*TS_PX); cx.lineTo(cv.width,r*TS_PX); cx.stroke(); }
+  // 高亮选中格
+  cx.strokeStyle = 'rgba(255,220,60,0.95)'; cx.lineWidth = 1.5;
+  cx.strokeRect(selSx, selSy, TS_PX, TS_PX);
+  cx.fillStyle = 'rgba(255,220,60,0.25)';
+  cx.fillRect(selSx, selSy, TS_PX, TS_PX);
+}
+
+function onTilesetPickerClick(e) {
+  const cv = document.getElementById('te-tileset-picker');
+  const rect = cv.getBoundingClientRect();
+  const scaleX = cv.width  / rect.width;
+  const scaleY = cv.height / rect.height;
+  const px = (e.clientX - rect.left) * scaleX;
+  const py = (e.clientY - rect.top)  * scaleY;
+  const col = Math.floor(px / TS_PX);
+  const row = Math.floor(py / TS_PX);
+  const sx = col * TS_PX;
+  const sy = row * TS_PX;
+  document.getElementById('te-sx').value = sx;
+  document.getElementById('te-sy').value = sy;
+  updateTilePreview();
 }
 
 function confirmTileEdit() {
@@ -1027,6 +1079,9 @@ function drawCell(r, c) {
 
   // ground_high
   if (isLayerVisible('ground_high')) {
+    // 当前编辑地块下层时，降低上层透明度，让下层可见
+    const alpha = (currentLayer === 'ground_low') ? 0.3 : 1.0;
+    ctx.globalAlpha = alpha;
     const cell = layerData['ground_high']?.[r]?.[c];
     if (cell && tilesetLoaded) {
       ctx.drawImage(tilesetImg, cell.sx, cell.sy, TS_PX, TS_PX, x, y, TILE_SIZE, TILE_SIZE);
@@ -1040,6 +1095,7 @@ function drawCell(r, c) {
         ctx.fillText(type.icon, x + TILE_SIZE / 2, y + TILE_SIZE / 2);
       }
     }
+    ctx.globalAlpha = 1.0; // 重置透明度
   }
 
   // decor / overlay / above
