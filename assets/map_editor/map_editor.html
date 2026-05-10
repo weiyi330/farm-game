@@ -546,15 +546,26 @@ const LAYERS = [
 ];
 
 const TILE_TYPES = [
-  { id: 0, name: '草地',  emoji: '🌿', color: '#4caf50', autoBlock: false },
-  { id: 1, name: '泥土',  emoji: '🟫', color: '#795548', autoBlock: false },
-  { id: 2, name: '耕地',  emoji: '🟧', color: '#a1887f', autoBlock: false },
-  { id: 8, name: '小路',  emoji: '🛤️',  color: '#bcaaa4', autoBlock: false },
-  { id: 9, name: '水域',  emoji: '💧', color: '#1976d2', autoBlock: true  },
-  { id: 7, name: '树木',  emoji: '🌳', color: '#388e3c', autoBlock: true  },
-  { id: 4, name: '房屋',  emoji: '🏠', color: '#e65100', autoBlock: true  },
-  { id: 5, name: '水井',  emoji: '⛲', color: '#0288d1', autoBlock: true  },
-  { id: 6, name: '商店',  emoji: '🏪', color: '#7b1fa2', autoBlock: true  },
+  // ── 地形 ──
+  { id: 0,  name: '草地',   emoji: '🌿', color: '#4caf50', autoBlock: false, group: '地形' },
+  { id: 1,  name: '泥土',   emoji: '🟫', color: '#795548', autoBlock: false, group: '地形' },
+  { id: 2,  name: '耕地',   emoji: '🟧', color: '#a1887f', autoBlock: false, group: '地形' },
+  { id: 8,  name: '小路',   emoji: '🛤️',  color: '#bcaaa4', autoBlock: false, group: '地形' },
+  { id: 9,  name: '水域',   emoji: '💧', color: '#1976d2', autoBlock: true,  group: '地形' },
+  // ── 建筑/设施 ──
+  { id: 7,  name: '树木',   emoji: '🌳', color: '#388e3c', autoBlock: true,  group: '建筑' },
+  { id: 4,  name: '房屋',   emoji: '🏠', color: '#e65100', autoBlock: true,  group: '建筑' },
+  { id: 5,  name: '水井',   emoji: '⛲', color: '#0288d1', autoBlock: true,  group: '建筑' },
+  { id: 6,  name: '商店',   emoji: '🏪', color: '#7b1fa2', autoBlock: true,  group: '建筑' },
+  // ── 装饰物 ──
+  { id: 10, name: '石头',   emoji: '🪨', color: '#90a4ae', autoBlock: true,  group: '装饰物' },
+  { id: 11, name: '花朵',   emoji: '🌸', color: '#f48fb1', autoBlock: false, group: '装饰物' },
+  { id: 12, name: '草丛',   emoji: '🌾', color: '#66bb6a', autoBlock: false, group: '装饰物' },
+  { id: 13, name: '灌木',   emoji: '🌿', color: '#43a047', autoBlock: true,  group: '装饰物' },
+  { id: 14, name: '蘑菇',   emoji: '🍄', color: '#ef9a9a', autoBlock: false, group: '装饰物' },
+  { id: 15, name: '木桩',   emoji: '🪵', color: '#8d6e63', autoBlock: true,  group: '装饰物' },
+  { id: 16, name: '篱笆',   emoji: '🚧', color: '#ffcc80', autoBlock: true,  group: '装饰物' },
+  { id: 17, name: '枯树',   emoji: '🪵', color: '#a1887f', autoBlock: true,  group: '装饰物' },
 ];
 
 const SPAWN_TYPE_EMOJI = { plant:'🌿', monster:'👾', npc:'🧑', item:'💎', custom:'⚙' };
@@ -563,9 +574,11 @@ let state = {
   cols: 18, rows: 14,
   cellSize: 40,
   currentLayer: 'ground_high',
-  currentTile: 0,
+  // currentTile moved above
   currentTool: 'pencil',
   layerVisible: Object.fromEntries(LAYERS.map(l => [l.id, true])),
+  atlasVisible: Object.fromEntries(LAYERS.map(l => [l.id, true])),
+  currentTile: null, // null = 「无」，不修改格子
   // tiles[layerIdx][row][col] = tileId or null
   tiles: null,
   // blocked[row][col] = bool
@@ -652,21 +665,45 @@ function updateLayerDesc() {
 function buildTileGrid() {
   const grid = document.getElementById('tile-grid');
   grid.innerHTML = '';
-  TILE_TYPES.forEach(t => {
-    const btn = document.createElement('button');
-    btn.className = 'tile-btn' + (t.id === state.currentTile ? ' active' : '');
-    btn.id = 'tbtn-' + t.id;
-    btn.style.background = t.color + '33';
-    btn.style.borderColor = t.id === state.currentTile ? '#ffca28' : t.color + '88';
-    btn.innerHTML = `${t.emoji}<span>${t.name}</span>`;
-    btn.onclick = () => selectTile(t.id);
-    grid.appendChild(btn);
+
+  // 「无」按鈕
+  const noneBtn = document.createElement('button');
+  noneBtn.className = 'tile-btn' + (state.currentTile === null ? ' active' : '');
+  noneBtn.id = 'tbtn-none';
+  noneBtn.style.cssText = 'background:#1a2a1a;border-color:#4caf5055;grid-column:1/-1;';
+  noneBtn.innerHTML = `⚪<span>无（查看模式）</span>`;
+  noneBtn.onclick = () => selectTile(null);
+  grid.appendChild(noneBtn);
+
+  // 按分组显示
+  const groups = [...new Set(TILE_TYPES.map(t => t.group))];
+  groups.forEach(group => {
+    const header = document.createElement('div');
+    header.style.cssText = 'grid-column:1/-1;font-size:10px;color:#81c784;padding:4px 2px 1px;border-top:1px solid #2e7d3266;margin-top:2px;';
+    header.textContent = `― ${group} ―`;
+    grid.appendChild(header);
+    TILE_TYPES.filter(t => t.group === group).forEach(t => {
+      const btn = document.createElement('button');
+      btn.className = 'tile-btn' + (t.id === state.currentTile ? ' active' : '');
+      btn.id = 'tbtn-' + t.id;
+      btn.style.background = t.color + '33';
+      btn.style.borderColor = t.id === state.currentTile ? '#ffca28' : t.color + '88';
+      btn.innerHTML = `${t.emoji}<span>${t.name}</span>`;
+      btn.onclick = () => selectTile(t.id);
+      grid.appendChild(btn);
+    });
   });
 }
 
 function selectTile(id) {
   state.currentTile = id;
   document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+  if (id === null) {
+    const nb = document.getElementById('tbtn-none');
+    if (nb) { nb.classList.add('active'); nb.style.borderColor = '#ffca28'; }
+    setStatus('地块：无（查看模式）');
+    return;
+  }
   const t = TILE_TYPES.find(t => t.id === id);
   const btn = document.getElementById('tbtn-' + id);
   if (btn) {
@@ -685,15 +722,39 @@ function buildVisibilityList() {
   const container = document.getElementById('vis-list');
   container.innerHTML = '';
   LAYERS.forEach(l => {
-    const item = document.createElement('label');
-    item.className = 'vis-item';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = state.layerVisible[l.id];
-    cb.onchange = () => { state.layerVisible[l.id] = cb.checked; render(); };
-    item.appendChild(cb);
-    item.appendChild(document.createTextNode(l.label));
-    container.appendChild(item);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 0;';
+
+    // 层可见性
+    const visCb = document.createElement('input');
+    visCb.type = 'checkbox';
+    visCb.checked = state.layerVisible[l.id];
+    visCb.title = '层显示/隐藏';
+    visCb.onchange = () => { state.layerVisible[l.id] = visCb.checked; fullRender(); };
+
+    // 层名
+    const label = document.createElement('span');
+    label.textContent = l.label;
+    label.style.cssText = 'flex:1;font-size:11px;';
+
+    // 图集开关
+    const atlasBtn = document.createElement('button');
+    atlasBtn.className = 'btn-sm';
+    atlasBtn.style.cssText = `font-size:10px;padding:1px 5px;border-radius:3px;cursor:pointer;border:1px solid #4caf5066;background:${ state.atlasVisible[l.id] ? '#2e4a2e' : '#3a1a1a'};color:${ state.atlasVisible[l.id] ? '#a5d6a7' : '#ef9a9a'};`;
+    atlasBtn.textContent = state.atlasVisible[l.id] ? '🖼图集' : '🎞色块';
+    atlasBtn.title = '切换图集显示 / 色块显示';
+    atlasBtn.onclick = () => {
+      state.atlasVisible[l.id] = !state.atlasVisible[l.id];
+      atlasBtn.textContent = state.atlasVisible[l.id] ? '🖼图集' : '🎞色块';
+      atlasBtn.style.background = state.atlasVisible[l.id] ? '#2e4a2e' : '#3a1a1a';
+      atlasBtn.style.color = state.atlasVisible[l.id] ? '#a5d6a7' : '#ef9a9a';
+      fullRender();
+    };
+
+    row.appendChild(visCb);
+    row.appendChild(label);
+    row.appendChild(atlasBtn);
+    container.appendChild(row);
   });
 }
 
@@ -770,7 +831,17 @@ function renderTileLayer(layer, li, cs) {
       if (layer.id === 'ground_high') {
         // 图集对象
         if (val && typeof val === 'object' && val.atlas) {
-          renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+          if (state.atlasVisible[layer.id]) {
+            renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+          } else {
+            // 图集关闭：显示色块占位
+            ctx.fillStyle = '#607d4088';
+            ctx.fillRect(x, y, cs, cs);
+            ctx.fillStyle = '#aed581';
+            ctx.font = `${cs * 0.4}px serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('🖼', x + cs/2, y + cs/2);
+          }
         } else {
           const t = TILE_TYPES.find(t => t.id === val);
           if (!t) continue;
@@ -779,9 +850,17 @@ function renderTileLayer(layer, li, cs) {
           ctx.fillText(t.emoji, x + cs/2, y + cs/2);
         }
       } else {
-        // 其他层：图集对象或占位标记
         if (val && typeof val === 'object' && val.atlas) {
-          renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+          if (state.atlasVisible[layer.id]) {
+            renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+          } else {
+            const colors = { ground_low:'#78909c', decor:'#aed581', overlay:'#ffd54f', above:'#a5d6a7' };
+            ctx.fillStyle = (colors[layer.id] || '#90a4ae') + '88';
+            ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
+            ctx.fillStyle = '#aaa';
+            ctx.font = `${cs*0.35}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('🖼', x + cs/2, y + cs/2);
+          }
         } else {
           const colors = {
             ground_low: '#78909c',
@@ -993,11 +1072,13 @@ function applyTool(cell, forceErase) {
 // 获取当前画笔值：图集选中时返回图集对象，否则返回地块类型ID
 function getBrushValue(layer) {
   if (selectedAtlasTile) {
-    // 图集模式：返回图集引用对象（不含img对象，避免循环引用）
     return { atlas: true, src: selectedAtlasTile.src, sx: selectedAtlasTile.sx, sy: selectedAtlasTile.sy, tileSize: selectedAtlasTile.tileSize, label: selectedAtlasTile.label };
   }
-  if (layer === 'ground_high') return state.currentTile;
-  return null; // 其他层非图集模式不刷
+  if (layer === 'ground_high') {
+    if (state.currentTile === null) return undefined; // 无模式，不修改
+    return state.currentTile;
+  }
+  return null;
 }
 
 function floodFillGeneric(li, r, c, targetStr, fill) {
