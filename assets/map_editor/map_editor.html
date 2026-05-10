@@ -834,13 +834,19 @@ function renderTileLayer(layer, li, cs) {
           if (state.atlasVisible[layer.id]) {
             renderAtlasCellOnCanvas(ctx, val, x, y, cs);
           } else {
-            // 图集关闭：显示色块占位
-            ctx.fillStyle = '#607d4088';
-            ctx.fillRect(x, y, cs, cs);
-            ctx.fillStyle = '#aed581';
-            ctx.font = `${cs * 0.4}px serif`;
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText('🖼', x + cs/2, y + cs/2);
+            // 图集关闭：回退显示地块类型颜色/emoji
+            const t = val.tileId !== null && val.tileId !== undefined ? TILE_TYPES.find(t => t.id === val.tileId) : null;
+            if (t) {
+              ctx.fillStyle = t.color + 'cc';
+              ctx.fillRect(x, y, cs, cs);
+              ctx.fillText(t.emoji, x + cs/2, y + cs/2);
+            } else {
+              ctx.fillStyle = '#607d4088';
+              ctx.fillRect(x, y, cs, cs);
+              ctx.fillStyle = '#aed581'; ctx.font = `${cs*0.4}px serif`;
+              ctx.textAlign='center'; ctx.textBaseline='middle';
+              ctx.fillText('🖼', x + cs/2, y + cs/2);
+            }
           }
         } else {
           const t = TILE_TYPES.find(t => t.id === val);
@@ -1035,7 +1041,10 @@ function applyTool(cell, forceErase) {
   const layer = state.currentLayer;
   const tool = forceErase ? 'eraser' : state.currentTool;
 
-  if (layer === 'spawn') return; // handled separately
+  // 「无」模式：不是橡皮就什么都不做
+  if (state.currentTile === null && !selectedAtlasTile && tool !== 'eraser') return;
+
+  if (layer === 'spawn') return;
 
   if (layer === 'block') {
     if (tool === 'eraser') {
@@ -1072,10 +1081,11 @@ function applyTool(cell, forceErase) {
 // 获取当前画笔值：图集选中时返回图集对象，否则返回地块类型ID
 function getBrushValue(layer) {
   if (selectedAtlasTile) {
-    return { atlas: true, src: selectedAtlasTile.src, sx: selectedAtlasTile.sx, sy: selectedAtlasTile.sy, tileSize: selectedAtlasTile.tileSize, label: selectedAtlasTile.label };
+    // 图集模式：带上当前地块类型ID（关闭图集时回退显示用）
+    return { atlas: true, src: selectedAtlasTile.src, sx: selectedAtlasTile.sx, sy: selectedAtlasTile.sy, tileSize: selectedAtlasTile.tileSize, label: selectedAtlasTile.label, tileId: (layer === 'ground_high' && state.currentTile !== null) ? state.currentTile : null };
   }
   if (layer === 'ground_high') {
-    if (state.currentTile === null) return undefined; // 无模式，不修改
+    if (state.currentTile === null) return undefined;
     return state.currentTile;
   }
   return null;
