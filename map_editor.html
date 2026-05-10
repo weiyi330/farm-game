@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌾 农场地图编辑器</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a2a1a; color: #c8e6c9; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; }
+
+/* TOP BAR */
+#topbar {
+  background: #0d1a0d;
+  border-bottom: 2px solid #2e7d32;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+#topbar h1 { font-size: 15px; color: #81c784; margin-right: 6px; white-space: nowrap; }
+.btn {
+  background: #2e4a2e;
+  border: 1px solid #4caf50;
+  color: #c8e6c9;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn:hover { background: #3d6b3d; }
+.btn.danger { border-color: #ef5350; }
+.btn.danger:hover { background: #5c2020; }
+
+.sep { width: 1px; background: #2e7d32; height: 22px; flex-shrink: 0; }
+
+label.topbar-label { font-size: 12px; color: #81c784; white-space: nowrap; }
+select.topbar-select {
+  background: #1e3a1e;
+  border: 1px solid #4caf50;
+  color: #c8e6c9;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.size-inputs { display: flex; align-items: center; gap: 4px; }
+.size-inputs input {
+  background: #1e3a1e;
+  border: 1px solid #4caf50;
+  color: #c8e6c9;
+  width: 54px;
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* MAIN AREA */
+#main { display: flex; flex: 1; overflow: hidden; }
+
+/* LEFT PANEL */
+#left-panel {
+  width: 230px;
+  flex-shrink: 0;
+  background: #0d1a0d;
+  border-right: 2px solid #2e7d32;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#panel-tabs { display: flex; border-bottom: 1px solid #2e7d32; }
+.panel-tab {
+  flex: 1;
+  padding: 7px 4px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: #7cb87e;
+  background: #0d1a0d;
+  border: none;
+  border-right: 1px solid #2e7d32;
+  transition: background 0.15s;
+}
+.panel-tab:last-child { border-right: none; }
+.panel-tab.active { background: #1e3a1e; color: #a5d6a7; }
+.panel-tab:hover:not(.active) { background: #162816; }
+
+.panel-content { display: none; flex: 1; overflow-y: auto; padding: 8px; }
+.panel-content.active { display: block; }
+
+/* LAYER TAB */
+.layer-btn {
+  display: block;
+  width: 100%;
+  background: #1e3a1e;
+  border: 1px solid #3a5a3a;
+  color: #a5d6a7;
+  padding: 6px 10px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  text-align: left;
+  transition: background 0.15s;
+}
+.layer-btn:hover { background: #2a4a2a; }
+.layer-btn.active { background: #2e7d32; border-color: #66bb6a; color: #fff; }
+
+.layer-desc {
+  font-size: 11px;
+  color: #6a9a6a;
+  padding: 6px 4px;
+  line-height: 1.5;
+}
+
+/* TILE TAB */
+.tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tile-btn {
+  background: #1e3a1e;
+  border: 2px solid #3a5a3a;
+  border-radius: 6px;
+  padding: 6px 2px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 18px;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tile-btn span { font-size: 10px; color: #81c784; }
+.tile-btn:hover { border-color: #66bb6a; background: #2a4a2a; }
+.tile-btn.active { border-color: #ffca28; background: #3a4a1a; }
+.tile-note { font-size: 11px; color: #6a9a6a; padding: 6px 2px; }
+
+/* TOOL TAB */
+.tool-section { margin-bottom: 12px; }
+.tool-section h3 { font-size: 11px; color: #81c784; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.tool-btns { display: flex; gap: 6px; }
+.tool-btn {
+  flex: 1;
+  background: #1e3a1e;
+  border: 2px solid #3a5a3a;
+  border-radius: 6px;
+  padding: 8px 4px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 16px;
+  transition: all 0.15s;
+}
+.tool-btn span { display: block; font-size: 10px; color: #81c784; margin-top: 2px; }
+.tool-btn:hover { border-color: #66bb6a; background: #2a4a2a; }
+.tool-btn.active { border-color: #ffca28; background: #3a4a1a; }
+
+.visibility-list { display: flex; flex-direction: column; gap: 5px; }
+.vis-item { display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer; padding: 3px 4px; border-radius: 3px; }
+.vis-item:hover { background: #1e3a1e; }
+.vis-item input[type=checkbox] { accent-color: #4caf50; width: 14px; height: 14px; cursor: pointer; }
+.spawn-template-btn { margin-top: 8px; }
+
+/* CANVAS AREA */
+#canvas-area {
+  flex: 1;
+  overflow: auto;
+  background: #111e11;
+  position: relative;
+}
+#map-canvas {
+  display: block;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}
+
+/* BOTTOM BAR */
+#bottombar {
+  background: #0d1a0d;
+  border-top: 2px solid #2e7d32;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #66a066;
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* MODALS */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #1a2a1a;
+  border: 2px solid #4caf50;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 400px;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal h2 { font-size: 16px; color: #81c784; }
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #81c784;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-body { overflow-y: auto; flex: 1; }
+
+/* SAVE MODAL */
+.save-item {
+  background: #1e3a1e;
+  border: 1px solid #3a5a3a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.save-item-info { flex: 1; min-width: 0; }
+.save-item-name { font-size: 13px; color: #a5d6a7; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.save-item-meta { font-size: 11px; color: #6a9a6a; }
+.save-item-btns { display: flex; gap: 4px; flex-shrink: 0; }
+.btn-sm {
+  background: #2e4a2e;
+  border: 1px solid #4caf50;
+  color: #c8e6c9;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.btn-sm:hover { background: #3d6b3d; }
+.btn-sm.danger { border-color: #ef5350; color: #ef9a9a; }
+.btn-sm.danger:hover { background: #5c2020; }
+
+.new-save-row { display: flex; gap: 8px; }
+.new-save-row input {
+  flex: 1;
+  background: #1e3a1e;
+  border: 1px solid #4caf50;
+  color: #c8e6c9;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* EXPORT MODAL */
+#export-textarea {
+  width: 100%;
+  height: 300px;
+  background: #111;
+  border: 1px solid #4caf50;
+  color: #a5d6a7;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  resize: vertical;
+}
+
+/* SPAWN CELL MODAL */
+.spawn-cell-list { display: flex; flex-direction: column; gap: 6px; }
+.spawn-entry {
+  background: #1e3a1e;
+  border: 1px solid #3a5a3a;
+  border-radius: 5px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spawn-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.spawn-entry-info { flex: 1; min-width: 0; }
+.spawn-entry-name { font-size: 12px; color: #a5d6a7; }
+.spawn-entry-type { font-size: 10px; color: #6a9a6a; }
+
+.add-spawn-section {
+  background: #111e11;
+  border: 1px solid #3a5a3a;
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 8px;
+}
+.add-spawn-section h3 { font-size: 12px; color: #81c784; margin-bottom: 8px; }
+.form-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+.form-row label { font-size: 11px; color: #81c784; white-space: nowrap; }
+.form-row input, .form-row select {
+  background: #1e3a1e;
+  border: 1px solid #4caf50;
+  color: #c8e6c9;
+  padding: 4px 7px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.form-row input[type=color] { width: 40px; height: 26px; padding: 1px; cursor: pointer; }
+
+/* TEMPLATE MODAL */
+.template-list { display: flex; flex-direction: column; gap: 6px; }
+.template-entry {
+  background: #1e3a1e;
+  border: 1px solid #3a5a3a;
+  border-radius: 5px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* SCROLLBARS */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0d1a0d; }
+::-webkit-scrollbar-thumb { background: #2e7d32; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4caf50; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <h1>🌾 农场地图编辑器</h1>
+  <div class="sep"></div>
+  <button class="btn" onclick="showExportModal()">📤 导出</button>
+  <button class="btn" onclick="importJSON()">📥 导入</button>
+  <div class="sep"></div>
+  <button class="btn" onclick="showSaveModal()">💾 存档</button>
+  <div class="sep"></div>
+  <button class="btn" onclick="fillCurrentLayer()">🖌 全填</button>
+  <button class="btn danger" onclick="clearCurrentLayer()">🗑 清空</button>
+  <div class="sep"></div>
+  <label class="topbar-label">尺寸:</label>
+  <div class="size-inputs">
+    <input id="input-cols" type="number" min="1" max="99999" value="18" title="列数">
+    <span style="color:#81c784">×</span>
+    <input id="input-rows" type="number" min="1" max="99999" value="14" title="行数">
+    <button class="btn" onclick="resizeMap()">✔</button>
+  </div>
+  <div class="sep"></div>
+  <label class="topbar-label">格子:</label>
+  <select class="topbar-select" id="cell-size-select" onchange="changeCellSize(this.value)">
+    <option value="32">32px</option>
+    <option value="40" selected>40px</option>
+    <option value="48">48px</option>
+    <option value="64">64px</option>
+  </select>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- LEFT PANEL -->
+  <div id="left-panel">
+    <div id="panel-tabs">
+      <button class="panel-tab active" onclick="switchTab('layers')">📐 层</button>
+      <button class="panel-tab" onclick="switchTab('tiles')">🎨 地块</button>
+      <button class="panel-tab" onclick="switchTab('tools')">🛠 工具</button>
+    </div>
+
+    <!-- LAYERS TAB -->
+    <div class="panel-content active" id="tab-layers">
+      <div id="layer-buttons"></div>
+      <div class="layer-desc" id="layer-desc-text"></div>
+    </div>
+
+    <!-- TILES TAB -->
+    <div class="panel-content" id="tab-tiles">
+      <div class="tile-note">仅 ground_high 层有效</div>
+      <div class="tile-grid" id="tile-grid"></div>
+    </div>
+
+    <!-- TOOLS TAB -->
+    <div class="panel-content" id="tab-tools">
+      <div class="tool-section">
+        <h3>绘制工具</h3>
+        <div class="tool-btns">
+          <button class="tool-btn active" id="tool-pencil" onclick="setTool('pencil')">✏️<span>画笔</span></button>
+          <button class="tool-btn" id="tool-fill" onclick="setTool('fill')">🪣<span>填充</span></button>
+          <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">🧹<span>橡皮</span></button>
+        </div>
+      </div>
+      <div class="tool-section">
+        <h3>层可见性</h3>
+        <div class="visibility-list" id="vis-list"></div>
+      </div>
+      <div class="tool-section">
+        <button class="btn spawn-template-btn" onclick="showTemplateModal()" style="width:100%">🌱 刷新点模板管理</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div id="canvas-area">
+    <canvas id="map-canvas"></canvas>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottombar">
+  <span id="status-pos">鼠标: -</span>
+  <span id="status-layer">当前层: ground_high</span>
+  <span id="status-tool">工具: 画笔</span>
+  <span id="status-tile">地块: 草地</span>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="save-modal">
+  <div class="modal" style="min-width:500px;position:relative;">
+    <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
+    <h2>💾 存档管理</h2>
+    <div class="new-save-row">
+      <input id="new-save-name" type="text" placeholder="新存档名称..." value="地图1">
+      <button class="btn" onclick="saveNew()">➕ 保存新存档</button>
+    </div>
+    <div class="modal-body" id="save-list" style="max-height:400px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal" style="min-width:600px;position:relative;">
+    <button class="modal-close" onclick="closeModal('export-modal')">✕</button>
+    <h2>📤 导出 JSON</h2>
+    <textarea id="export-textarea" readonly></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="btn" onclick="copyExport()">📋 复制</button>
+      <button class="btn" onclick="downloadExport()">⬇ 下载</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPAWN CELL MODAL -->
+<div class="modal-overlay" id="spawn-cell-modal">
+  <div class="modal" style="min-width:420px;position:relative;">
+    <button class="modal-close" onclick="closeModal('spawn-cell-modal')">✕</button>
+    <h2 id="spawn-cell-title">刷新点 (0,0)</h2>
+    <div class="modal-body">
+      <div class="spawn-cell-list" id="spawn-cell-list"></div>
+      <div class="add-spawn-section">
+        <h3>➕ 添加刷新点</h3>
+        <div class="form-row">
+          <label>名称:</label>
+          <input id="new-spawn-name" type="text" placeholder="刷新点名称" style="flex:1;">
+        </div>
+        <div class="form-row">
+          <label>类型:</label>
+          <select id="new-spawn-type">
+            <option value="plant">🌿 植物/树木</option>
+            <option value="monster">👾 怪物</option>
+            <option value="npc">🧑 NPC</option>
+            <option value="item">💎 道具</option>
+            <option value="custom">⚙ 自定义</option>
+          </select>
+          <label>颜色:</label>
+          <input id="new-spawn-color" type="color" value="#4caf50">
+        </div>
+        <div class="form-row">
+          <label>或从模板:</label>
+          <select id="spawn-template-select"><option value="">-- 选择模板 --</option></select>
+          <button class="btn-sm" onclick="applySpawnTemplate()">应用</button>
+        </div>
+        <button class="btn" onclick="addSpawnToCell()" style="width:100%;margin-top:4px;">➕ 添加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SPAWN TEMPLATE MODAL -->
+<div class="modal-overlay" id="spawn-template-modal">
+  <div class="modal" style="min-width:420px;position:relative;">
+    <button class="modal-close" onclick="closeModal('spawn-template-modal')">✕</button>
+    <h2>🌱 刷新点模板管理</h2>
+    <div class="modal-body">
+      <div class="template-list" id="template-list"></div>
+      <div class="add-spawn-section">
+        <h3>➕ 新建模板</h3>
+        <div class="form-row">
+          <label>名称:</label>
+          <input id="tmpl-name" type="text" placeholder="模板名称" style="flex:1;">
+        </div>
+        <div class="form-row">
+          <label>类型:</label>
+          <select id="tmpl-type">
+            <option value="plant">🌿 植物/树木</option>
+            <option value="monster">👾 怪物</option>
+            <option value="npc">🧑 NPC</option>
+            <option value="item">💎 道具</option>
+            <option value="custom">⚙ 自定义</option>
+          </select>
+          <label>颜色:</label>
+          <input id="tmpl-color" type="color" value="#4caf50">
+        </div>
+        <button class="btn" onclick="addTemplate()" style="width:100%;margin-top:4px;">➕ 创建模板</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const LAYERS = [
+  { id: 'ground_low',  label: '地块底层',   desc: '水/泥土基底' },
+  { id: 'ground_high', label: '地块上层',   desc: '草地/路/农田（默认编辑层）' },
+  { id: 'decor',       label: '装饰层',     desc: '花草/石头/小物件' },
+  { id: 'overlay',     label: '叠加层',     desc: '过渡/混合效果' },
+  { id: 'above',       label: '遮挡层',     desc: '树冠/屋顶，盖在角色上' },
+  { id: 'block',       label: '阻挡层',     desc: '碰撞（红色半透明 🚫）' },
+  { id: 'spawn',       label: '刷新点层',   desc: '多刷新点，点击管理' },
+];
+
+const TILE_TYPES = [
+  { id: 0, name: '草地',  emoji: '🌿', color: '#4caf50', autoBlock: false },
+  { id: 1, name: '泥土',  emoji: '🟫', color: '#795548', autoBlock: false },
+  { id: 2, name: '耕地',  emoji: '🟧', color: '#a1887f', autoBlock: false },
+  { id: 8, name: '小路',  emoji: '🛤️',  color: '#bcaaa4', autoBlock: false },
+  { id: 9, name: '水域',  emoji: '💧', color: '#1976d2', autoBlock: true  },
+  { id: 7, name: '树木',  emoji: '🌳', color: '#388e3c', autoBlock: true  },
+  { id: 4, name: '房屋',  emoji: '🏠', color: '#e65100', autoBlock: true  },
+  { id: 5, name: '水井',  emoji: '⛲', color: '#0288d1', autoBlock: true  },
+  { id: 6, name: '商店',  emoji: '🏪', color: '#7b1fa2', autoBlock: true  },
+];
+
+const SPAWN_TYPE_EMOJI = { plant:'🌿', monster:'👾', npc:'🧑', item:'💎', custom:'⚙' };
+
+let state = {
+  cols: 18, rows: 14,
+  cellSize: 40,
+  currentLayer: 'ground_high',
+  currentTile: 0,
+  currentTool: 'pencil',
+  layerVisible: Object.fromEntries(LAYERS.map(l => [l.id, true])),
+  // tiles[layerIdx][row][col] = tileId or null
+  tiles: null,
+  // blocked[row][col] = bool
+  blocked: null,
+  // spawns[row][col] = [{id,name,type,color}]
+  spawns: null,
+  spawnTemplates: [],
+  isDrawing: false,
+  lastCell: null,
+  spawnEditCell: null,  // {row, col}
+};
+
+function initMapData(cols, rows) {
+  state.cols = cols;
+  state.rows = rows;
+  state.tiles = LAYERS.map(() =>
+    Array.from({length: rows}, () => new Array(cols).fill(null))
+  );
+  state.blocked = Array.from({length: rows}, () => new Array(cols).fill(false));
+  state.spawns  = Array.from({length: rows}, () =>
+    Array.from({length: cols}, () => [])
+  );
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+  initMapData(state.cols, state.rows);
+  buildLayerButtons();
+  buildTileGrid();
+  buildVisibilityList();
+  setupCanvas();
+  render();
+  updateStatus();
+  loadLatestSave();
+});
+
+// ============================================================
+// PANEL / TAB
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.panel-tab').forEach((b,i) => {
+    const ids = ['layers','tiles','tools'];
+    b.classList.toggle('active', ids[i] === tab);
+  });
+  document.querySelectorAll('.panel-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function buildLayerButtons() {
+  const container = document.getElementById('layer-buttons');
+  container.innerHTML = '';
+  LAYERS.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = 'layer-btn' + (l.id === state.currentLayer ? ' active' : '');
+    btn.id = 'lbtn-' + l.id;
+    btn.textContent = l.label + (l.id === 'block' ? ' 🚫' : l.id === 'spawn' ? ' 🌱' : '');
+    btn.onclick = () => selectLayer(l.id);
+    container.appendChild(btn);
+  });
+  updateLayerDesc();
+}
+
+function selectLayer(id) {
+  state.currentLayer = id;
+  document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('lbtn-' + id);
+  if (btn) btn.classList.add('active');
+  updateLayerDesc();
+  updateStatus();
+}
+
+function updateLayerDesc() {
+  const l = LAYERS.find(l => l.id === state.currentLayer);
+  document.getElementById('layer-desc-text').textContent = l ? `${l.label}：${l.desc}` : '';
+}
+
+function buildTileGrid() {
+  const grid = document.getElementById('tile-grid');
+  grid.innerHTML = '';
+  TILE_TYPES.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tile-btn' + (t.id === state.currentTile ? ' active' : '');
+    btn.id = 'tbtn-' + t.id;
+    btn.style.background = t.color + '33';
+    btn.style.borderColor = t.id === state.currentTile ? '#ffca28' : t.color + '88';
+    btn.innerHTML = `${t.emoji}<span>${t.name}</span>`;
+    btn.onclick = () => selectTile(t.id);
+    grid.appendChild(btn);
+  });
+}
+
+function selectTile(id) {
+  state.currentTile = id;
+  document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+  const t = TILE_TYPES.find(t => t.id === id);
+  const btn = document.getElementById('tbtn-' + id);
+  if (btn) {
+    btn.classList.add('active');
+    btn.style.borderColor = '#ffca28';
+  }
+  document.querySelectorAll('.tile-btn:not(.active)').forEach(b => {
+    const tid = parseInt(b.id.replace('tbtn-',''));
+    const tt = TILE_TYPES.find(x => x.id === tid);
+    if (tt) b.style.borderColor = tt.color + '88';
+  });
+  updateStatus();
+}
+
+function buildVisibilityList() {
+  const container = document.getElementById('vis-list');
+  container.innerHTML = '';
+  LAYERS.forEach(l => {
+    const item = document.createElement('label');
+    item.className = 'vis-item';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = state.layerVisible[l.id];
+    cb.onchange = () => { state.layerVisible[l.id] = cb.checked; render(); };
+    item.appendChild(cb);
+    item.appendChild(document.createTextNode(l.label));
+    container.appendChild(item);
+  });
+}
+
+function setTool(t) {
+  state.currentTool = t;
+  ['pencil','fill','eraser'].forEach(id => {
+    document.getElementById('tool-' + id).classList.toggle('active', id === t);
+  });
+  updateStatus();
+}
+
+// ============================================================
+// CANVAS SETUP
+// ============================================================
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+
+function setupCanvas() {
+  resizeCanvas();
+}
+
+function resizeCanvas() {
+  canvas.width  = state.cols * state.cellSize;
+  canvas.height = state.rows * state.cellSize;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  const cs = state.cellSize;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Background
+  ctx.fillStyle = '#1a2a1a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Render order: ground_low → ground_high → decor → overlay → above → block → spawn
+  LAYERS.forEach((layer, li) => {
+    if (!state.layerVisible[layer.id]) return;
+
+    if (layer.id === 'block') {
+      renderBlockLayer(li, cs);
+    } else if (layer.id === 'spawn') {
+      renderSpawnLayer(cs);
+    } else {
+      renderTileLayer(layer, li, cs);
+    }
+  });
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(0,60,0,0.5)';
+  ctx.lineWidth = 0.5;
+  for (let c = 0; c <= state.cols; c++) {
+    ctx.beginPath(); ctx.moveTo(c * cs, 0); ctx.lineTo(c * cs, canvas.height); ctx.stroke();
+  }
+  for (let r = 0; r <= state.rows; r++) {
+    ctx.beginPath(); ctx.moveTo(0, r * cs); ctx.lineTo(canvas.width, r * cs); ctx.stroke();
+  }
+}
+
+function renderTileLayer(layer, li, cs) {
+  const emoji_size = Math.max(12, cs * 0.5);
+  ctx.font = `${emoji_size}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (let r = 0; r < state.rows; r++) {
+    for (let c = 0; c < state.cols; c++) {
+      const val = state.tiles[li][r][c];
+      if (val === null) continue;
+      const x = c * cs, y = r * cs;
+
+      if (layer.id === 'ground_high') {
+        const t = TILE_TYPES.find(t => t.id === val);
+        if (!t) continue;
+        ctx.fillStyle = t.color + 'cc';
+        ctx.fillRect(x, y, cs, cs);
+        ctx.fillText(t.emoji, x + cs/2, y + cs/2);
+      } else {
+        // Generic layers: use a semi-transparent colored marker
+        const colors = {
+          ground_low: '#78909c',
+          decor:      '#aed581',
+          overlay:    '#ffd54f',
+          above:      '#a5d6a7',
+        };
+        ctx.fillStyle = (colors[layer.id] || '#90a4ae') + '88';
+        ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
+        // Show a dot indicator
+        ctx.fillStyle = colors[layer.id] || '#90a4ae';
+        ctx.beginPath();
+        ctx.arc(x + cs/2, y + cs/2, cs * 0.2, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+  }
+}
+
+function renderBlockLayer(li, cs) {
+  for (let r = 0; r < state.rows; r++) {
+    for (let c = 0; c < state.cols; c++) {
+      if (!state.blocked[r][c]) continue;
+      const x = c * cs, y = r * cs;
+      ctx.fillStyle = 'rgba(220,50,50,0.35)';
+      ctx.fillRect(x, y, cs, cs);
+      ctx.strokeStyle = 'rgba(220,50,50,0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, cs - 1, cs - 1);
+      // 🚫 emoji
+      const fs = Math.max(10, cs * 0.45);
+      ctx.font = `${fs}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.fillText('🚫', x + cs/2, y + cs/2);
+    }
+  }
+}
+
+function renderSpawnLayer(cs) {
+  for (let r = 0; r < state.rows; r++) {
+    for (let c = 0; c < state.cols; c++) {
+      const spawns = state.spawns[r][c];
+      if (!spawns || spawns.length === 0) continue;
+      const x = c * cs, y = r * cs;
+      const maxDots = Math.min(spawns.length, 6);
+      const dotR = Math.max(3, cs * 0.12);
+      const padding = dotR + 1;
+      const totalW = maxDots * dotR * 2 + (maxDots - 1) * 2;
+      let startX = x + cs/2 - totalW/2 + dotR;
+      const dotY = y + cs - padding - dotR;
+
+      spawns.slice(0, maxDots).forEach((sp, i) => {
+        ctx.fillStyle = sp.color || '#4caf50';
+        ctx.beginPath();
+        ctx.arc(startX + i * (dotR * 2 + 2), dotY, dotR, 0, Math.PI*2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      });
+
+      if (spawns.length > maxDots) {
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.max(8, cs * 0.18)}px sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(`+${spawns.length - maxDots}`, x + cs - 2, y + cs - 1);
+      }
+    }
+  }
+}
+
+// Hover highlight
+let hoverCell = null;
+function renderHover() {
+  if (!hoverCell) return;
+  const cs = state.cellSize;
+  const {r, c} = hoverCell;
+  ctx.strokeStyle = 'rgba(255,255,100,0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(c * cs + 0.75, r * cs + 0.75, cs - 1.5, cs - 1.5);
+}
+
+function fullRender() {
+  render();
+  renderHover();
+}
+
+// ============================================================
+// CANVAS EVENTS
+// ============================================================
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+canvas.addEventListener('mousedown', e => {
+  const cell = getCellFromEvent(e);
+  if (!cell) return;
+  e.preventDefault();
+
+  if (state.currentLayer === 'spawn' && e.button === 0) {
+    openSpawnCellModal(cell.r, cell.c);
+    return;
+  }
+
+  state.isDrawing = true;
+  state.lastCell = null;
+  applyTool(cell, e.button === 2 ? 'erase' : null);
+});
+
+canvas.addEventListener('mousemove', e => {
+  const cell = getCellFromEvent(e);
+  hoverCell = cell;
+
+  if (cell) {
+    document.getElementById('status-pos').textContent = `鼠标: (${cell.c}, ${cell.r})`;
+  }
+
+  if (state.isDrawing && cell) {
+    const key = cell.r + '_' + cell.c;
+    if (state.lastCell !== key) {
+      state.lastCell = key;
+      applyTool(cell, null);
+    }
+  }
+  fullRender();
+});
+
+canvas.addEventListener('mouseup', () => { state.isDrawing = false; state.lastCell = null; });
+canvas.addEventListener('mouseleave', () => {
+  state.isDrawing = false;
+  hoverCell = null;
+  document.getElementById('status-pos').textContent = '鼠标: -';
+  fullRender();
+});
+
+function getCellFromEvent(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const cs = state.cellSize;
+  const c = Math.floor(x / cs);
+  const r = Math.floor(y / cs);
+  if (c < 0 || c >= state.cols || r < 0 || r >= state.rows) return null;
+  return { r, c };
+}
+
+function applyTool(cell, forceErase) {
+  const { r, c } = cell;
+  const layer = state.currentLayer;
+  const tool = forceErase ? 'eraser' : state.currentTool;
+
+  if (layer === 'spawn') return; // handled separately
+
+  if (layer === 'block') {
+    if (tool === 'eraser') {
+      state.blocked[r][c] = false;
+    } else if (tool === 'pencil') {
+      state.blocked[r][c] = true;
+    } else if (tool === 'fill') {
+      floodFillBlock(r, c, true);
+    }
+    fullRender();
+    return;
+  }
+
+  const li = LAYERS.findIndex(l => l.id === layer);
+
+  if (tool === 'eraser') {
+    state.tiles[li][r][c] = null;
+    if (layer === 'ground_high') recalcBlock(r, c);
+  } else if (tool === 'pencil') {
+    state.tiles[li][r][c] = state.currentTile;
+    if (layer === 'ground_high') recalcBlock(r, c);
+  } else if (tool === 'fill') {
+    const target = state.tiles[li][r][c];
+    const fill = tool === 'fill' ? state.currentTile : null;
+    if (target !== fill) floodFill(li, r, c, target, fill);
+  }
+  fullRender();
+}
+
+function recalcBlock(r, c) {
+  const li = LAYERS.findIndex(l => l.id === 'ground_high');
+  const val = state.tiles[li][r][c];
+  if (val === null) {
+    state.blocked[r][c] = false;
+    return;
+  }
+  const t = TILE_TYPES.find(t => t.id === val);
+  if (t && t.autoBlock) state.blocked[r][c] = true;
+  else if (t && !t.autoBlock) {
+    // Only clear if block was set by auto, not manual
+    // We just leave manual blocks alone and only auto-set
+  }
+}
+
+function floodFill(li, r, c, target, fill) {
+  const stack = [{r, c}];
+  const visited = new Set();
+  while (stack.length) {
+    const {r: cr, c: cc} = stack.pop();
+    const key = cr * 100000 + cc;
+    if (visited.has(key)) continue;
+    if (cr < 0 || cr >= state.rows || cc < 0 || cc >= state.cols) continue;
+    if (state.tiles[li][cr][cc] !== target) continue;
+    visited.add(key);
+    state.tiles[li][cr][cc] = fill;
+    if (li === LAYERS.findIndex(l => l.id === 'ground_high')) recalcBlock(cr, cc);
+    stack.push({r:cr-1,c:cc},{r:cr+1,c:cc},{r:cr,c:cc-1},{r:cr,c:cc+1});
+  }
+}
+
+function floodFillBlock(r, c, val) {
+  const target = state.blocked[r][c];
+  const stack = [{r, c}];
+  const visited = new Set();
+  while (stack.length) {
+    const {r: cr, c: cc} = stack.pop();
+    const key = cr * 100000 + cc;
+    if (visited.has(key)) continue;
+    if (cr < 0 || cr >= state.rows || cc < 0 || cc >= state.cols) continue;
+    if (state.blocked[cr][cc] !== target) continue;
+    visited.add(key);
+    state.blocked[cr][cc] = val;
+    stack.push({r:cr-1,c:cc},{r:cr+1,c:cc},{r:cr,c:cc-1},{r:cr,c:cc+1});
+  }
+}
+
+// ============================================================
+// TOOLBAR ACTIONS
+// ============================================================
+function changeCellSize(val) {
+  state.cellSize = parseInt(val);
+  resizeCanvas();
+  fullRender();
+}
+
+function resizeMap() {
+  const nc = Math.max(1, Math.min(99999, parseInt(document.getElementById('input-cols').value) || state.cols));
+  const nr = Math.max(1, Math.min(99999, parseInt(document.getElementById('input-rows').value) || state.rows));
+  if (nc === state.cols && nr === state.rows) return;
+
+  // Resize tiles
+  LAYERS.forEach((layer, li) => {
+    const newLayer = Array.from({length: nr}, (_, r) =>
+      Array.from({length: nc}, (_, c) =>
+        (r < state.rows && c < state.cols) ? state.tiles[li][r][c] : null
+      )
+    );
+    state.tiles[li] = newLayer;
+  });
+
+  const newBlocked = Array.from({length: nr}, (_, r) =>
+    Array.from({length: nc}, (_, c) =>
+      (r < state.rows && c < state.cols) ? state.blocked[r][c] : false
+    )
+  );
+
+  const newSpawns = Array.from({length: nr}, (_, r) =>
+    Array.from({length: nc}, (_, c) =>
+      (r < state.rows && c < state.cols) ? state.spawns[r][c] : []
+    )
+  );
+
+  state.cols = nc;
+  state.rows = nr;
+  state.blocked = newBlocked;
+  state.spawns = newSpawns;
+  resizeCanvas();
+  fullRender();
+}
+
+function fillCurrentLayer() {
+  const layer = state.currentLayer;
+  if (layer === 'spawn') return;
+
+  if (layer === 'block') {
+    for (let r = 0; r < state.rows; r++)
+      for (let c = 0; c < state.cols; c++)
+        state.blocked[r][c] = true;
+    fullRender(); return;
+  }
+
+  const li = LAYERS.findIndex(l => l.id === layer);
+  for (let r = 0; r < state.rows; r++)
+    for (let c = 0; c < state.cols; c++) {
+      state.tiles[li][r][c] = state.currentTile;
+      if (layer === 'ground_high') recalcBlock(r, c);
+    }
+  fullRender();
+}
+
+function clearCurrentLayer() {
+  const layer = state.currentLayer;
+  if (layer === 'spawn') {
+    for (let r = 0; r < state.rows; r++)
+      for (let c = 0; c < state.cols; c++)
+        state.spawns[r][c] = [];
+    fullRender(); return;
+  }
+  if (layer === 'block') {
+    for (let r = 0; r < state.rows; r++)
+      for (let c = 0; c < state.cols; c++)
+        state.blocked[r][c] = false;
+    fullRender(); return;
+  }
+  const li = LAYERS.findIndex(l => l.id === layer);
+  for (let r = 0; r < state.rows; r++)
+    for (let c = 0; c < state.cols; c++) {
+      state.tiles[li][r][c] = null;
+      if (layer === 'ground_high') recalcBlock(r, c);
+    }
+  fullRender();
+}
+
+// ============================================================
+// STATUS BAR
+// ============================================================
+function updateStatus() {
+  const layer = LAYERS.find(l => l.id === state.currentLayer);
+  const tile  = TILE_TYPES.find(t => t.id === state.currentTile);
+  const tools = { pencil: '画笔', fill: '填充', eraser: '橡皮' };
+  document.getElementById('status-layer').textContent = `当前层: ${layer ? layer.label : state.currentLayer}`;
+  document.getElementById('status-tool').textContent  = `工具: ${tools[state.currentTool] || state.currentTool}`;
+  document.getElementById('status-tile').textContent  = `地块: ${tile ? tile.emoji + tile.name : '-'}`;
+}
+
+// ============================================================
+// SAVE / LOAD (localStorage)
+// ============================================================
+const SAVE_KEY = 'farm_map_saves';
+
+function getSaves() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY) || '[]'); }
+  catch { return []; }
+}
+function setSaves(saves) {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+}
+
+function currentMapData() {
+  return {
+    cols: state.cols,
+    rows: state.rows,
+    tiles: state.tiles.map(layer => layer.map(row => [...row])),
+    blocked: state.blocked.map(row => [...row]),
+    spawns: state.spawns.map(row => row.map(cell => [...cell])),
+    spawnTemplates: [...state.spawnTemplates],
+  };
+}
+
+function loadMapData(data) {
+  state.cols = data.cols;
+  state.rows = data.rows;
+  // Ensure 7 layers
+  state.tiles = LAYERS.map((l, li) =>
+    (data.tiles && data.tiles[li])
+      ? data.tiles[li].map(row => [...row])
+      : Array.from({length: state.rows}, () => new Array(state.cols).fill(null))
+  );
+  state.blocked = (data.blocked || []).map(row => [...row]);
+  if (state.blocked.length < state.rows)
+    for (let i = state.blocked.length; i < state.rows; i++)
+      state.blocked.push(new Array(state.cols).fill(false));
+
+  state.spawns = (data.spawns || []).map(row => row.map(cell => [...(cell || [])]));
+  if (state.spawns.length < state.rows)
+    for (let i = state.spawns.length; i < state.rows; i++)
+      state.spawns.push(Array.from({length: state.cols}, () => []));
+
+  state.spawnTemplates = data.spawnTemplates || [];
+
+  document.getElementById('input-cols').value = state.cols;
+  document.getElementById('input-rows').value = state.rows;
+  resizeCanvas();
+  fullRender();
+}
+
+function loadLatestSave() {
+  const saves = getSaves();
+  if (saves.length === 0) return;
+  saves.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  loadMapData(saves[0].data);
+}
+
+function showSaveModal() {
+  renderSaveList();
+  openModal('save-modal');
+}
+
+function renderSaveList() {
+  const saves = getSaves().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  const container = document.getElementById('save-list');
+  if (saves.length === 0) {
+    container.innerHTML = '<p style="color:#6a9a6a;padding:8px;">暂无存档</p>';
+    return;
+  }
+  container.innerHTML = saves.map((s, i) => {
+    const dt = s.savedAt ? new Date(s.savedAt).toLocaleString('zh-CN') : '-';
+    return `
+    <div class="save-item">
+      <div class="save-item-info">
+        <div class="save-item-name">${esc(s.name)}</div>
+        <div class="save-item-meta">${s.data.cols}×${s.data.rows} · ${dt}</div>
+      </div>
+      <div class="save-item-btns">
+        <button class="btn-sm" onclick="loadSave(${i})">载入</button>
+        <button class="btn-sm" onclick="overwriteSave(${i})">覆盖</button>
+        <button class="btn-sm" onclick="copySave(${i})">复制</button>
+        <button class="btn-sm danger" onclick="deleteSave(${i})">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveNew() {
+  const name = document.getElementById('new-save-name').value.trim() || '存档';
+  const saves = getSaves();
+  saves.push({ name, savedAt: Date.now(), data: currentMapData() });
+  setSaves(saves);
+  renderSaveList();
+}
+
+function loadSave(idx) {
+  const saves = getSaves().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  if (!saves[idx]) return;
+  loadMapData(saves[idx].data);
+  closeModal('save-modal');
+}
+
+function overwriteSave(idx) {
+  const saves = getSaves().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  if (!saves[idx]) return;
+  saves[idx].data = currentMapData();
+  saves[idx].savedAt = Date.now();
+  setSaves(saves);
+  renderSaveList();
+}
+
+function copySave(idx) {
+  const saves = getSaves().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  if (!saves[idx]) return;
+  const copy = JSON.parse(JSON.stringify(saves[idx]));
+  copy.name = copy.name + '_副本';
+  copy.savedAt = Date.now();
+  saves.push(copy);
+  setSaves(saves);
+  renderSaveList();
+}
+
+function deleteSave(idx) {
+  const saves = getSaves().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  if (!confirm(`确认删除存档"${saves[idx]?.name}"？`)) return;
+  saves.splice(idx, 1);
+  setSaves(saves);
+  renderSaveList();
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function showExportModal() {
+  const data = currentMapData();
+  document.getElementById('export-textarea').value = JSON.stringify(data, null, 2);
+  openModal('export-modal');
+}
+
+function copyExport() {
+  const ta = document.getElementById('export-textarea');
+  ta.select();
+  navigator.clipboard.writeText(ta.value).catch(() => document.execCommand('copy'));
+}
+
+function downloadExport() {
+  const data = document.getElementById('export-textarea').value;
+  const blob = new Blob([data], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'farm_map.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json,application/json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        loadMapData(data);
+      } catch { alert('JSON 格式错误'); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============================================================
+// SPAWN CELL MODAL
+// ============================================================
+function openSpawnCellModal(r, c) {
+  state.spawnEditCell = { r, c };
+  document.getElementById('spawn-cell-title').textContent = `刷新点 (${c}, ${r})`;
+  renderSpawnCellList(r, c);
+  refreshSpawnTemplateSelect();
+  openModal('spawn-cell-modal');
+}
+
+function renderSpawnCellList(r, c) {
+  const list = state.spawns[r][c] || [];
+  const container = document.getElementById('spawn-cell-list');
+  if (list.length === 0) {
+    container.innerHTML = '<p style="color:#6a9a6a;font-size:12px;padding:4px;">暂无刷新点</p>';
+    return;
+  }
+  container.innerHTML = list.map((sp, i) => `
+    <div class="spawn-entry">
+      <div class="spawn-dot" style="background:${sp.color || '#4caf50'}"></div>
+      <div class="spawn-entry-info">
+        <div class="spawn-entry-name">${esc(sp.name)} <span style="font-size:11px">${SPAWN_TYPE_EMOJI[sp.type]||'?'}</span></div>
+        <div class="spawn-entry-type">${sp.type} · id:${sp.id}</div>
+      </div>
+      <button class="btn-sm danger" onclick="removeSpawnFromCell(${i})">删除</button>
+    </div>
+  `).join('');
+}
+
+function removeSpawnFromCell(idx) {
+  const {r, c} = state.spawnEditCell;
+  state.spawns[r][c].splice(idx, 1);
+  renderSpawnCellList(r, c);
+  fullRender();
+}
+
+function addSpawnToCell() {
+  const {r, c} = state.spawnEditCell;
+  const name = document.getElementById('new-spawn-name').value.trim();
+  if (!name) { alert('请输入刷新点名称'); return; }
+  const type  = document.getElementById('new-spawn-type').value;
+  const color = document.getElementById('new-spawn-color').value;
+  const id = 'sp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+  state.spawns[r][c].push({ id, name, type, color });
+  document.getElementById('new-spawn-name').value = '';
+  renderSpawnCellList(r, c);
+  fullRender();
+}
+
+function refreshSpawnTemplateSelect() {
+  const sel = document.getElementById('spawn-template-select');
+  sel.innerHTML = '<option value="">-- 选择模板 --</option>' +
+    state.spawnTemplates.map((t, i) =>
+      `<option value="${i}">${SPAWN_TYPE_EMOJI[t.type]||''} ${esc(t.name)}</option>`
+    ).join('');
+}
+
+function applySpawnTemplate() {
+  const idx = parseInt(document.getElementById('spawn-template-select').value);
+  if (isNaN(idx) || !state.spawnTemplates[idx]) return;
+  const t = state.spawnTemplates[idx];
+  document.getElementById('new-spawn-name').value = t.name;
+  document.getElementById('new-spawn-type').value = t.type;
+  document.getElementById('new-spawn-color').value = t.color || '#4caf50';
+}
+
+// ============================================================
+// SPAWN TEMPLATE MODAL
+// ============================================================
+function showTemplateModal() {
+  renderTemplateList();
+  openModal('spawn-template-modal');
+}
+
+function renderTemplateList() {
+  const container = document.getElementById('template-list');
+  if (state.spawnTemplates.length === 0) {
+    container.innerHTML = '<p style="color:#6a9a6a;font-size:12px;padding:4px;">暂无模板</p>';
+    return;
+  }
+  container.innerHTML = state.spawnTemplates.map((t, i) => `
+    <div class="template-entry">
+      <div class="spawn-dot" style="background:${t.color || '#4caf50'}"></div>
+      <div class="spawn-entry-info">
+        <div class="spawn-entry-name">${SPAWN_TYPE_EMOJI[t.type]||'?'} ${esc(t.name)}</div>
+        <div class="spawn-entry-type">${t.type}</div>
+      </div>
+      <button class="btn-sm danger" onclick="deleteTemplate(${i})">删除</button>
+    </div>
+  `).join('');
+}
+
+function addTemplate() {
+  const name  = document.getElementById('tmpl-name').value.trim();
+  if (!name) { alert('请输入模板名称'); return; }
+  const type  = document.getElementById('tmpl-type').value;
+  const color = document.getElementById('tmpl-color').value;
+  const id = 'tmpl_' + Date.now();
+  state.spawnTemplates.push({ id, name, type, color });
+  document.getElementById('tmpl-name').value = '';
+  renderTemplateList();
+}
+
+function deleteTemplate(idx) {
+  state.spawnTemplates.splice(idx, 1);
+  renderTemplateList();
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.add('active');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+
+// ============================================================
+// UTILITY
+// ============================================================
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
