@@ -231,7 +231,6 @@ function resize() {
   canvas.height = wrap.clientHeight;
 }
 resize();
-updateSeedSwitchUI();
 window.addEventListener('resize', resize);
 
 // ============================================================
@@ -773,6 +772,7 @@ function showToast(msg){
 // ============================================================
 const {x:ix,y:iy}=iso(player.wx,player.wy);
 camX=ix-canvas.width/2; camY=iy-canvas.height/2;
+updateSeedSwitchUI();
 requestAnimationFrame(ts=>{lastT=ts; loop(ts);});
 </script>
 </body>
