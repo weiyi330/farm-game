@@ -768,29 +768,59 @@ function renderTileLayer(layer, li, cs) {
       const x = c * cs, y = r * cs;
 
       if (layer.id === 'ground_high') {
-        const t = TILE_TYPES.find(t => t.id === val);
-        if (!t) continue;
-        ctx.fillStyle = t.color + 'cc';
-        ctx.fillRect(x, y, cs, cs);
-        ctx.fillText(t.emoji, x + cs/2, y + cs/2);
+        // 图集对象
+        if (val && typeof val === 'object' && val.atlas) {
+          renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+        } else {
+          const t = TILE_TYPES.find(t => t.id === val);
+          if (!t) continue;
+          ctx.fillStyle = t.color + 'cc';
+          ctx.fillRect(x, y, cs, cs);
+          ctx.fillText(t.emoji, x + cs/2, y + cs/2);
+        }
       } else {
-        // Generic layers: use a semi-transparent colored marker
-        const colors = {
-          ground_low: '#78909c',
-          decor:      '#aed581',
-          overlay:    '#ffd54f',
-          above:      '#a5d6a7',
-        };
-        ctx.fillStyle = (colors[layer.id] || '#90a4ae') + '88';
-        ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
-        // Show a dot indicator
-        ctx.fillStyle = colors[layer.id] || '#90a4ae';
-        ctx.beginPath();
-        ctx.arc(x + cs/2, y + cs/2, cs * 0.2, 0, Math.PI*2);
-        ctx.fill();
+        // 其他层：图集对象或占位标记
+        if (val && typeof val === 'object' && val.atlas) {
+          renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+        } else {
+          const colors = {
+            ground_low: '#78909c',
+            decor:      '#aed581',
+            overlay:    '#ffd54f',
+            above:      '#a5d6a7',
+          };
+          ctx.fillStyle = (colors[layer.id] || '#90a4ae') + '88';
+          ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
+          ctx.fillStyle = colors[layer.id] || '#90a4ae';
+          ctx.beginPath();
+          ctx.arc(x + cs/2, y + cs/2, cs * 0.2, 0, Math.PI*2);
+          ctx.fill();
+        }
       }
     }
   }
+}
+
+// 图集图片缓存
+const atlasImgCache = {};
+function renderAtlasCellOnCanvas(ctx, val, x, y, cs) {
+  const src = val.src;
+  if (!atlasImgCache[src]) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => { atlasImgCache[src] = img; fullRender(); };
+    img.src = ATLAS_BASE_URL + src + '?t=1';
+    atlasImgCache[src] = 'loading';
+    // 加载中显示占位色
+    ctx.fillStyle = '#4a6a4a88';
+    ctx.fillRect(x, y, cs, cs);
+    return;
+  }
+  if (atlasImgCache[src] === 'loading') {
+    ctx.fillStyle = '#4a6a4a88'; ctx.fillRect(x, y, cs, cs); return;
+  }
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(atlasImgCache[src], val.sx, val.sy, val.tileSize, val.tileSize, x, y, cs, cs);
 }
 
 function renderBlockLayer(li, cs) {
@@ -942,18 +972,47 @@ function applyTool(cell, forceErase) {
 
   const li = LAYERS.findIndex(l => l.id === layer);
 
+  // 当前画笔：图集模式 or 地块类型模式
+  const brushValue = getBrushValue(layer);
+
   if (tool === 'eraser') {
     state.tiles[li][r][c] = null;
     if (layer === 'ground_high') recalcBlock(r, c);
   } else if (tool === 'pencil') {
-    state.tiles[li][r][c] = state.currentTile;
+    if (brushValue === undefined) return; // 无有效画笔
+    state.tiles[li][r][c] = brushValue;
     if (layer === 'ground_high') recalcBlock(r, c);
   } else if (tool === 'fill') {
-    const target = state.tiles[li][r][c];
-    const fill = tool === 'fill' ? state.currentTile : null;
-    if (target !== fill) floodFill(li, r, c, target, fill);
+    if (brushValue === undefined) return;
+    const target = JSON.stringify(state.tiles[li][r][c]);
+    floodFillGeneric(li, r, c, target, brushValue);
   }
   fullRender();
+}
+
+// 获取当前画笔值：图集选中时返回图集对象，否则返回地块类型ID
+function getBrushValue(layer) {
+  if (selectedAtlasTile) {
+    // 图集模式：返回图集引用对象（不含img对象，避免循环引用）
+    return { atlas: true, src: selectedAtlasTile.src, sx: selectedAtlasTile.sx, sy: selectedAtlasTile.sy, tileSize: selectedAtlasTile.tileSize, label: selectedAtlasTile.label };
+  }
+  if (layer === 'ground_high') return state.currentTile;
+  return null; // 其他层非图集模式不刷
+}
+
+function floodFillGeneric(li, r, c, targetStr, fill) {
+  const stack = [{r, c}];
+  const visited = new Set();
+  while (stack.length) {
+    const {r: cr, c: cc} = stack.pop();
+    const key = cr * 100000 + cc;
+    if (visited.has(key)) continue;
+    if (cr < 0 || cr >= state.rows || cc < 0 || cc >= state.cols) continue;
+    if (JSON.stringify(state.tiles[li][cr][cc]) !== targetStr) continue;
+    visited.add(key);
+    state.tiles[li][cr][cc] = fill;
+    stack.push({r:cr-1,c:cc},{r:cr+1,c:cc},{r:cr,c:cc-1},{r:cr,c:cc+1});
+  }
 }
 
 function recalcBlock(r, c) {
@@ -1475,6 +1534,8 @@ function renderAtlasChild(container, group, child) {
           cell.classList.add('atlas-cell-selected');
           cell.style.borderColor = '#ffe040';
           selectedAtlasTile = { img, sx, sy, tileSize: TS, label: tileName, src: child.src };
+          // 同步到渲染缓存
+          if (!atlasImgCache[child.src] || atlasImgCache[child.src] === 'loading') atlasImgCache[child.src] = img;
           setStatus('已选图集：' + tileName);
         });
         grid.appendChild(cell);
