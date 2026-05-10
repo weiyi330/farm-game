@@ -111,6 +111,7 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
   <h1>🗺️ 地图编辑器</h1>
   <button class="btn btn-green"  onclick="exportMap()">📤 导出</button>
   <button class="btn btn-blue"   onclick="importMap()">📥 导入</button>
+  <button class="btn btn-purple" onclick="showSavePanel()">💾 存档</button>
   <button class="btn btn-orange" onclick="fillAll()">🖌️ 全填</button>
   <button class="btn btn-red"    onclick="clearMap()">🗑️ 清空</button>
   <span style="color:#4a6a2a;">|</span>
@@ -189,7 +190,27 @@ body { background:#1a2a1a; color:#e8e0c8; font-family:'STKaiti','KaiTi',sans-ser
   <span style="margin-left:auto;color:#4a6030;font-size:10px;">左键绘制 · 拖拽连续 · 右键清除 · 双击格子重命名</span>
 </div>
 
-<!-- 导出弹窗 -->
+<!-- 存档弹窗 -->
+<div class="modal-bg" id="save-modal">
+  <div class="modal-box" style="max-width:460px;">
+    <h3>💾 地图存档</h3>
+    <!-- 保存区 -->
+    <div class="frow">
+      <label>地图名称</label>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="save-name" placeholder="第一片农场" style="flex:1;">
+        <button class="btn btn-green" onclick="saveMap()">💾 保存</button>
+      </div>
+    </div>
+    <div class="sep" style="margin:8px 0;"></div>
+    <!-- 存档列表 -->
+    <div style="font-size:12px;color:#a0b880;margin-bottom:6px;">历史存档</div>
+    <div id="save-list" style="max-height:280px;overflow-y:auto;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-red" onclick="closeModal('save-modal')">✕ 关闭</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="export-modal">
   <div class="modal-box">
     <h3>📤 导出地图数据</h3>
@@ -718,6 +739,109 @@ function downloadExport(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`farm_map_${MAP_COLS}x${MAP_ROWS}.json`;a.click();
 }
 function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+// ============================================================
+// 存档系统（localStorage）
+// ============================================================
+const STORAGE_KEY='farm_map_saves';
+
+function getSaves(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'); }catch(e){return {};}
+}
+function putSaves(data){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+}
+
+function getCurrentMapData(){
+  const d={cols:MAP_COLS,rows:MAP_ROWS,tiles:mapData.map(r=>[...r]),blocked:blockData.map(r=>[...r]),layers:{}};
+  LAYERS.forEach(l=>{d.layers[l.id]=layerData[l.id].map(r=>r.map(c=>c?{sx:c.sx,sy:c.sy}:null));});
+  d.groups=groups.map(g=>({id:g.id,name:g.name,col:g.col,row:g.row,tiles:g.tiles.map(t=>({id:t.id,name:t.name}))}));
+  return d;
+}
+
+function saveMap(){
+  const name=document.getElementById('save-name').value.trim();
+  if(!name){alert('请输入地图名称');return;}
+  const saves=getSaves();
+  const key=`map_${Date.now()}`;
+  saves[key]={name,savedAt:new Date().toLocaleString('zh-CN'),data:getCurrentMapData()};
+  putSaves(saves);
+  renderSaveList();
+  setStatus(`已保存「${name}」`);
+}
+
+function loadSave(key){
+  const saves=getSaves();
+  const save=saves[key];
+  if(!save) return;
+  if(!confirm(`载入「${save.name}」？当前未保存的内容会丢失。`)) return;
+  const d=save.data;
+  MAP_COLS=d.cols;MAP_ROWS=d.rows;
+  mapData=d.tiles.map(r=>[...r]);
+  blockData=d.blocked?d.blocked.map(r=>[...r]):mapData.map(r=>r.map(t=>[4,5,6,7,9].includes(t)?1:0));
+  layerData={};
+  LAYERS.forEach(l=>{
+    layerData[l.id]=d.layers?.[l.id]?d.layers[l.id].map(r=>r.map(c=>c)):mapData.map(r=>new Array(r.length).fill(null));
+  });
+  if(d.groups){groups=d.groups;nextGroupId=Math.max(...groups.map(g=>g.id),0)+1;}
+  document.getElementById('inp-cols').value=MAP_COLS;
+  document.getElementById('inp-rows').value=MAP_ROWS;
+  document.getElementById('save-name').value=save.name;
+  resizeCanvas();rebuildGroupList();draw();
+  closeModal('save-modal');
+  setStatus(`已载入「${save.name}」`);
+}
+
+function deleteSave(key){
+  const saves=getSaves();
+  const name=saves[key]?.name||key;
+  if(!confirm(`删除存档「${name}」？`)) return;
+  delete saves[key];
+  putSaves(saves);
+  renderSaveList();
+  setStatus(`已删除「${name}」`);
+}
+
+function overwriteSave(key){
+  const saves=getSaves();
+  const save=saves[key];
+  if(!save) return;
+  if(!confirm(`覆盖存档「${save.name}」？`)) return;
+  save.data=getCurrentMapData();
+  save.savedAt=new Date().toLocaleString('zh-CN');
+  putSaves(saves);
+  renderSaveList();
+  setStatus(`已覆盖「${save.name}」`);
+}
+
+function renderSaveList(){
+  const wrap=document.getElementById('save-list');
+  if(!wrap) return;
+  const saves=getSaves();
+  const keys=Object.keys(saves).reverse();
+  if(!keys.length){wrap.innerHTML='<div style="color:#607040;font-size:11px;padding:8px 0;">暂无存档</div>';return;}
+  wrap.innerHTML='';
+  keys.forEach(key=>{
+    const s=saves[key];
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:6px;padding:7px 6px;border-bottom:1px solid #3a5020;';
+    row.innerHTML=`
+      <div style="flex:1;">
+        <div style="font-size:13px;color:#c8e080;">${s.name}</div>
+        <div style="font-size:10px;color:#607040;">${s.savedAt} &nbsp; ${s.data.cols}×${s.data.rows}</div>
+      </div>
+      <button onclick="loadSave('${key}')" style="padding:3px 8px;border-radius:4px;border:none;cursor:pointer;background:#2a5a1a;color:#a0e060;font-size:11px;">📂 载入</button>
+      <button onclick="overwriteSave('${key}')" style="padding:3px 8px;border-radius:4px;border:none;cursor:pointer;background:#5a4a1a;color:#e0c060;font-size:11px;">⬇ 覆盖</button>
+      <button onclick="deleteSave('${key}')" style="padding:3px 8px;border-radius:4px;border:none;cursor:pointer;background:#5a1a1a;color:#f09080;font-size:11px;">🗑</button>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+function showSavePanel(){
+  renderSaveList();
+  document.getElementById('save-modal').classList.add('show');
+}
 function setStatus(msg){document.getElementById('status').textContent=msg;}
 
 // ============================================================
