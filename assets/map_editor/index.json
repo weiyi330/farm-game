@@ -311,7 +311,8 @@
           "src": "assets/images/map/tiles/map_tiles_ALL_props_seasons.png",
           "tileSize": 16,
           "cols": 22,
-          "rows": 12
+          "rows": 12,
+          "gridMode": "flat"
         },
         {
           "name": "Shadow",
