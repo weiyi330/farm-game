@@ -1688,20 +1688,22 @@ function renderAtlasChild(container, group, child) {
     }
     body.appendChild(grid);
   } else {
-    // 无 subgroup：按4×4组块顺序排列，从左往右一组一组输出
+    // 无 subgroup：按4×4组块顺序排列
+    // 扫描顺序：先横向遍历所有 hGroup，再换行到下一行 vGroup
+    // 视觉效果：左→右排组块，排满自动换行
     const SGC = child.subgroupCols || 4;
     const SGR = child.subgroupRows || 4;
-    const CELL_W = 28 + 2;
-    const hGroups = Math.ceil(child.cols / SGC); // 横向组数
-    const vGroups = Math.ceil(child.rows / SGR); // 纵向组数
+    const hGroups = Math.ceil(child.cols / SGC);
+    const vGroups = Math.ceil(child.rows / SGR);
+    // 每个组块的像素宽：SGC格 × (28px cell + 1px gap) + 2px padding + 2px border
+    const blockPx = SGC * (28 + 1) + 4;
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'display:flex;flex-direction:column;gap:4px;padding:4px 0;';
+    // flex-wrap 自动折行，组块从左往右填满再换行
+    wrapper.style.cssText = `display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;`;
     for (let vg = 0; vg < vGroups; vg++) {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;';
       for (let hg = 0; hg < hGroups; hg++) {
         const groupDiv = document.createElement('div');
-        groupDiv.style.cssText = `display:flex;flex-wrap:wrap;gap:1px;width:${SGC*(28+1)}px;border:1px solid #2a4a2a;border-radius:2px;padding:1px;`;
+        groupDiv.style.cssText = `display:flex;flex-wrap:wrap;gap:1px;width:${blockPx}px;border:1px solid #2a4a2a;border-radius:2px;padding:1px;flex-shrink:0;`;
         let hasContent = false;
         for (let dr = 0; dr < SGR; dr++) {
           for (let dc = 0; dc < SGC; dc++) {
@@ -1714,9 +1716,8 @@ function renderAtlasChild(container, group, child) {
             hasContent = true;
           }
         }
-        if (hasContent) row.appendChild(groupDiv);
+        if (hasContent) wrapper.appendChild(groupDiv);
       }
-      wrapper.appendChild(row);
     }
     body.appendChild(wrapper);
   }
