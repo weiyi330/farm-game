@@ -3,18 +3,10 @@
   "groups": [
     {
       "name": "grass",
-      "label": "🌿 草地/地形（四季）",
+      "label": "🌿 草地/地形",
       "children": [
         {
-          "name": "map_tiles_Tileset_Grass_Summer",
-          "label": "草地-夏季",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Summer.png",
-          "tileSize": 16,
-          "cols": 24,
-          "rows": 40
-        },
-        {
-          "name": "map_tiles_Tileset_Grass_Spring",
+          "name": "Tileset_Grass_Spring",
           "label": "草地-春季",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Spring.png",
           "tileSize": 16,
@@ -22,7 +14,15 @@
           "rows": 40
         },
         {
-          "name": "map_tiles_Tileset_Grass_Fall",
+          "name": "Tileset_Grass_Summer",
+          "label": "草地-夏季",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Summer.png",
+          "tileSize": 16,
+          "cols": 24,
+          "rows": 40
+        },
+        {
+          "name": "Tileset_Grass_Fall",
           "label": "草地-秋季",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Fall.png",
           "tileSize": 16,
@@ -30,7 +30,7 @@
           "rows": 40
         },
         {
-          "name": "map_tiles_Tileset_Grass_Winter",
+          "name": "Tileset_Grass_Winter",
           "label": "草地-冬季",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Winter.png",
           "tileSize": 16,
@@ -38,15 +38,15 @@
           "rows": 40
         },
         {
-          "name": "map_tiles_Tileset_Grass_Winter_2",
-          "label": "草地-冬季2",
+          "name": "Tileset_Grass_Winter_2",
+          "label": "草地-冬季补充",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Winter_2.png",
           "tileSize": 16,
           "cols": 24,
           "rows": 8
         },
         {
-          "name": "map_tiles_Tileset_Grass_Deep_Forest",
+          "name": "Tileset_Grass_Deep_Forest",
           "label": "草地-深林",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Deep_Forest.png",
           "tileSize": 16,
@@ -56,113 +56,11 @@
       ]
     },
     {
-      "name": "water",
-      "label": "🌊 水/海滩",
+      "name": "cliff",
+      "label": "⛰️ 悬崖/边缘",
       "children": [
         {
-          "name": "map_tiles_Tileset_Grass_Water_Summer",
-          "label": "草地水域-夏季",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Summer.png",
-          "tileSize": 16,
-          "cols": 48,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Tileset_Grass_Water_Spring",
-          "label": "草地水域-春季",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Spring.png",
-          "tileSize": 16,
-          "cols": 48,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Tileset_Grass_Water_Fall",
-          "label": "草地水域-秋季",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Fall.png",
-          "tileSize": 16,
-          "cols": 48,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Tileset_Grass_Water_Winter",
-          "label": "草地水域-冬季",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Winter.png",
-          "tileSize": 16,
-          "cols": 25,
-          "rows": 24
-        },
-        {
-          "name": "map_tiles_Tileset_Grass_Water_Deep_Forest",
-          "label": "草地水域-深林",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Deep_Forest.png",
-          "tileSize": 16,
-          "cols": 48,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Water_Ground_animations_tiles",
-          "label": "水地面动画",
-          "src": "assets/images/map/tiles/map_tiles_Water_Ground_animations_tiles.png",
-          "tileSize": 16,
-          "cols": 24,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Frozen_Water_Ground_tiles",
-          "label": "冻结水面",
-          "src": "assets/images/map/tiles/map_tiles_Frozen_Water_Ground_tiles.png",
-          "tileSize": 16,
-          "cols": 12,
-          "rows": 8
-        },
-        {
-          "name": "map_tiles_Beach_animations_tiles",
-          "label": "海滩动画",
-          "src": "assets/images/map/tiles/map_tiles_Beach_animations_tiles.png",
-          "tileSize": 16,
-          "cols": 24,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Bridge_Beach_Tileset",
-          "label": "桥/海滩",
-          "src": "assets/images/map/tiles/map_tiles_Bridge_Beach_Tileset.png",
-          "tileSize": 16,
-          "cols": 13,
-          "rows": 9
-        },
-        {
-          "name": "map_tiles_Cave_Water_Ground_animations_tiles",
-          "label": "洞穴水地面",
-          "src": "assets/images/map/tiles/map_tiles_Cave_Water_Ground_animations_tiles.png",
-          "tileSize": 16,
-          "cols": 24,
-          "rows": 16
-        },
-        {
-          "name": "map_tiles_Water_tile",
-          "label": "水块(单格)",
-          "src": "assets/images/map/tiles/map_tiles_Water_tile.png",
-          "tileSize": 16,
-          "cols": 1,
-          "rows": 1
-        }
-      ]
-    },
-    {
-      "name": "cliff_cave",
-      "label": "⛰️ 悬崖/洞穴",
-      "children": [
-        {
-          "name": "map_tiles_Tileset_Grass_Cliff_Tileset_Summer",
-          "label": "悬崖-夏季",
-          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Cliff_Tileset_Summer.png",
-          "tileSize": 16,
-          "cols": 20,
-          "rows": 12
-        },
-        {
-          "name": "map_tiles_Tileset_Grass_Cliff_Tileset_Spring",
+          "name": "Tileset_Grass_Cliff_Tileset_Spring",
           "label": "悬崖-春季",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Cliff_Tileset_Spring.png",
           "tileSize": 16,
@@ -170,7 +68,15 @@
           "rows": 12
         },
         {
-          "name": "map_tiles_Tileset_Grass_Cliff_Tileset_Fall",
+          "name": "Tileset_Grass_Cliff_Tileset_Summer",
+          "label": "悬崖-夏季",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Cliff_Tileset_Summer.png",
+          "tileSize": 16,
+          "cols": 20,
+          "rows": 12
+        },
+        {
+          "name": "Tileset_Grass_Cliff_Tileset_Fall",
           "label": "悬崖-秋季",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Cliff_Tileset_Fall.png",
           "tileSize": 16,
@@ -178,7 +84,7 @@
           "rows": 12
         },
         {
-          "name": "map_tiles_Tileset_Grass_Cliff_Tileset_Winter",
+          "name": "Tileset_Grass_Cliff_Tileset_Winter",
           "label": "悬崖-冬季",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Cliff_Tileset_Winter.png",
           "tileSize": 16,
@@ -186,15 +92,107 @@
           "rows": 19
         },
         {
-          "name": "map_tiles_Tileset_Grass_Cliff_Tileset_Deep_Forest",
+          "name": "Tileset_Grass_Cliff_Tileset_Deep_Forest",
           "label": "悬崖-深林",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Cliff_Tileset_Deep_Forest.png",
           "tileSize": 16,
           "cols": 20,
           "rows": 12
+        }
+      ]
+    },
+    {
+      "name": "water",
+      "label": "🌊 水域/海滩",
+      "children": [
+        {
+          "name": "Tileset_Grass_Water_Spring",
+          "label": "草地水域-春季",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Spring.png",
+          "tileSize": 16,
+          "cols": 48,
+          "rows": 16
         },
         {
-          "name": "map_tiles_Tileset_Grass_Caves",
+          "name": "Tileset_Grass_Water_Summer",
+          "label": "草地水域-夏季",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Summer.png",
+          "tileSize": 16,
+          "cols": 48,
+          "rows": 16
+        },
+        {
+          "name": "Tileset_Grass_Water_Fall",
+          "label": "草地水域-秋季",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Fall.png",
+          "tileSize": 16,
+          "cols": 48,
+          "rows": 16
+        },
+        {
+          "name": "Tileset_Grass_Water_Winter",
+          "label": "草地水域-冬季",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Winter.png",
+          "tileSize": 16,
+          "cols": 25,
+          "rows": 24
+        },
+        {
+          "name": "Tileset_Grass_Water_Deep_Forest",
+          "label": "草地水域-深林",
+          "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Water_Deep_Forest.png",
+          "tileSize": 16,
+          "cols": 48,
+          "rows": 16
+        },
+        {
+          "name": "Water_Ground_animations_tiles",
+          "label": "水地面",
+          "src": "assets/images/map/tiles/map_tiles_Water_Ground_animations_tiles.png",
+          "tileSize": 16,
+          "cols": 24,
+          "rows": 16
+        },
+        {
+          "name": "Frozen_Water_Ground_tiles",
+          "label": "冻结水面",
+          "src": "assets/images/map/tiles/map_tiles_Frozen_Water_Ground_tiles.png",
+          "tileSize": 16,
+          "cols": 12,
+          "rows": 8
+        },
+        {
+          "name": "Water_tile",
+          "label": "水(单格)",
+          "src": "assets/images/map/tiles/map_tiles_Water_tile.png",
+          "tileSize": 16,
+          "cols": 1,
+          "rows": 1
+        },
+        {
+          "name": "Beach_animations_tiles",
+          "label": "海滩",
+          "src": "assets/images/map/tiles/map_tiles_Beach_animations_tiles.png",
+          "tileSize": 16,
+          "cols": 24,
+          "rows": 16
+        },
+        {
+          "name": "Bridge_Beach_Tileset",
+          "label": "桥/海滩",
+          "src": "assets/images/map/tiles/map_tiles_Bridge_Beach_Tileset.png",
+          "tileSize": 16,
+          "cols": 13,
+          "rows": 9
+        }
+      ]
+    },
+    {
+      "name": "cave",
+      "label": "🕳️ 洞穴/地牢",
+      "children": [
+        {
+          "name": "Tileset_Grass_Caves",
           "label": "草地洞穴",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Grass_Caves.png",
           "tileSize": 16,
@@ -202,7 +200,15 @@
           "rows": 8
         },
         {
-          "name": "map_tiles_Caves",
+          "name": "Cave_Water_Ground_animations_tiles",
+          "label": "洞穴水地面",
+          "src": "assets/images/map/tiles/map_tiles_Cave_Water_Ground_animations_tiles.png",
+          "tileSize": 16,
+          "cols": 24,
+          "rows": 16
+        },
+        {
+          "name": "Caves",
           "label": "洞穴",
           "src": "assets/images/map/tiles/map_tiles_Caves.png",
           "tileSize": 16,
@@ -210,7 +216,7 @@
           "rows": 45
         },
         {
-          "name": "map_tiles_Rock_Caves",
+          "name": "Rock_Caves",
           "label": "岩石洞穴",
           "src": "assets/images/map/tiles/map_tiles_Rock_Caves.png",
           "tileSize": 16,
@@ -218,7 +224,7 @@
           "rows": 45
         },
         {
-          "name": "map_tiles_Dungeon_tileset",
+          "name": "Dungeon_tileset",
           "label": "地牢",
           "src": "assets/images/map/tiles/map_tiles_Dungeon_tileset.png",
           "tileSize": 16,
@@ -232,15 +238,15 @@
       "label": "🏠 建筑",
       "children": [
         {
-          "name": "map_tiles_Tileset_House",
-          "label": "房屋",
+          "name": "Tileset_House",
+          "label": "民居",
           "src": "assets/images/map/tiles/map_tiles_Tileset_House.png",
           "tileSize": 16,
           "cols": 52,
           "rows": 24
         },
         {
-          "name": "map_tiles_Barn_tileset",
+          "name": "Barn_tileset",
           "label": "谷仓",
           "src": "assets/images/map/tiles/map_tiles_Barn_tileset.png",
           "tileSize": 16,
@@ -248,7 +254,7 @@
           "rows": 15
         },
         {
-          "name": "map_tiles_Tileset_Temple",
+          "name": "Tileset_Temple",
           "label": "神殿",
           "src": "assets/images/map/tiles/map_tiles_Tileset_Temple.png",
           "tileSize": 16,
@@ -256,16 +262,16 @@
           "rows": 6
         },
         {
-          "name": "map_tiles_Extra_Village_Tilesets",
-          "label": "村庄装饰",
+          "name": "Extra_Village_Tilesets",
+          "label": "村庄杂件",
           "src": "assets/images/map/tiles/map_tiles_Extra_Village_Tilesets.png",
           "tileSize": 16,
           "cols": 9,
           "rows": 5
         },
         {
-          "name": "map_tiles_carpet",
-          "label": "地毯",
+          "name": "carpet",
+          "label": "地毯/室内",
           "src": "assets/images/map/tiles/map_tiles_carpet.png",
           "tileSize": 16,
           "cols": 14,
@@ -275,10 +281,10 @@
     },
     {
       "name": "farm",
-      "label": "🌾 农业/土地",
+      "label": "🌾 农田/土地",
       "children": [
         {
-          "name": "map_tiles_Tilled_Soil_and_wet_soil",
+          "name": "Tilled_Soil_and_wet_soil",
           "label": "耕地/湿土",
           "src": "assets/images/map/tiles/map_tiles_Tilled_Soil_and_wet_soil.png",
           "tileSize": 16,
@@ -292,7 +298,7 @@
       "label": "🛤️ 道路/装饰",
       "children": [
         {
-          "name": "map_tiles_Path_tiles",
+          "name": "Path_tiles",
           "label": "道路",
           "src": "assets/images/map/tiles/map_tiles_Path_tiles.png",
           "tileSize": 16,
@@ -300,7 +306,7 @@
           "rows": 16
         },
         {
-          "name": "map_tiles_ALL_props_seasons",
+          "name": "ALL_props_seasons",
           "label": "四季装饰物",
           "src": "assets/images/map/tiles/map_tiles_ALL_props_seasons.png",
           "tileSize": 16,
@@ -308,7 +314,7 @@
           "rows": 12
         },
         {
-          "name": "map_tiles_Shadow",
+          "name": "Shadow",
           "label": "阴影",
           "src": "assets/images/map/tiles/map_tiles_Shadow.png",
           "tileSize": 16,
