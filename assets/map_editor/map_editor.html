@@ -1658,7 +1658,8 @@ function renderAtlasChild(container, group, child) {
       sgHeader.innerHTML = `<span>▼</span>${sg.label}`;
       let sgCollapsed = true; // 默认折叠
       const sgGrid = document.createElement('div');
-      sgGrid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:3px 0;display:none;`;
+      const SGCELL_W = 28 + 2;
+      sgGrid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:3px 0;display:none;max-width:${SGC*SGCELL_W}px;`;
       sgHeader.onclick = () => { sgCollapsed=!sgCollapsed; sgGrid.style.display=sgCollapsed?'none':'flex'; sgHeader.querySelector('span').textContent=sgCollapsed?'▶':'▼'; };
       for (let dr=0; dr<SGR; dr++) {
         for (let dc=0; dc<SGC; dc++) {
@@ -1675,9 +1676,11 @@ function renderAtlasChild(container, group, child) {
       body.appendChild(sgDiv);
     });
   } else {
-    // 没有 subgroup，直接全列
+    // 没有 subgroup，直接全列（4列限宽）
     const grid = document.createElement('div');
-    grid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:4px 0;`;
+    const GRID_COLS = child.gridCols || 4;
+    const CELL_W = 28 + 2; // cell width + gap
+    grid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:4px 0;max-width:${GRID_COLS*CELL_W}px;`;
     for (let r=0; r<child.rows; r++) {
       for (let c=0; c<child.cols; c++) {
         const idx = r*child.cols+c;
