@@ -1675,6 +1675,18 @@ function renderAtlasChild(container, group, child) {
       sgDiv.appendChild(sgGrid);
       body.appendChild(sgDiv);
     });
+  } else if (child.gridMode === 'flat') {
+    // 平铺模式（如四季装饰物），直接按行列顺序全部铺开
+    const grid = document.createElement('div');
+    grid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:4px 0;`;
+    for (let r=0; r<child.rows; r++) {
+      for (let c=0; c<child.cols; c++) {
+        const idx = r*child.cols+c;
+        const num = String(idx+1).padStart(2,'0');
+        grid.appendChild(makeCell(c*TS, r*TS, `${child.name}_${num}`));
+      }
+    }
+    body.appendChild(grid);
   } else {
     // 无 subgroup：按4×4组块顺序排列，从左往右一组一组输出
     const SGC = child.subgroupCols || 4;
