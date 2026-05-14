@@ -707,7 +707,7 @@ function selectTile(id) {
   if (id === null) {
     const nb = document.getElementById('tbtn-none');
     if (nb) { nb.classList.add('active'); nb.style.borderColor = '#ffca28'; }
-    setStatus('地块：无（查看模式）');
+    document.getElementById('status-tile').textContent = '地块: 无（查看模式）';
     return;
   }
   const t = TILE_TYPES.find(t => t.id === id);
@@ -998,6 +998,12 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
+  // 查看模式（无画笔）下点击显示格子地块信息
+  if (state.currentTile === null && !selectedAtlasTile) {
+    updateCellInfo(cell.r, cell.c);
+    return;
+  }
+
   state.isDrawing = true;
   state.lastCell = null;
   applyTool(cell, e.button === 2 ? 'erase' : null);
@@ -1009,6 +1015,10 @@ canvas.addEventListener('mousemove', e => {
 
   if (cell) {
     document.getElementById('status-pos').textContent = `鼠标: (${cell.c}, ${cell.r})`;
+    // 查看模式下悬停实时显示格子地块信息
+    if (state.currentTile === null && !selectedAtlasTile) {
+      updateCellInfo(cell.r, cell.c);
+    }
   }
 
   if (state.isDrawing && cell) {
@@ -1026,8 +1036,36 @@ canvas.addEventListener('mouseleave', () => {
   state.isDrawing = false;
   hoverCell = null;
   document.getElementById('status-pos').textContent = '鼠标: -';
+  updateStatus(); // 离开画布时恢复底栏为画笔信息
   fullRender();
 });
+
+// 获取某格子当前层的地块信息并更新底栏
+function updateCellInfo(r, c) {
+  const layer = state.currentLayer;
+  if (layer === 'block') {
+    const blocked = state.blocked[r][c];
+    document.getElementById('status-tile').textContent = `格子: ${blocked ? '🚫 阑挡' : '-'}`;
+    return;
+  }
+  if (layer === 'spawn') {
+    const spawns = state.spawns[r][c] || [];
+    document.getElementById('status-tile').textContent = `格子: ${spawns.length > 0 ? '🌱 ' + spawns.map(s => s.name).join(', ') : '-'}`;
+    return;
+  }
+  const li = LAYERS.findIndex(l => l.id === layer);
+  const val = state.tiles[li][r][c];
+  if (val === null) {
+    document.getElementById('status-tile').textContent = '格子: -';
+    return;
+  }
+  if (val && typeof val === 'object' && val.atlas) {
+    document.getElementById('status-tile').textContent = `格子: 🖼 ${val.label || '图集'}`;
+    return;
+  }
+  const t = TILE_TYPES.find(t => t.id === val);
+  document.getElementById('status-tile').textContent = t ? `格子: ${t.emoji}${t.name}` : '格子: -';
+}
 
 function getCellFromEvent(e) {
   const rect = canvas.getBoundingClientRect();
@@ -1647,7 +1685,7 @@ function renderAtlasChild(container, group, child) {
       cell.style.borderColor = '#ffe040';
       cell.style.boxShadow = '0 0 0 1px #ffe040';
       selectedAtlasTile = { img: atlasImgCache[child.src], sx, sy, tileSize: TS, label: tileName, src: child.src };
-      setStatus('已选图集：' + tileName);
+      document.getElementById('status-tile').textContent = '地块: 🖼 ' + tileName;
     });
     return cell;
   };
