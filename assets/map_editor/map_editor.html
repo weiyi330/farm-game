@@ -658,6 +658,9 @@ function selectLayer(id) {
   const btn = document.getElementById('lbtn-' + id);
   if (btn) btn.classList.add('active');
   updateLayerDesc();
+  // 切层时清空格子缓存和复制按鈕
+  currentCellCache = null;
+  document.getElementById('status-copy-btn').style.display = 'none';
   updateStatus();
 }
 
@@ -973,6 +976,7 @@ function renderSpawnLayer(cs) {
 
 // Hover highlight
 let hoverCell = null;
+let currentCellCache = null; // 查看模式下当前悬停格子缓存（用于复制画笔）
 function renderHover() {
   if (!hoverCell) return;
   const cs = state.cellSize;
@@ -1047,16 +1051,6 @@ canvas.addEventListener('mouseleave', () => {
 // 获取某格子当前层的地块信息并更新底栏
 // 临时提示条
 let toastTimer = null;
-function showToast(msg, duration = 2500) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.display = 'block';
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.style.display = 'none'; }, duration);
-}
-
-// 当前查看格子缓存（用于复制画笔）
-let currentCellCache = null; // { r, c, val }
 
 function updateCellInfo(r, c) {
   const layer = state.currentLayer;
