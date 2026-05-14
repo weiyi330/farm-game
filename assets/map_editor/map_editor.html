@@ -822,6 +822,15 @@ function render() {
   }
 }
 
+// 各层的默认色（关闭图集且无地块类型时回退用）
+const LAYER_FALLBACK_COLORS = {
+  ground_low:  '#78909c',
+  ground_high: '#4caf50',
+  decor:       '#aed581',
+  overlay:     '#ffd54f',
+  above:       '#a5d6a7',
+};
+
 function renderTileLayer(layer, li, cs) {
   const emoji_size = Math.max(12, cs * 0.5);
   ctx.font = `${emoji_size}px serif`;
@@ -834,59 +843,48 @@ function renderTileLayer(layer, li, cs) {
       if (val === null) continue;
       const x = c * cs, y = r * cs;
 
-      if (layer.id === 'ground_high') {
-        // 图集对象
-        if (val && typeof val === 'object' && val.atlas) {
-          if (state.atlasVisible[layer.id]) {
-            renderAtlasCellOnCanvas(ctx, val, x, y, cs);
-          } else {
-            // 图集关闭：回退显示地块类型颜色/emoji
-            const t = val.tileId !== null && val.tileId !== undefined ? TILE_TYPES.find(t => t.id === val.tileId) : null;
-            if (t) {
-              ctx.fillStyle = t.color + 'cc';
-              ctx.fillRect(x, y, cs, cs);
-              ctx.fillText(t.emoji, x + cs/2, y + cs/2);
-            } else {
-              ctx.fillStyle = '#607d4088';
-              ctx.fillRect(x, y, cs, cs);
-              ctx.fillStyle = '#aed581'; ctx.font = `${cs*0.4}px serif`;
-              ctx.textAlign='center'; ctx.textBaseline='middle';
-              ctx.fillText('🖼', x + cs/2, y + cs/2);
-            }
-          }
+      // ── 图集对象（所有层通用）──
+      if (val && typeof val === 'object' && val.atlas) {
+        if (state.atlasVisible[layer.id]) {
+          renderAtlasCellOnCanvas(ctx, val, x, y, cs);
         } else {
-          const t = TILE_TYPES.find(t => t.id === val);
-          if (!t) continue;
-          ctx.fillStyle = t.color + 'cc';
-          ctx.fillRect(x, y, cs, cs);
-          ctx.fillText(t.emoji, x + cs/2, y + cs/2);
-        }
-      } else {
-        if (val && typeof val === 'object' && val.atlas) {
-          if (state.atlasVisible[layer.id]) {
-            renderAtlasCellOnCanvas(ctx, val, x, y, cs);
+          // 图集关闭：优先回退到 tileId 对应地块类型显示
+          const t = (val.tileId !== null && val.tileId !== undefined)
+            ? TILE_TYPES.find(t => t.id === val.tileId) : null;
+          if (t) {
+            ctx.fillStyle = t.color + 'cc';
+            ctx.fillRect(x, y, cs, cs);
+            ctx.font = `${emoji_size}px serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(t.emoji, x + cs/2, y + cs/2);
           } else {
-            const colors = { ground_low:'#78909c', decor:'#aed581', overlay:'#ffd54f', above:'#a5d6a7' };
-            ctx.fillStyle = (colors[layer.id] || '#90a4ae') + '88';
-            ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
-            ctx.fillStyle = '#aaa';
-            ctx.font = `${cs*0.35}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+            const fc = LAYER_FALLBACK_COLORS[layer.id] || '#90a4ae';
+            ctx.fillStyle = fc + '88';
+            ctx.fillRect(x, y, cs, cs);
+            ctx.fillStyle = '#c8e6c9';
+            ctx.font = `${Math.max(10, cs*0.38)}px serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText('🖼', x + cs/2, y + cs/2);
           }
-        } else {
-          const colors = {
-            ground_low: '#78909c',
-            decor:      '#aed581',
-            overlay:    '#ffd54f',
-            above:      '#a5d6a7',
-          };
-          ctx.fillStyle = (colors[layer.id] || '#90a4ae') + '88';
-          ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
-          ctx.fillStyle = colors[layer.id] || '#90a4ae';
-          ctx.beginPath();
-          ctx.arc(x + cs/2, y + cs/2, cs * 0.2, 0, Math.PI*2);
-          ctx.fill();
         }
+      // ── 地块类型 ID（整数，所有层通用）──
+      } else if (typeof val === 'number') {
+        const t = TILE_TYPES.find(t => t.id === val);
+        if (!t) continue;
+        ctx.fillStyle = t.color + 'cc';
+        ctx.fillRect(x, y, cs, cs);
+        ctx.font = `${emoji_size}px serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(t.emoji, x + cs/2, y + cs/2);
+      // ── 旧格式兼容：非数字非图集对象（如 null 已 continue，其余显示回退色）──
+      } else {
+        const fc = LAYER_FALLBACK_COLORS[layer.id] || '#90a4ae';
+        ctx.fillStyle = fc + '88';
+        ctx.fillRect(x + 1, y + 1, cs - 2, cs - 2);
+        ctx.fillStyle = fc;
+        ctx.beginPath();
+        ctx.arc(x + cs/2, y + cs/2, cs * 0.2, 0, Math.PI*2);
+        ctx.fill();
       }
     }
   }
@@ -1066,12 +1064,12 @@ function applyTool(cell, forceErase) {
 
   const li = LAYERS.findIndex(l => l.id === layer);
 
-  // 当前画笔：图集模式 or 地块类型模式
+  // 当前画笔：图集模式 or 地块类型模式（所有层通用）
   const brushValue = getBrushValue(layer);
 
   if (tool === 'eraser') {
     state.tiles[li][r][c] = null;
-    if (layer === 'ground_high') recalcBlock(r, c);
+    if (layer === 'ground_high') recalcBlock(r, c); // 只有 ground_high 联动阻挡层
   } else if (tool === 'pencil') {
     if (brushValue === undefined) return; // 无有效画笔
     state.tiles[li][r][c] = brushValue;
@@ -1084,17 +1082,23 @@ function applyTool(cell, forceErase) {
   fullRender();
 }
 
-// 获取当前画笔值：图集选中时返回图集对象，否则返回地块类型ID
+// 获取当前画笔值：图集选中时返回图集对象，否则返回地块类型ID（所有层通用）
 function getBrushValue(layer) {
   if (selectedAtlasTile) {
-    // 图集模式：带上当前地块类型ID（关闭图集时回退显示用）
-    return { atlas: true, src: selectedAtlasTile.src, sx: selectedAtlasTile.sx, sy: selectedAtlasTile.sy, tileSize: selectedAtlasTile.tileSize, label: selectedAtlasTile.label, tileId: (layer === 'ground_high' && state.currentTile !== null) ? state.currentTile : null };
+    // 图集模式：带上当前地块类型ID（关闭图集时回退显示用，所有层均支持）
+    return {
+      atlas: true,
+      src: selectedAtlasTile.src,
+      sx: selectedAtlasTile.sx,
+      sy: selectedAtlasTile.sy,
+      tileSize: selectedAtlasTile.tileSize,
+      label: selectedAtlasTile.label,
+      tileId: state.currentTile !== null ? state.currentTile : null
+    };
   }
-  if (layer === 'ground_high') {
-    if (state.currentTile === null) return undefined;
-    return state.currentTile;
-  }
-  return null;
+  // 地块类型模式：所有层均支持（null = 无画笔/查看模式）
+  if (state.currentTile === null) return undefined;
+  return state.currentTile;
 }
 
 function floodFillGeneric(li, r, c, targetStr, fill) {
@@ -1215,9 +1219,11 @@ function fillCurrentLayer() {
   }
 
   const li = LAYERS.findIndex(l => l.id === layer);
+  const brushValue = getBrushValue(layer);
+  if (brushValue === undefined) return; // 无有效画笔
   for (let r = 0; r < state.rows; r++)
     for (let c = 0; c < state.cols; c++) {
-      state.tiles[li][r][c] = state.currentTile;
+      state.tiles[li][r][c] = brushValue;
       if (layer === 'ground_high') recalcBlock(r, c);
     }
   fullRender();
