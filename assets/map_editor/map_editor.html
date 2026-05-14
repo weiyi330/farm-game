@@ -436,7 +436,11 @@ select.topbar-select {
   <span id="status-layer">当前层: ground_high</span>
   <span id="status-tool">工具: 画笔</span>
   <span id="status-tile">地块: 草地</span>
+  <button id="status-copy-btn" class="btn" style="display:none;padding:2px 8px;font-size:11px;margin-left:4px;" onclick="copyCellBrush()">📋 复制画笔</button>
 </div>
+
+<!-- 顶部提示条（错误/警告） -->
+<div id="toast" style="display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);background:#b71c1c;color:#fff;padding:6px 18px;border-radius:6px;font-size:13px;z-index:9999;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>
 
 <!-- SAVE MODAL -->
 <div class="modal-overlay" id="save-modal">
@@ -1041,30 +1045,88 @@ canvas.addEventListener('mouseleave', () => {
 });
 
 // 获取某格子当前层的地块信息并更新底栏
+// 临时提示条
+let toastTimer = null;
+function showToast(msg, duration = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+// 当前查看格子缓存（用于复制画笔）
+let currentCellCache = null; // { r, c, val }
+
 function updateCellInfo(r, c) {
   const layer = state.currentLayer;
+  const copyBtn = document.getElementById('status-copy-btn');
+  currentCellCache = null;
+
   if (layer === 'block') {
     const blocked = state.blocked[r][c];
     document.getElementById('status-tile').textContent = `格子: ${blocked ? '🚫 阑挡' : '-'}`;
+    copyBtn.style.display = 'none';
     return;
   }
   if (layer === 'spawn') {
     const spawns = state.spawns[r][c] || [];
     document.getElementById('status-tile').textContent = `格子: ${spawns.length > 0 ? '🌱 ' + spawns.map(s => s.name).join(', ') : '-'}`;
+    copyBtn.style.display = 'none';
     return;
   }
+
   const li = LAYERS.findIndex(l => l.id === layer);
   const val = state.tiles[li][r][c];
+
   if (val === null) {
     document.getElementById('status-tile').textContent = '格子: -';
+    copyBtn.style.display = 'none';
+    currentCellCache = null;
     return;
   }
+
   if (val && typeof val === 'object' && val.atlas) {
-    document.getElementById('status-tile').textContent = `格子: 🖼 ${val.label || '图集'}`;
+    // 图集+地块类型组合
+    const t = (val.tileId !== null && val.tileId !== undefined) ? TILE_TYPES.find(t => t.id === val.tileId) : null;
+    const tileLabel = t ? `${t.emoji}${t.name}` : '无类型';
+    const atlasLabel = val.label || '图集';
+    document.getElementById('status-tile').textContent = `格子: ${tileLabel} | 🖼 ${atlasLabel}`;
+    copyBtn.style.display = 'inline-block';
+    currentCellCache = { r, c, val };
     return;
   }
+
+  // 纯地块类型
   const t = TILE_TYPES.find(t => t.id === val);
   document.getElementById('status-tile').textContent = t ? `格子: ${t.emoji}${t.name}` : '格子: -';
+  copyBtn.style.display = t ? 'inline-block' : 'none';
+  currentCellCache = t ? { r, c, val } : null;
+}
+
+// 复制画笔：从当前悬停格子复制地块类型+图集作为画笔
+function copyCellBrush() {
+  if (!currentCellCache) return;
+  const val = currentCellCache.val;
+
+  if (val && typeof val === 'object' && val.atlas) {
+    // 图集对象：同时恢复地块类型和图集画笔
+    if (val.tileId !== null && val.tileId !== undefined) {
+      selectTile(val.tileId);
+      // 切换到地块选项卡让用户能看到地块已选中
+    }
+    // 恢复图集画笔
+    selectedAtlasTile = { src: val.src, sx: val.sx, sy: val.sy, tileSize: val.tileSize, label: val.label };
+    // 底栏更新
+    const t = val.tileId !== null ? TILE_TYPES.find(t => t.id === val.tileId) : null;
+    const tileLabel = t ? `${t.emoji}${t.name}` : '无类型';
+    document.getElementById('status-tile').textContent = `地块: ${tileLabel} | 🖼 ${val.label || '图集'}`;
+    showToast(`✅ 已复制画笔：${tileLabel} + ${val.label || '图集'}`, 1800);
+  } else if (typeof val === 'number') {
+    // 纯地块类型
+    selectTile(val);
+    showToast(`✅ 已复制画笔：${TILE_TYPES.find(t => t.id === val)?.emoji || ''}${TILE_TYPES.find(t => t.id === val)?.name || ''}`, 1800);
+  }
 }
 
 function getCellFromEvent(e) {
@@ -1085,6 +1147,12 @@ function applyTool(cell, forceErase) {
 
   // 「无」模式：不是橡皮就什么都不做
   if (state.currentTile === null && !selectedAtlasTile && tool !== 'eraser') return;
+
+  // 图集画笔但未选地块类型：拦截并提示
+  if (selectedAtlasTile && state.currentTile === null && tool !== 'eraser') {
+    showToast('⚠️ 请先在「🎨 地块」选项卡选择地块类型，再使用图集绘制');
+    return;
+  }
 
   if (layer === 'spawn') return;
 
