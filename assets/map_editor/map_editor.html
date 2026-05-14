@@ -357,9 +357,9 @@ select.topbar-select {
   <div class="sep"></div>
   <label class="topbar-label">尺寸:</label>
   <div class="size-inputs">
-    <input id="input-cols" type="number" min="1" max="999" value="18" title="列数（1-999）">
+    <input id="input-cols" type="number" min="1" max="99999" value="18" title="列数">
     <span style="color:#81c784">×</span>
-    <input id="input-rows" type="number" min="1" max="999" value="14" title="行数（1-999）">
+    <input id="input-rows" type="number" min="1" max="99999" value="14" title="行数">
     <button class="btn" onclick="resizeMap()">✔</button>
   </div>
   <div class="sep"></div>
@@ -1173,8 +1173,8 @@ function changeCellSize(val) {
 }
 
 function resizeMap() {
-  const nc = Math.max(1, Math.min(999, parseInt(document.getElementById('input-cols').value) || state.cols));
-  const nr = Math.max(1, Math.min(999, parseInt(document.getElementById('input-rows').value) || state.rows));
+  const nc = Math.max(1, Math.min(99999, parseInt(document.getElementById('input-cols').value) || state.cols));
+  const nr = Math.max(1, Math.min(99999, parseInt(document.getElementById('input-rows').value) || state.rows));
   if (nc === state.cols && nr === state.rows) return;
 
   // Resize tiles
