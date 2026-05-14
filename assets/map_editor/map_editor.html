@@ -1110,22 +1110,24 @@ function copyCellBrush() {
   const val = currentCellCache.val;
 
   if (val && typeof val === 'object' && val.atlas) {
-    // 图集对象：同时恢复地块类型和图集画笔
-    if (val.tileId !== null && val.tileId !== undefined) {
-      selectTile(val.tileId);
-      // 切换到地块选项卡让用户能看到地块已选中
-    }
-    // 恢复图集画笔
+    // 先设 selectedAtlasTile（不能先调 selectTile，否则会把 selectedAtlasTile 清掉）
     selectedAtlasTile = { src: val.src, sx: val.sx, sy: val.sy, tileSize: val.tileSize, label: val.label };
-    // 底栏更新
+    // 再设地块类型（直接操作 state，不调 selectTile 避免图集被清）
+    if (val.tileId !== null && val.tileId !== undefined) {
+      state.currentTile = val.tileId;
+      document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('tbtn-' + val.tileId);
+      if (btn) { btn.classList.add('active'); btn.style.borderColor = '#ffca28'; }
+    }
     const t = val.tileId !== null ? TILE_TYPES.find(t => t.id === val.tileId) : null;
     const tileLabel = t ? `${t.emoji}${t.name}` : '无类型';
     document.getElementById('status-tile').textContent = `地块: ${tileLabel} | 🖼 ${val.label || '图集'}`;
-    showToast(`✅ 已复制画笔：${tileLabel} + ${val.label || '图集'}`, 1800);
+    showToast(`✅ 已复制画笔：${tileLabel} + ${val.label || '图集'}，切层后可直接绘制`, 2000);
   } else if (typeof val === 'number') {
     // 纯地块类型
     selectTile(val);
-    showToast(`✅ 已复制画笔：${TILE_TYPES.find(t => t.id === val)?.emoji || ''}${TILE_TYPES.find(t => t.id === val)?.name || ''}`, 1800);
+    const t = TILE_TYPES.find(t => t.id === val);
+    showToast(`✅ 已复制画笔：${t?.emoji || ''}${t?.name || ''}`, 1800);
   }
 }
 
