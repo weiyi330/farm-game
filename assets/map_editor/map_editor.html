@@ -483,6 +483,7 @@ select.topbar-select {
   <h1>🌾 游戏地图编辑器</h1>
   <div class="sep"></div>
   <button class="btn" onclick="showMgrModal()">⚙️ 管理</button>
+  <button class="btn" id="tmp-refresh" onclick="(async()=>{if('caches' in window){const k=await caches.keys();await Promise.all(k.map(x=>caches.delete(x)));}if('serviceWorker' in navigator){const r=await navigator.serviceWorker.getRegistrations();await Promise.all(r.map(x=>x.unregister()));}location.reload(true);})()" style="background:#1b3a1b;font-size:11px;">🔄强刷</button>
   <div class="sep"></div>
   <button class="btn" onclick="fillCurrentLayer()">🖌 全填</button>
   <button class="btn danger" onclick="clearCurrentLayer()">🗑 清空</button>
