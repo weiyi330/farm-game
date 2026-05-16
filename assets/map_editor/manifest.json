@@ -2,24 +2,37 @@
   "name": "游戏地图编辑器",
   "short_name": "地图编辑器",
   "description": "桃源农场游戏地图编辑器",
-  "start_url": "./map_editor.html",
-  "display": "fullscreen",
+  "start_url": "/farm-game/assets/map_editor/map_editor.html",
+  "scope": "/farm-game/",
+  "display": "standalone",
   "orientation": "landscape",
   "background_color": "#0d1a0d",
   "theme_color": "#2e7d32",
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "/farm-game/assets/map_editor/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "/farm-game/assets/map_editor/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/farm-game/assets/map_editor/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/farm-game/assets/map_editor/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
