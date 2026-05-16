@@ -557,26 +557,16 @@ select.topbar-select {
 
 <!-- 管理弹窗 -->
 <div id="mgr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:center;justify-content:center;">
-  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:28px 32px;min-width:260px;display:flex;flex-direction:column;gap:14px;align-items:stretch;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-      <span style="color:#a5d6a7;font-size:16px;font-weight:bold;">⚙️ 管理</span>
-      <span style="color:#4caf5099;font-size:12px;">v1.0.0</span>
+  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:16px 20px;width:min(260px,80vw);display:flex;flex-direction:column;gap:10px;align-items:stretch;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#a5d6a7;font-size:15px;font-weight:bold;">⚙️ 管理</span>
+      <span style="color:#4caf5099;font-size:11px;">v1.0.0</span>
     </div>
-    <button class="btn" style="padding:10px;font-size:14px;" onclick="showExportModal();closeMgrModal()">📤 导出地图</button>
-    <button class="btn" style="padding:10px;font-size:14px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
-    <button class="btn" style="padding:10px;font-size:14px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
-    <button class="btn" style="padding:10px;font-size:14px;" id="mgr-install-btn" onclick="mgrInstall()">📲 安装到桌面</button>
-    <button class="btn" style="padding:10px;font-size:14px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
-    <button class="btn" style="padding:8px;font-size:13px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
-  </div>
-</div>
-
-<!-- 安装指引弹窗 -->
-<div id="install-guide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center;">
-  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:24px;max-width:300px;width:90%;">
-    <div style="font-size:15px;color:#a5d6a7;font-weight:bold;margin-bottom:14px;">📲 安装到桌面</div>
-    <div id="guide-steps" style="font-size:14px;color:#c8e6c9;line-height:2.2;"></div>
-    <button onclick="document.getElementById('install-guide').style.display='none'" style="width:100%;margin-top:16px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:10px;border-radius:8px;font-size:15px;cursor:pointer;">知道了</button>
+    <button class="btn" style="padding:9px;font-size:13px;" onclick="showExportModal();closeMgrModal()">📤 导出地图</button>
+    <button class="btn" style="padding:9px;font-size:13px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
+    <button class="btn" style="padding:9px;font-size:13px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
+    <button class="btn" style="padding:9px;font-size:13px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
+    <button class="btn" style="padding:7px;font-size:12px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
   </div>
 </div>
 <div id="main">
@@ -1990,6 +1980,8 @@ function importJSON() {
       } catch { alert('JSON 格式错误'); }
     };
     reader.readAsText(file);
+    // 文件选择后重新请求全屏
+    setTimeout(reEnterFullscreen, 300);
   };
   input.click();
 }
@@ -2336,6 +2328,18 @@ function toggleLeftPanel() {
 function showMgrModal() { document.getElementById('mgr-modal').style.display = 'flex'; }
 function closeMgrModal() { document.getElementById('mgr-modal').style.display = 'none'; }
 document.getElementById('mgr-modal').addEventListener('click', e => { if (e.target === document.getElementById('mgr-modal')) closeMgrModal(); });
+
+// 全屏工具函数
+async function reEnterFullscreen() {
+  try {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) await el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+    }
+    if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+  } catch(e) {}
+}
 
 // 启动页逻辑
 const splashScreen = document.getElementById('splash-screen');
