@@ -2291,6 +2291,12 @@ if ('serviceWorker' in navigator) {
 }
 
 // PWA 安装引导
+// ?reset=1 可强制清除安装标记（调试用）
+if (new URLSearchParams(location.search).get('reset') === '1') {
+  localStorage.removeItem('pwa_installed');
+  history.replaceState(null, '', location.pathname);
+}
+
 let deferredInstallPrompt = null;
 const installBanner = document.getElementById('install-banner');
 const btnInstall    = document.getElementById('btn-install');
