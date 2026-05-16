@@ -1969,7 +1969,15 @@ function importJSON() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json,application/json';
-  // 无论是否选了文件，窗口重新获得焦点时都重进全屏
+  // 页面重新可见时（文件选择器关闭）重进全屏
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') {
+      setTimeout(reEnterFullscreen, 300);
+      document.removeEventListener('visibilitychange', onVisible);
+    }
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  // 备用：focus 并行监听
   const onFocusBack = () => { setTimeout(reEnterFullscreen, 300); window.removeEventListener('focus', onFocusBack); };
   window.addEventListener('focus', onFocusBack);
   input.onchange = e => {
@@ -2342,6 +2350,19 @@ async function reEnterFullscreen() {
   } catch(e) {}
 }
 
+// 全屏全局监听：退出全屏后自动重进
+let _splashDone = false;
+document.addEventListener('fullscreenchange', () => {
+  if (_splashDone && !document.fullscreenElement && !document.webkitFullscreenElement) {
+    setTimeout(reEnterFullscreen, 500);
+  }
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  if (_splashDone && !document.fullscreenElement && !document.webkitFullscreenElement) {
+    setTimeout(reEnterFullscreen, 500);
+  }
+});
+
 // 启动页逻辑
 const splashScreen = document.getElementById('splash-screen');
 splashScreen.addEventListener('click', async () => {
@@ -2353,6 +2374,7 @@ splashScreen.addEventListener('click', async () => {
   try {
     if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
   } catch(e) {}
+  _splashDone = true;
   splashScreen.style.transition = 'opacity 0.4s';
   splashScreen.style.opacity = '0';
   setTimeout(() => splashScreen.style.display = 'none', 400);
