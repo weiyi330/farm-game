@@ -488,6 +488,15 @@ select.topbar-select {
   </div>
 </div>
 
+<!-- 安装指引弹窗 -->
+<div id="install-guide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:24px;max-width:320px;width:90%;">
+    <div id="guide-title" style="font-size:16px;color:#a5d6a7;font-weight:bold;margin-bottom:16px;">📲 安装到桌面</div>
+    <div id="guide-steps" style="font-size:14px;color:#c8e6c9;line-height:2;"></div>
+    <button onclick="document.getElementById('install-guide').style.display='none'" style="width:100%;margin-top:16px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:10px;border-radius:8px;font-size:15px;cursor:pointer;">知道了</button>
+  </div>
+</div>
+
 <!-- TOP BAR -->
 <div id="topbar">
   <h1>🌾 游戏地图编辑器</h1>
@@ -2284,10 +2293,16 @@ if ('serviceWorker' in navigator) {
 // PWA 安装引导
 let deferredInstallPrompt = null;
 const installBanner = document.getElementById('install-banner');
-const btnInstall   = document.getElementById('btn-install');
-const btnSkip      = document.getElementById('btn-skip');
+const btnInstall    = document.getElementById('btn-install');
+const btnSkip       = document.getElementById('btn-skip');
+const btnAlready    = document.getElementById('btn-already');
+const installGuide  = document.getElementById('install-guide');
+const guideSteps    = document.getElementById('guide-steps');
 
-// 判断是否已安装（全屏/standalone 模式说明已安装）
+const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isAndroid = /Android/.test(navigator.userAgent);
+
+// 判断是否已安装
 const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches
                  || window.matchMedia('(display-mode: standalone)').matches
                  || window.matchMedia('(display-mode: minimal-ui)').matches
@@ -2295,40 +2310,38 @@ const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches
                  || localStorage.getItem('pwa_installed') === '1';
 
 if (!isInstalled) {
-  // 未安装：直接显示引导页
   installBanner.style.display = 'flex';
 
-  // iOS Safari 手动引导
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if (isIOS) {
-    btnInstall.textContent = '📱 安装指南';
-    btnInstall.onclick = () => {
-      alert('安装步骤\n\n1. 点击底部分享按鈕 ⧁\n2. 选择「添加到主屏幕」\n3. 点击「添加」完成安装');
-    };
-  }
-
-  // Android Chrome：监听安装事件
+  // 监听 Chrome 安装事件（有了就能弹系统安装弹窗）
   window.addEventListener('beforeinstallprompt', e => {
     e.preventDefault();
     deferredInstallPrompt = e;
+    // 有事件了把按鈕改为绣色提示可弹系统安装
+    if (btnInstall) { btnInstall.style.background = '#1b5e20'; btnInstall.textContent = '📲 点此安装（推荐）'; }
   });
 
+  // 安装按鈕点击
   btnInstall && btnInstall.addEventListener('click', async () => {
-    if (isIOS) return; // iOS 已单独处理
     if (deferredInstallPrompt) {
+      // 有系统事件：弹出系统安装弹窗
       deferredInstallPrompt.prompt();
       const { outcome } = await deferredInstallPrompt.userChoice;
-      if (outcome === 'accepted') installBanner.style.display = 'none';
+      if (outcome === 'accepted') {
+        localStorage.setItem('pwa_installed', '1');
+        installBanner.style.display = 'none';
+      }
       deferredInstallPrompt = null;
     } else {
-      // Chrome 未触发事件时的备用提示
-      alert('安装步骤\n\n1. 点击浏览器右上角菜单（…）\n2. 选择「添加到主屏幕」或「安装应用」\n3. 确认安装');
+      // 没有事件：弹出图文操作指引
+      if (isIOS) {
+        guideSteps.innerHTML = '1️⃣ 点击底部「分享」按鈕 ⊞<br>2️⃣ 选择「添加到主屏幕」<br>3️⃣ 点击「添加」完成';
+      } else if (isAndroid) {
+        guideSteps.innerHTML = '1️⃣ 点击浏览器右上角菜单 ⋮<br>2️⃣ 选择「添加到主屏幕」<br>↳ 或选择「安装应用」<br>3️⃣ 点击「安装」确认';
+      } else {
+        guideSteps.innerHTML = '1️⃣ 点击地址栏右侧安装图标 ⬇️<br>↳ 或浏览器菜单「安装应用」<br>2️⃣ 点击「安装」完成';
+      }
+      installGuide.style.display = 'flex';
     }
-  });
-
-  window.addEventListener('appinstalled', () => {
-    localStorage.setItem('pwa_installed', '1');
-    installBanner.style.display = 'none';
   });
 
   btnSkip && btnSkip.addEventListener('click', () => {
@@ -2336,15 +2349,17 @@ if (!isInstalled) {
     installBanner.style.display = 'none';
   });
 
-  // 已安装按鈕：清除SW旧缓存并进入
-  const btnAlready = document.getElementById('btn-already');
   btnAlready && btnAlready.addEventListener('click', async () => {
     localStorage.setItem('pwa_installed', '1');
-    // 清除旧缓存
     if ('caches' in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
+    installBanner.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwa_installed', '1');
     installBanner.style.display = 'none';
   });
 }</script>
