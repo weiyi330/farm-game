@@ -2347,13 +2347,6 @@ async function pwaDiag() {
   document.getElementById('install-guide').style.display = 'flex';
 }
 
-// 注册 Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW注册失败:', e));
-  });
-}
-
 // 强制更新：清除所有缓存并重载
 async function forceUpdate() {
   if (confirm('将清除缓存并重新加载，确认吗？')) {
