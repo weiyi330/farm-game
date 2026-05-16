@@ -1,5 +1,5 @@
 // Service Worker - 游戏地图编辑器
-const CACHE_NAME = 'map-editor-v4';
+const CACHE_NAME = 'map-editor-v5';
 const ASSETS = [
   './map_editor.html',
   './manifest.json',
