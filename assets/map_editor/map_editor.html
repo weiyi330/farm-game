@@ -449,7 +449,45 @@ select.topbar-select {
   #portrait-warn { display: flex; }
 }
 
-/* 小屏横屏顶部栏自动收紧 */
+/* ===== 启动页 ===== */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  background: #0d1a0d;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  /* 手机竖持时，把内容旋转90度模拟横屏视觉 */
+}
+#splash-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  /* 内容宽度等于屏幕高度（贝塞尔的横屏宽） */
+  width: 100vh;
+  transform-origin: center center;
+  /* 竖屏时旋转90度 */
+  transform: rotate(90deg) translateX(0);
+}
+@media (orientation: landscape) {
+  #splash-inner { transform: none; width: 100%; }
+}
+.splash-icon { font-size: 72px; }
+.splash-title { font-size: 28px; font-weight: bold; color: #a5d6a7; letter-spacing: 4px; }
+.splash-sub { font-size: 14px; color: #4caf5099; letter-spacing: 2px; }
+.splash-tap-hint {
+  font-size: 32px;
+  color: #4caf50;
+  animation: tap-pulse 1.2s ease-in-out infinite;
+}
+@keyframes tap-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
 @media (max-height: 450px) {
   #topbar { padding: 3px 6px; gap: 4px; }
   #topbar h1 { font-size: 13px; }
@@ -476,6 +514,16 @@ select.topbar-select {
   <div>请旋转手机到横屏</div>
   <p>🌾 地图编辑器为横屏设计</p>
   <button onclick="document.getElementById('portrait-warn').style.display='none'" style="margin-top:14px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:8px 24px;border-radius:8px;font-size:15px;cursor:pointer;">直接进入 →</button>
+</div>
+
+<!-- 启动页 -->
+<div id="splash-screen">
+  <div id="splash-inner">
+    <div class="splash-icon">🌾</div>
+    <div class="splash-title">游戏地图编辑器</div>
+    <div class="splash-sub">点击屏幕开始</div>
+    <div class="splash-tap-hint">▶</div>
+  </div>
 </div>
 
 <!-- TOP BAR -->
@@ -2288,6 +2336,22 @@ function toggleLeftPanel() {
 function showMgrModal() { document.getElementById('mgr-modal').style.display = 'flex'; }
 function closeMgrModal() { document.getElementById('mgr-modal').style.display = 'none'; }
 document.getElementById('mgr-modal').addEventListener('click', e => { if (e.target === document.getElementById('mgr-modal')) closeMgrModal(); });
+
+// 启动页逻辑
+const splashScreen = document.getElementById('splash-screen');
+splashScreen.addEventListener('click', async () => {
+  try {
+    const el = document.documentElement;
+    if (el.requestFullscreen) await el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+  } catch(e) {}
+  try {
+    if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+  } catch(e) {}
+  splashScreen.style.transition = 'opacity 0.4s';
+  splashScreen.style.opacity = '0';
+  setTimeout(() => splashScreen.style.display = 'none', 400);
+});
 
 // PWA 安装
 let _installPrompt = null;
