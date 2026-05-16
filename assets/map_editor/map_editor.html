@@ -1969,17 +1969,6 @@ function importJSON() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json,application/json';
-  // 页面重新可见时（文件选择器关闭）重进全屏
-  const onVisible = () => {
-    if (document.visibilityState === 'visible') {
-      setTimeout(reEnterFullscreen, 300);
-      document.removeEventListener('visibilitychange', onVisible);
-    }
-  };
-  document.addEventListener('visibilitychange', onVisible);
-  // 备用：focus 并行监听
-  const onFocusBack = () => { setTimeout(reEnterFullscreen, 300); window.removeEventListener('focus', onFocusBack); };
-  window.addEventListener('focus', onFocusBack);
   input.onchange = e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -2341,27 +2330,27 @@ document.getElementById('mgr-modal').addEventListener('click', e => { if (e.targ
 // 全屏工具函数
 async function reEnterFullscreen() {
   try {
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      const el = document.documentElement;
-      if (el.requestFullscreen) await el.requestFullscreen();
-      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-    }
+    const el = document.documentElement;
+    if (el.requestFullscreen) await el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+  } catch(e) {}
+  try {
     if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
   } catch(e) {}
 }
 
-// 全屏全局监听：退出全屏后自动重进
+// 全屏全局监听：页面重新可见时（从文件选择/切换应用返回）自动重进全屏
 let _splashDone = false;
-document.addEventListener('fullscreenchange', () => {
-  if (_splashDone && !document.fullscreenElement && !document.webkitFullscreenElement) {
-    setTimeout(reEnterFullscreen, 500);
+document.addEventListener('visibilitychange', () => {
+  if (_splashDone && document.visibilityState === 'visible') {
+    setTimeout(reEnterFullscreen, 400);
   }
 });
-document.addEventListener('webkitfullscreenchange', () => {
-  if (_splashDone && !document.fullscreenElement && !document.webkitFullscreenElement) {
-    setTimeout(reEnterFullscreen, 500);
-  }
+// 兼容部分安卓：页面获得焦点时也重试
+window.addEventListener('focus', () => {
+  if (_splashDone) setTimeout(reEnterFullscreen, 400);
 });
+// 移除不可靠的 fullscreenchange 监听
 
 // 启动页逻辑
 const splashScreen = document.getElementById('splash-screen');
