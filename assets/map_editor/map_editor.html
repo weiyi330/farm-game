@@ -2289,7 +2289,9 @@ const btnSkip      = document.getElementById('btn-skip');
 // 判断是否已安装（全屏/standalone 模式说明已安装）
 const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches
                  || window.matchMedia('(display-mode: standalone)').matches
-                 || window.navigator.standalone === true;
+                 || window.matchMedia('(display-mode: minimal-ui)').matches
+                 || window.navigator.standalone === true
+                 || localStorage.getItem('pwa_installed') === '1';
 
 if (!isInstalled) {
   // 未安装：直接显示引导页
@@ -2323,11 +2325,13 @@ if (!isInstalled) {
     }
   });
 
-  btnSkip && btnSkip.addEventListener('click', () => {
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('pwa_installed', '1');
     installBanner.style.display = 'none';
   });
 
-  window.addEventListener('appinstalled', () => {
+  btnSkip && btnSkip.addEventListener('click', () => {
+    localStorage.setItem('pwa_installed', '1');
     installBanner.style.display = 'none';
   });
 }</script>
