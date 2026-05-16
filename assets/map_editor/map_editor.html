@@ -518,6 +518,7 @@ select.topbar-select {
     <button class="btn" style="padding:10px;font-size:14px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
     <button class="btn" style="padding:10px;font-size:14px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
     <button class="btn" style="padding:10px;font-size:14px;" id="mgr-install-btn" onclick="mgrInstall()">📲 安装到桌面</button>
+    <button class="btn" style="padding:8px;font-size:12px;background:#0d1a0d;border-color:#4caf5033;color:#6a9a6a;" onclick="pwaDiag()">🔍 PWA诊断</button>
     <button class="btn" style="padding:10px;font-size:14px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
     <button class="btn" style="padding:8px;font-size:13px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
   </div>
@@ -2294,7 +2295,41 @@ let _installPrompt = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _installPrompt = e; });
 window.addEventListener('appinstalled', () => { _installPrompt = null; });
 
-function mgrInstall() {
+// SW 调试：页面加载后显示状态
+window.addEventListener('load', async () => {
+  if (!('serviceWorker' in navigator)) {
+    console.log('[PWA] 浏览器不支持SW');
+    return;
+  }
+  try {
+    const reg = await navigator.serviceWorker.register('./sw.js');
+    console.log('[PWA] SW注册成功, scope:', reg.scope, '状态:', reg.active ? 'active' : reg.installing ? 'installing' : reg.waiting ? 'waiting' : 'unknown');
+  } catch(e) {
+    console.log('[PWA] SW注册失败:', e.message);
+  }
+  const regs = await navigator.serviceWorker.getRegistrations();
+  console.log('[PWA] 当前SW数量:', regs.length, regs.map(r => r.scope));
+});
+
+async function pwaDiag() {
+  let msg = '';
+  msg += 'SW支持: ' + ('serviceWorker' in navigator ? '✅' : '❌') + '\n';
+  msg += '安装事件: ' + (_installPrompt ? '✅已就绪' : '❌未触发') + '\n';
+  msg += '显示模式: ' + (
+    window.matchMedia('(display-mode: standalone)').matches ? 'standalone(PWA)' :
+    window.matchMedia('(display-mode: fullscreen)').matches ? 'fullscreen(PWA)' : '浏览器模式'
+  ) + '\n';
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    msg += 'SW注册数: ' + regs.length + '\n';
+    if (regs.length > 0) {
+      const r = regs[0];
+      msg += 'SW状态: ' + (r.active ? '✅active' : r.installing ? '⏳installing' : r.waiting ? '⏳waiting' : '❌无') + '\n';
+      msg += 'SW scope: ' + r.scope + '\n';
+    }
+  }
+  alert(msg);
+}
   if (_installPrompt) {
     // 有系统事件，直接弹系统安装弹窗
     _installPrompt.prompt();
