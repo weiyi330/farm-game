@@ -791,6 +791,16 @@ function initMapData(cols, rows) {
 // INIT
 // ============================================================
 window.addEventListener('load', () => {
+  // 竖/横屏切换监听（JS备用，CSS媒体查询主力）
+  function checkOrientation() {
+    const isPortrait = window.innerHeight > window.innerWidth;
+    document.getElementById('portrait-warn').style.display = isPortrait ? 'flex' : 'none';
+    document.getElementById('rotate-wrapper').style.display  = isPortrait ? 'none' : 'flex';
+  }
+  checkOrientation();
+  window.addEventListener('resize', checkOrientation);
+  window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+
   initMapData(state.cols, state.rows);
   buildLayerButtons();
   buildTileGrid();
