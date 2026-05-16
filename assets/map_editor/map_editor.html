@@ -2286,46 +2286,50 @@ const installBanner = document.getElementById('install-banner');
 const btnInstall   = document.getElementById('btn-install');
 const btnSkip      = document.getElementById('btn-skip');
 
-// 已安装过就不显示
+// 判断是否已安装（全屏/standalone 模式说明已安装）
 const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches
                  || window.matchMedia('(display-mode: standalone)').matches
                  || window.navigator.standalone === true;
 
 if (!isInstalled) {
-  // 监听安装事件（Android Chrome 支持）
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredInstallPrompt = e;
-    installBanner.style.display = 'flex';
-  });
+  // 未安装：直接显示引导页
+  installBanner.style.display = 'flex';
 
-  // iOS Safari 没有 beforeinstallprompt，显示手动引导
+  // iOS Safari 手动引导
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   if (isIOS) {
-    installBanner.style.display = 'flex';
     btnInstall.textContent = '📱 安装指南';
     btnInstall.onclick = () => {
       alert('安装步骤\n\n1. 点击底部分享按鈕 ⧁\n2. 选择「添加到主屏幕」\n3. 点击「添加」完成安装');
     };
   }
-}
 
-btnInstall && btnInstall.addEventListener('click', async () => {
-  if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
-  if (outcome === 'accepted') installBanner.style.display = 'none';
-  deferredInstallPrompt = null;
-});
+  // Android Chrome：监听安装事件
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
 
-btnSkip && btnSkip.addEventListener('click', () => {
-  installBanner.style.display = 'none';
-});
+  btnInstall && btnInstall.addEventListener('click', async () => {
+    if (isIOS) return; // iOS 已单独处理
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === 'accepted') installBanner.style.display = 'none';
+      deferredInstallPrompt = null;
+    } else {
+      // Chrome 未触发事件时的备用提示
+      alert('安装步骤\n\n1. 点击浏览器右上角菜单（…）\n2. 选择「添加到主屏幕」或「安装应用」\n3. 确认安装');
+    }
+  });
 
-// 安装完成后自动隐藏
-window.addEventListener('appinstalled', () => {
-  installBanner.style.display = 'none';
-});
-</script>
+  btnSkip && btnSkip.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installBanner.style.display = 'none';
+  });
+}</script>
 </body>
 </html>
