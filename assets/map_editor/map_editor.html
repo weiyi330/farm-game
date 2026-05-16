@@ -517,12 +517,20 @@ select.topbar-select {
     <button class="btn" style="padding:10px;font-size:14px;" onclick="showExportModal();closeMgrModal()">📤 导出地图</button>
     <button class="btn" style="padding:10px;font-size:14px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
     <button class="btn" style="padding:10px;font-size:14px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
+    <button class="btn" style="padding:10px;font-size:14px;" id="mgr-install-btn" onclick="mgrInstall()">📲 安装到桌面</button>
     <button class="btn" style="padding:10px;font-size:14px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
     <button class="btn" style="padding:8px;font-size:13px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- 安装指引弹窗 -->
+<div id="install-guide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:24px;max-width:300px;width:90%;">
+    <div style="font-size:15px;color:#a5d6a7;font-weight:bold;margin-bottom:14px;">📲 安装到桌面</div>
+    <div id="guide-steps" style="font-size:14px;color:#c8e6c9;line-height:2.2;"></div>
+    <button onclick="document.getElementById('install-guide').style.display='none'" style="width:100%;margin-top:16px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:10px;border-radius:8px;font-size:15px;cursor:pointer;">知道了</button>
+  </div>
+</div>
 <div id="main">
   <!-- LEFT PANEL -->
   <div id="left-panel">
@@ -2280,6 +2288,29 @@ function toggleLeftPanel() {
 function showMgrModal() { document.getElementById('mgr-modal').style.display = 'flex'; }
 function closeMgrModal() { document.getElementById('mgr-modal').style.display = 'none'; }
 document.getElementById('mgr-modal').addEventListener('click', e => { if (e.target === document.getElementById('mgr-modal')) closeMgrModal(); });
+
+// PWA 安装
+let _installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _installPrompt = e; });
+window.addEventListener('appinstalled', () => { _installPrompt = null; });
+
+function mgrInstall() {
+  if (_installPrompt) {
+    // 有系统事件，直接弹系统安装弹窗
+    _installPrompt.prompt();
+    _installPrompt.userChoice.then(r => { if (r.outcome==='accepted') _installPrompt=null; });
+    return;
+  }
+  // 没有事件，弹图文指引
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const guideSteps = document.getElementById('guide-steps');
+  if (isIOS) {
+    guideSteps.innerHTML = '1️⃣ 点击底部「分享」按鈕 ⊞<br>2️⃣ 选择「添加到主屏幕」<br>3️⃣ 点击「添加」完成';
+  } else {
+    guideSteps.innerHTML = '1️⃣ 点击浏览器右上角菜单 ⋮<br>2️⃣ 选择「添加到桌面」<br> 或「安装应用」<br>3️⃣ 确认安装';
+  }
+  document.getElementById('install-guide').style.display = 'flex';
+}
 
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
