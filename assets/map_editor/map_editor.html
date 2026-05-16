@@ -484,6 +484,7 @@ select.topbar-select {
   <div class="ib-btns">
     <button class="ib-btn-install" id="btn-install">📲 安装到桌面</button>
     <button class="ib-btn-skip" id="btn-skip">继续使用网页版</button>
+    <button class="ib-btn-skip" id="btn-already" style="border-color:#81c784;color:#81c784;">✅ 已安装，直接进入</button>
   </div>
 </div>
 
@@ -2332,6 +2333,18 @@ if (!isInstalled) {
 
   btnSkip && btnSkip.addEventListener('click', () => {
     localStorage.setItem('pwa_installed', '1');
+    installBanner.style.display = 'none';
+  });
+
+  // 已安装按鈕：清除SW旧缓存并进入
+  const btnAlready = document.getElementById('btn-already');
+  btnAlready && btnAlready.addEventListener('click', async () => {
+    localStorage.setItem('pwa_installed', '1');
+    // 清除旧缓存
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
     installBanner.style.display = 'none';
   });
 }</script>
