@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="screen-orientation" content="landscape">
 <title>🌾 农场地图编辑器</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -15,8 +16,8 @@ body { background: #1a2a1a; color: #c8e6c9; font-family: 'Segoe UI', sans-serif;
   display: none;
   position: fixed;
   inset: 0;
-  background: #0d1a0d;
   z-index: 9999;
+  background: #0d1a0d;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -25,23 +26,21 @@ body { background: #1a2a1a; color: #c8e6c9; font-family: 'Segoe UI', sans-serif;
   text-align: center;
   padding: 30px;
 }
-#portrait-warn .pw-icon { font-size: 64px; animation: spin 2s linear infinite; }
-@keyframes spin {
+#portrait-warn .pw-icon { font-size: 60px; animation: rotateIcon 1.5s infinite; }
+@keyframes rotateIcon {
   0%   { transform: rotate(0deg); }
-  40%  { transform: rotate(90deg); }
-  60%  { transform: rotate(90deg); }
-  100% { transform: rotate(0deg); }
+  50%  { transform: rotate(90deg); }
+  100% { transform: rotate(90deg); }
 }
 #portrait-warn h2 { font-size: 20px; color: #a5d6a7; }
 #portrait-warn p  { font-size: 13px; color: #6a9a6a; }
 
-/* 竖屏时显示提示、隐藏编辑器 */
 @media (orientation: portrait) {
   #portrait-warn { display: flex; }
   #rotate-wrapper { display: none; }
 }
 
-/* 横屏时正常 */
+/* 横屏正常显示 */
 #rotate-wrapper {
   display: flex;
   flex-direction: column;
