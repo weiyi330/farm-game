@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🌾 农场地图编辑器</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -349,9 +349,125 @@ select.topbar-select {
 ::-webkit-scrollbar-track { background: #0d1a0d; }
 ::-webkit-scrollbar-thumb { background: #2e7d32; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #4caf50; }
+
+/* ============================================================
+   MODALS - 小屏横屏适配
+   横屏手机：宽度充裗，高度有限，各元素要紧凑
+============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #1a2a1a;
+  border: 2px solid #4caf50;
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.modal h2 { font-size: 15px; color: #81c784; flex-shrink: 0; }
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #81c784;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+}
+.modal-body { overflow-y: auto; flex: 1; min-height: 0; }
+
+/* 横屏手机：高度最紧张 */
+@media (max-height: 450px) {
+  .modal { padding: 8px 10px; gap: 6px; max-height: 96vh; border-radius: 6px; }
+  .modal h2 { font-size: 13px; }
+  .modal-close { top: 6px; right: 8px; font-size: 18px; }
+  .modal-body { font-size: 12px; }
+  #save-list, #cloud-save-list { max-height: 38vh !important; }
+  #export-textarea { height: 160px !important; }
+  .save-item { padding: 5px 8px; }
+  .save-item-name { font-size: 12px; }
+  .save-item-meta { font-size: 10px; }
+  .btn-sm { padding: 3px 7px; font-size: 11px; }
+  .add-spawn-section { padding: 6px 8px; }
+  .add-spawn-section h3 { font-size: 11px; margin-bottom: 4px; }
+  .form-row { margin-bottom: 4px; }
+}
+
+/* 横屏手机：宽度迃不下时自动收紧 */
+@media (max-width: 560px) {
+  .modal { max-width: 100%; border-radius: 8px; }
+  .new-save-row { flex-direction: column; gap: 5px; }
+  .new-save-row input, .new-save-row button { width: 100%; }
+  .save-item-btns { flex-wrap: wrap; }
+}
+
+/* 竖屏提示条 */
+#portrait-warn {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0d1a0d;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  color: #81c784;
+  font-size: 18px;
+  text-align: center;
+  padding: 20px;
+}
+#portrait-warn .pw-icon { font-size: 52px; }
+#portrait-warn p { font-size: 14px; color: #6a9a6a; }
+@media (orientation: portrait) and (max-width: 768px) {
+  #portrait-warn { display: flex; }
+}
+
+/* 小屏横屏顶部栏自动收紧 */
+@media (max-height: 450px) {
+  #topbar { padding: 3px 6px; gap: 4px; }
+  #topbar h1 { font-size: 13px; }
+  .btn { padding: 3px 7px; font-size: 11px; }
+  .sep { height: 18px; }
+  label.topbar-label { font-size: 11px; }
+  select.topbar-select { padding: 2px 4px; font-size: 11px; }
+  .size-inputs input { width: 42px; padding: 2px 4px; font-size: 11px; }
+  #bottombar { padding: 2px 8px; font-size: 11px; }
+  #left-panel { width: 200px; }
+  #left-panel.collapsed { width: 24px; }
+  .panel-tab { padding: 5px 2px; font-size: 11px; }
+  .layer-btn { padding: 4px 8px; font-size: 11px; }
+  .tile-btn { font-size: 15px; }
+  .tool-btn { padding: 5px 2px; font-size: 14px; }
+}
 </style>
 </head>
 <body>
+
+<!-- 竖屏提示（手机竖屏时显示） -->
+<div id="portrait-warn">
+  <div class="pw-icon">🔄</div>
+  <div>请旋转手机到横屏</div>
+  <p>🌾 地图编辑器为横屏设计</p>
+</div>
 
 <!-- TOP BAR -->
 <div id="topbar">
@@ -457,7 +573,7 @@ select.topbar-select {
 
 <!-- SAVE MODAL -->
 <div class="modal-overlay" id="save-modal">
-  <div class="modal" style="min-width:560px;position:relative;">
+  <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
     <h2>💾 存档管理</h2>
     <!-- 存档标签切换 -->
@@ -471,7 +587,7 @@ select.topbar-select {
         <input id="new-save-name" type="text" placeholder="新存档名称..." value="地图1">
         <button class="btn" onclick="saveNew()">➕ 保存新存档</button>
       </div>
-      <div class="modal-body" id="save-list" style="max-height:360px;overflow-y:auto;"></div>
+      <div class="modal-body" id="save-list" style="max-height:40vh;overflow-y:auto;"></div>
     </div>
     <!-- 云存档区 -->
     <div id="save-panel-cloud" style="display:none;">
@@ -491,14 +607,14 @@ select.topbar-select {
         <button class="btn" onclick="cloudSaveNew()">☁️ 保存到仓库</button>
         <button class="btn" onclick="loadCloudList()">🔄 刷新列表</button>
       </div>
-      <div class="modal-body" id="cloud-save-list" style="max-height:300px;overflow-y:auto;margin-top:6px;"><p style="color:#6a9a6a;padding:8px;font-size:12px;">点击「刷新列表」加载云存档</p></div>
+      <div class="modal-body" id="cloud-save-list" style="max-height:28vh;overflow-y:auto;margin-top:6px;"><p style="color:#6a9a6a;padding:8px;font-size:12px;">点击「刷新列表」加载云存档</p></div>
     </div>
   </div>
 </div>
 
 <!-- EXPORT MODAL -->
 <div class="modal-overlay" id="export-modal">
-  <div class="modal" style="min-width:600px;position:relative;">
+  <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal('export-modal')">✕</button>
     <h2>📤 导出 JSON</h2>
     <textarea id="export-textarea" readonly></textarea>
@@ -511,7 +627,7 @@ select.topbar-select {
 
 <!-- SPAWN CELL MODAL -->
 <div class="modal-overlay" id="spawn-cell-modal">
-  <div class="modal" style="min-width:420px;position:relative;">
+  <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal('spawn-cell-modal')">✕</button>
     <h2 id="spawn-cell-title">刷新点 (0,0)</h2>
     <div class="modal-body">
@@ -547,7 +663,7 @@ select.topbar-select {
 
 <!-- SPAWN TEMPLATE MODAL -->
 <div class="modal-overlay" id="spawn-template-modal">
-  <div class="modal" style="min-width:420px;position:relative;">
+  <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal('spawn-template-modal')">✕</button>
     <h2>🌱 刷新点模板管理</h2>
     <div class="modal-body">
