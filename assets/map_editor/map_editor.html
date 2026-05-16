@@ -428,7 +428,7 @@ select.topbar-select {
 }
 
 /* 竖屏提示条 */
-#install-banner {
+#portrait-warn {
   display: none;
   position: fixed;
   inset: 0;
@@ -437,22 +437,16 @@ select.topbar-select {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   color: #81c784;
+  font-size: 18px;
   text-align: center;
-  padding: 30px;
+  padding: 20px;
 }
-#install-banner .ib-icon { font-size: 80px; }
-#install-banner h2 { font-size: 22px; color: #a5d6a7; margin: 0; }
-#install-banner p { font-size: 13px; color: #6a9a6a; line-height: 1.8; margin: 0; }
-#install-banner .ib-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-#install-banner .ib-btn-install {
-  background: #2e7d32; border: 2px solid #4caf50; color: #fff;
-  padding: 12px 32px; border-radius: 8px; font-size: 17px; cursor: pointer;
-}
-#install-banner .ib-btn-skip {
-  background: transparent; border: 1px solid #4caf5066; color: #6a9a6a;
-  padding: 12px 24px; border-radius: 8px; font-size: 14px; cursor: pointer;
+#portrait-warn .pw-icon { font-size: 52px; }
+#portrait-warn p { font-size: 14px; color: #6a9a6a; }
+@media (orientation: portrait) and (max-width: 768px) {
+  #portrait-warn { display: flex; }
 }
 
 /* 小屏横屏顶部栏自动收紧 */
@@ -476,25 +470,12 @@ select.topbar-select {
 </head>
 <body>
 
-<!-- 安装引导屏 -->
-<div id="install-banner">
-  <div class="ib-icon">🌾</div>
-  <h2>游戏地图编辑器</h2>
-  <p>安装到桌面，享受全屏横屏体验<br>无浏览器框，和真正的 App 一样</p>
-  <div class="ib-btns">
-    <button class="ib-btn-install" id="btn-install">📲 安装到桌面</button>
-    <button class="ib-btn-skip" id="btn-skip">继续使用网页版</button>
-    <button class="ib-btn-skip" id="btn-already" style="border-color:#81c784;color:#81c784;">✅ 已安装，直接进入</button>
-  </div>
-</div>
-
-<!-- 安装指引弹窗 -->
-<div id="install-guide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10000;align-items:center;justify-content:center;">
-  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:24px;max-width:320px;width:90%;">
-    <div id="guide-title" style="font-size:16px;color:#a5d6a7;font-weight:bold;margin-bottom:16px;">📲 安装到桌面</div>
-    <div id="guide-steps" style="font-size:14px;color:#c8e6c9;line-height:2;"></div>
-    <button onclick="document.getElementById('install-guide').style.display='none'" style="width:100%;margin-top:16px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:10px;border-radius:8px;font-size:15px;cursor:pointer;">知道了</button>
-  </div>
+<!-- 竖屏提示（浏览器模式备用，PWA安装后系统自动锁横屏） -->
+<div id="portrait-warn">
+  <div class="pw-icon">🔄</div>
+  <div>请旋转手机到横屏</div>
+  <p>🌾 地图编辑器为横屏设计</p>
+  <button onclick="document.getElementById('portrait-warn').style.display='none'" style="margin-top:14px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:8px 24px;border-radius:8px;font-size:15px;cursor:pointer;">直接进入 →</button>
 </div>
 
 <!-- TOP BAR -->
@@ -2289,85 +2270,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW注册失败:', e));
   });
 }
-
-// PWA 安装引导
-// ?reset=1 可强制清除安装标记（调试用）
-if (new URLSearchParams(location.search).get('reset') === '1') {
-  localStorage.removeItem('pwa_installed');
-  history.replaceState(null, '', location.pathname);
-}
-
-let deferredInstallPrompt = null;
-const installBanner = document.getElementById('install-banner');
-const btnInstall    = document.getElementById('btn-install');
-const btnSkip       = document.getElementById('btn-skip');
-const btnAlready    = document.getElementById('btn-already');
-const installGuide  = document.getElementById('install-guide');
-const guideSteps    = document.getElementById('guide-steps');
-
-const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-const isAndroid = /Android/.test(navigator.userAgent);
-
-// 判断是否已安装
-const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches
-                 || window.matchMedia('(display-mode: standalone)').matches
-                 || window.matchMedia('(display-mode: minimal-ui)').matches
-                 || window.navigator.standalone === true
-                 || localStorage.getItem('pwa_installed') === '1';
-
-if (!isInstalled) {
-  installBanner.style.display = 'flex';
-
-  // 监听 Chrome 安装事件（有了就能弹系统安装弹窗）
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredInstallPrompt = e;
-    // 有事件了把按鈕改为绣色提示可弹系统安装
-    if (btnInstall) { btnInstall.style.background = '#1b5e20'; btnInstall.textContent = '📲 点此安装（推荐）'; }
-  });
-
-  // 安装按鈕点击
-  btnInstall && btnInstall.addEventListener('click', async () => {
-    if (deferredInstallPrompt) {
-      // 有系统事件：弹出系统安装弹窗
-      deferredInstallPrompt.prompt();
-      const { outcome } = await deferredInstallPrompt.userChoice;
-      if (outcome === 'accepted') {
-        localStorage.setItem('pwa_installed', '1');
-        installBanner.style.display = 'none';
-      }
-      deferredInstallPrompt = null;
-    } else {
-      // 没有事件：弹出图文操作指引
-      if (isIOS) {
-        guideSteps.innerHTML = '1️⃣ 点击底部「分享」按鈕 ⊞<br>2️⃣ 选择「添加到主屏幕」<br>3️⃣ 点击「添加」完成';
-      } else if (isAndroid) {
-        guideSteps.innerHTML = '1️⃣ 点击浏览器右上角菜单 ⋮<br>2️⃣ 选择「添加到主屏幕」<br>↳ 或选择「安装应用」<br>3️⃣ 点击「安装」确认';
-      } else {
-        guideSteps.innerHTML = '1️⃣ 点击地址栏右侧安装图标 ⬇️<br>↳ 或浏览器菜单「安装应用」<br>2️⃣ 点击「安装」完成';
-      }
-      installGuide.style.display = 'flex';
-    }
-  });
-
-  btnSkip && btnSkip.addEventListener('click', () => {
-    localStorage.setItem('pwa_installed', '1');
-    installBanner.style.display = 'none';
-  });
-
-  btnAlready && btnAlready.addEventListener('click', async () => {
-    localStorage.setItem('pwa_installed', '1');
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-    installBanner.style.display = 'none';
-  });
-
-  window.addEventListener('appinstalled', () => {
-    localStorage.setItem('pwa_installed', '1');
-    installBanner.style.display = 'none';
-  });
-}</script>
+</script>
 </body>
 </html>
