@@ -481,6 +481,7 @@ select.topbar-select {
 <!-- TOP BAR -->
 <div id="topbar">
   <h1>🌾 游戏地图编辑器</h1>
+  <span id="ver-tag" style="font-size:11px;color:#4caf5099;white-space:nowrap;margin-left:2px;">v1.0.0</span>
   <div class="sep"></div>
   <button class="btn" onclick="showExportModal()">📤 导出</button>
   <button class="btn" onclick="importJSON()">📥 导入</button>
@@ -508,6 +509,8 @@ select.topbar-select {
     <option value="64">64px</option>
   </select>
   <button class="btn" id="panel-toggle-btn" onclick="toggleLeftPanel()" title="收起/展开左侧面板">◀ 面板</button>
+  <div class="sep"></div>
+  <button class="btn" onclick="forceUpdate()" title="清除缓存并重新加载最新版本">🔄 更新</button>
 </div>
 
 <!-- MAIN -->
@@ -2269,6 +2272,21 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(e => console.log('SW注册失败:', e));
   });
+}
+
+// 强制更新：清除所有缓存并重载
+async function forceUpdate() {
+  if (confirm('将清除缓存并重新加载，确认吗？')) {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    location.reload(true);
+  }
 }
 </script>
 </body>
