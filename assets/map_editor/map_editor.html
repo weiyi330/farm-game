@@ -443,16 +443,21 @@ select.topbar-select {
 }
 #splash-bg {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  /* 竖屏：宽度等于屏幕高度（旋转后的横屏宽） */
+  width: 100vh;
+  height: calc(100vh * 9 / 16);
   object-fit: cover;
-  width: 100%;
-  height: 100%;
-  /* 竖屏时旋转90度模拟横屏 */
-  transform: rotate(90deg) scale(1.35);
+  transform: translate(-50%, -50%) rotate(90deg);
   transform-origin: center center;
 }
 @media (orientation: landscape) {
-  #splash-bg { transform: none; }
+  #splash-bg {
+    width: 100vw;
+    height: 100vh;
+    transform: translate(-50%, -50%);
+  }
 }
 #splash-inner {
   position: relative;
@@ -470,7 +475,6 @@ select.topbar-select {
 }
 #splash-btn {
   width: min(320px, 55vmax);
-  opacity: 0.95;
   animation: btn-pulse 1.4s ease-in-out infinite;
   filter: drop-shadow(0 0 12px rgba(76,175,80,0.6));
 }
