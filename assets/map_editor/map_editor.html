@@ -565,6 +565,7 @@ select.topbar-select {
     <button class="btn" style="padding:9px;font-size:13px;" onclick="showExportModal();closeMgrModal()">📤 导出地图</button>
     <button class="btn" style="padding:9px;font-size:13px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
     <button class="btn" style="padding:9px;font-size:13px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
+    <button class="btn" style="padding:9px;font-size:13px;" onclick="enterFullscreen();closeMgrModal()">🔲 全屏横屏</button>
     <button class="btn" style="padding:9px;font-size:13px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
     <button class="btn" style="padding:7px;font-size:12px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
   </div>
@@ -2327,8 +2328,9 @@ function showMgrModal() { document.getElementById('mgr-modal').style.display = '
 function closeMgrModal() { document.getElementById('mgr-modal').style.display = 'none'; }
 document.getElementById('mgr-modal').addEventListener('click', e => { if (e.target === document.getElementById('mgr-modal')) closeMgrModal(); });
 
-// 全屏工具函数
-async function reEnterFullscreen() {
+
+// 全屏函数
+async function enterFullscreen() {
   try {
     const el = document.documentElement;
     if (el.requestFullscreen) await el.requestFullscreen();
@@ -2339,31 +2341,10 @@ async function reEnterFullscreen() {
   } catch(e) {}
 }
 
-// 全屏全局监听：页面重新可见时（从文件选择/切换应用返回）自动重进全屏
-let _splashDone = false;
-document.addEventListener('visibilitychange', () => {
-  if (_splashDone && document.visibilityState === 'visible') {
-    setTimeout(reEnterFullscreen, 400);
-  }
-});
-// 兼容部分安卓：页面获得焦点时也重试
-window.addEventListener('focus', () => {
-  if (_splashDone) setTimeout(reEnterFullscreen, 400);
-});
-// 移除不可靠的 fullscreenchange 监听
-
 // 启动页逻辑
 const splashScreen = document.getElementById('splash-screen');
 splashScreen.addEventListener('click', async () => {
-  try {
-    const el = document.documentElement;
-    if (el.requestFullscreen) await el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-  } catch(e) {}
-  try {
-    if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
-  } catch(e) {}
-  _splashDone = true;
+  await enterFullscreen();
   splashScreen.style.transition = 'opacity 0.4s';
   splashScreen.style.opacity = '0';
   setTimeout(() => splashScreen.style.display = 'none', 400);
