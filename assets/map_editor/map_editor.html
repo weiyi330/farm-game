@@ -481,12 +481,8 @@ select.topbar-select {
 <!-- TOP BAR -->
 <div id="topbar">
   <h1>🌾 游戏地图编辑器</h1>
-  <span id="ver-tag" style="font-size:11px;color:#4caf5099;white-space:nowrap;margin-left:2px;">v1.0.0</span>
   <div class="sep"></div>
-  <button class="btn" onclick="showExportModal()">📤 导出</button>
-  <button class="btn" onclick="importJSON()">📥 导入</button>
-  <div class="sep"></div>
-  <button class="btn" onclick="showSaveModal()">💾 存档</button>
+  <button class="btn" onclick="showMgrModal()">⚙️ 管理</button>
   <div class="sep"></div>
   <button class="btn" onclick="fillCurrentLayer()">🖌 全填</button>
   <button class="btn danger" onclick="clearCurrentLayer()">🗑 清空</button>
@@ -509,8 +505,21 @@ select.topbar-select {
     <option value="64">64px</option>
   </select>
   <button class="btn" id="panel-toggle-btn" onclick="toggleLeftPanel()" title="收起/展开左侧面板">◀ 面板</button>
-  <div class="sep"></div>
-  <button class="btn" onclick="forceUpdate()" title="清除缓存并重新加载最新版本">🔄 更新</button>
+</div>
+
+<!-- 管理弹窗 -->
+<div id="mgr-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9000;align-items:center;justify-content:center;">
+  <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:12px;padding:28px 32px;min-width:260px;display:flex;flex-direction:column;gap:14px;align-items:stretch;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <span style="color:#a5d6a7;font-size:16px;font-weight:bold;">⚙️ 管理</span>
+      <span style="color:#4caf5099;font-size:12px;">v1.0.0</span>
+    </div>
+    <button class="btn" style="padding:10px;font-size:14px;" onclick="showExportModal();closeMgrModal()">📤 导出地图</button>
+    <button class="btn" style="padding:10px;font-size:14px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
+    <button class="btn" style="padding:10px;font-size:14px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
+    <button class="btn" style="padding:10px;font-size:14px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
+    <button class="btn" style="padding:8px;font-size:13px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -2266,6 +2275,11 @@ function toggleLeftPanel() {
   const collapsed = panel.classList.toggle('collapsed');
   btn.textContent = collapsed ? '▶ 面板' : '◀ 面板';
 }
+
+// 管理弹窗
+function showMgrModal() { document.getElementById('mgr-modal').style.display = 'flex'; }
+function closeMgrModal() { document.getElementById('mgr-modal').style.display = 'none'; }
+document.getElementById('mgr-modal').addEventListener('click', e => { if (e.target === document.getElementById('mgr-modal')) closeMgrModal(); });
 
 // 注册 Service Worker
 if ('serviceWorker' in navigator) {
