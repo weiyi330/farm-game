@@ -792,15 +792,26 @@ function initMapData(cols, rows) {
 // INIT
 // ============================================================
 window.addEventListener('load', () => {
-  // 竖/横屏切换监听（JS备用，CSS媒体查询主力）
+  // 竖/横屏切换监听
   function checkOrientation() {
-    const isPortrait = window.innerHeight > window.innerWidth;
+    let isPortrait;
+    if (screen.orientation && screen.orientation.type) {
+      // 最准：screen.orientation API
+      isPortrait = screen.orientation.type.startsWith('portrait');
+    } else if (typeof window.orientation !== 'undefined') {
+      // 备用：window.orientation（0/180=竖屏，90/-90=横屏）
+      isPortrait = window.orientation === 0 || window.orientation === 180;
+    } else {
+      // 最后回退
+      isPortrait = window.innerHeight > window.innerWidth;
+    }
     document.getElementById('portrait-warn').style.display = isPortrait ? 'flex' : 'none';
-    document.getElementById('rotate-wrapper').style.display  = isPortrait ? 'none' : 'flex';
+    document.getElementById('rotate-wrapper').style.display = isPortrait ? 'none' : 'flex';
   }
   checkOrientation();
   window.addEventListener('resize', checkOrientation);
-  window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+  window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 300));
+  if (screen.orientation) screen.orientation.addEventListener('change', () => setTimeout(checkOrientation, 300));
 
 window.forceEnter = function() {
   document.getElementById('portrait-warn').style.display = 'none';
