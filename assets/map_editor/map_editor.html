@@ -71,7 +71,39 @@ select.topbar-select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: width 0.2s ease;
+  position: relative;
 }
+#left-panel.collapsed {
+  width: 28px;
+  overflow: visible;
+}
+#left-panel.collapsed #panel-tabs,
+#left-panel.collapsed .panel-content {
+  display: none;
+}
+#panel-toggle {
+  position: absolute;
+  top: 50%;
+  right: -18px;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 48px;
+  background: #2e4a2e;
+  border: 1px solid #4caf50;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #81c784;
+  z-index: 10;
+  user-select: none;
+  transition: background 0.15s;
+}
+#panel-toggle:hover { background: #3d6b3d; }
 #panel-tabs { display: flex; border-bottom: 1px solid #2e7d32; }
 .panel-tab {
   flex: 1;
@@ -365,6 +397,8 @@ select.topbar-select {
   <div class="sep"></div>
   <label class="topbar-label">格子:</label>
   <select class="topbar-select" id="cell-size-select" onchange="changeCellSize(this.value)">
+    <option value="8">8px</option>
+    <option value="16">16px</option>
     <option value="32">32px</option>
     <option value="40" selected>40px</option>
     <option value="48">48px</option>
@@ -376,6 +410,7 @@ select.topbar-select {
 <div id="main">
   <!-- LEFT PANEL -->
   <div id="left-panel">
+    <button id="panel-toggle" onclick="toggleLeftPanel()" title="收起/展开面板">◀</button>
     <div id="panel-tabs">
       <button class="panel-tab active" onclick="switchTab('layers')">📐 层</button>
       <button class="panel-tab" onclick="switchTab('tiles')">🎨 地块</button>
@@ -1872,6 +1907,16 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // ============================================================
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// LEFT PANEL TOGGLE
+// ============================================================
+function toggleLeftPanel() {
+  const panel = document.getElementById('left-panel');
+  const btn   = document.getElementById('panel-toggle');
+  const collapsed = panel.classList.toggle('collapsed');
+  btn.textContent = collapsed ? '▶' : '◀';
 }
 </script>
 </body>
