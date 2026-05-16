@@ -487,6 +487,7 @@ select.topbar-select {
   <div class="pw-icon">📱</div>
   <h2>请旋转手机</h2>
   <p>🌾 地图编辑器为横屏设计<br>旋转后自动进入</p>
+  <button onclick="forceEnter()" style="margin-top:16px;background:#2e7d32;border:2px solid #4caf50;color:#fff;padding:10px 28px;border-radius:8px;font-size:16px;cursor:pointer;">直接进入 →</button>
 </div>
 
 <div id="rotate-wrapper">
@@ -800,6 +801,11 @@ window.addEventListener('load', () => {
   checkOrientation();
   window.addEventListener('resize', checkOrientation);
   window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 200));
+
+window.forceEnter = function() {
+  document.getElementById('portrait-warn').style.display = 'none';
+  document.getElementById('rotate-wrapper').style.display = 'flex';
+};
 
   initMapData(state.cols, state.rows);
   buildLayerButtons();
