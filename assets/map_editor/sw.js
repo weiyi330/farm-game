@@ -1,11 +1,10 @@
 // Service Worker - 游戏地图编辑器
-const CACHE_NAME = 'map-editor-v5';
+const CACHE_NAME = 'map-editor-v6';
 const ASSETS = [
-  './map_editor.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './index.json',
+  '/farm-game/assets/map_editor/map_editor.html',
+  '/farm-game/assets/map_editor/manifest.json',
+  '/farm-game/assets/map_editor/icons/icon-192.png',
+  '/farm-game/assets/map_editor/icons/icon-512.png',
 ];
 
 self.addEventListener('install', e => {
