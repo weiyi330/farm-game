@@ -82,28 +82,6 @@ select.topbar-select {
 #left-panel.collapsed .panel-content {
   display: none;
 }
-#panel-toggle {
-  position: absolute;
-  top: 50%;
-  right: -18px;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 48px;
-  background: #2e4a2e;
-  border: 1px solid #4caf50;
-  border-left: none;
-  border-radius: 0 6px 6px 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  color: #81c784;
-  z-index: 10;
-  user-select: none;
-  transition: background 0.15s;
-}
-#panel-toggle:hover { background: #3d6b3d; }
 #panel-tabs { display: flex; border-bottom: 1px solid #2e7d32; }
 .panel-tab {
   flex: 1;
@@ -404,13 +382,13 @@ select.topbar-select {
     <option value="48">48px</option>
     <option value="64">64px</option>
   </select>
+  <button class="btn" id="panel-toggle-btn" onclick="toggleLeftPanel()" title="收起/展开左侧面板">◀ 面板</button>
 </div>
 
 <!-- MAIN -->
 <div id="main">
   <!-- LEFT PANEL -->
   <div id="left-panel">
-    <button id="panel-toggle" onclick="toggleLeftPanel()" title="收起/展开面板">◀</button>
     <div id="panel-tabs">
       <button class="panel-tab active" onclick="switchTab('layers')">📐 层</button>
       <button class="panel-tab" onclick="switchTab('tiles')">🎨 地块</button>
@@ -591,6 +569,7 @@ const TILE_TYPES = [
   { id: 2,  name: '耕地',   emoji: '🟧', color: '#a1887f', autoBlock: false, group: '地形' },
   { id: 8,  name: '小路',   emoji: '🛤️',  color: '#bcaaa4', autoBlock: false, group: '地形' },
   { id: 9,  name: '水域',   emoji: '💧', color: '#1976d2', autoBlock: true,  group: '地形' },
+  { id: 18, name: '悬崖',   emoji: '🪨', color: '#546e7a', autoBlock: true,  group: '地形' },
   // ── 建筑/设施 ──
   { id: 7,  name: '树木',   emoji: '🌳', color: '#388e3c', autoBlock: true,  group: '建筑' },
   { id: 4,  name: '房屋',   emoji: '🏠', color: '#e65100', autoBlock: true,  group: '建筑' },
@@ -1914,9 +1893,9 @@ function esc(s) {
 // ============================================================
 function toggleLeftPanel() {
   const panel = document.getElementById('left-panel');
-  const btn   = document.getElementById('panel-toggle');
+  const btn   = document.getElementById('panel-toggle-btn');
   const collapsed = panel.classList.toggle('collapsed');
-  btn.textContent = collapsed ? '▶' : '◀';
+  btn.textContent = collapsed ? '▶ 面板' : '◀ 面板';
 }
 </script>
 </body>
