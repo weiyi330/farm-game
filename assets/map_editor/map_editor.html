@@ -1969,6 +1969,9 @@ function importJSON() {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = '.json,application/json';
+  // 无论是否选了文件，窗口重新获得焦点时都重进全屏
+  const onFocusBack = () => { setTimeout(reEnterFullscreen, 300); window.removeEventListener('focus', onFocusBack); };
+  window.addEventListener('focus', onFocusBack);
   input.onchange = e => {
     const file = e.target.files[0];
     if (!file) return;
@@ -1980,8 +1983,6 @@ function importJSON() {
       } catch { alert('JSON 格式错误'); }
     };
     reader.readAsText(file);
-    // 文件选择后重新请求全屏
-    setTimeout(reEnterFullscreen, 300);
   };
   input.click();
 }
