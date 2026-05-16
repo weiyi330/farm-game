@@ -457,14 +457,42 @@ select.topbar-select {
 
 <!-- SAVE MODAL -->
 <div class="modal-overlay" id="save-modal">
-  <div class="modal" style="min-width:500px;position:relative;">
+  <div class="modal" style="min-width:560px;position:relative;">
     <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
     <h2>💾 存档管理</h2>
-    <div class="new-save-row">
-      <input id="new-save-name" type="text" placeholder="新存档名称..." value="地图1">
-      <button class="btn" onclick="saveNew()">➕ 保存新存档</button>
+    <!-- 存档标签切换 -->
+    <div style="display:flex;gap:6px;border-bottom:1px solid #2e7d32;padding-bottom:8px;">
+      <button class="btn" id="save-tab-local" onclick="switchSaveTab('local')" style="flex:1;">📁 本地存档</button>
+      <button class="btn" id="save-tab-cloud" onclick="switchSaveTab('cloud')" style="flex:1;background:#1e3a1e;">☁️ 云存档（GitHub）</button>
     </div>
-    <div class="modal-body" id="save-list" style="max-height:400px;overflow-y:auto;"></div>
+    <!-- 本地存档区 -->
+    <div id="save-panel-local">
+      <div class="new-save-row" style="margin-top:8px;">
+        <input id="new-save-name" type="text" placeholder="新存档名称..." value="地图1">
+        <button class="btn" onclick="saveNew()">➕ 保存新存档</button>
+      </div>
+      <div class="modal-body" id="save-list" style="max-height:360px;overflow-y:auto;"></div>
+    </div>
+    <!-- 云存档区 -->
+    <div id="save-panel-cloud" style="display:none;">
+      <!-- GitHub Token 配置 -->
+      <div style="background:#111e11;border:1px solid #2e7d32;border-radius:6px;padding:10px;margin-top:8px;">
+        <div style="font-size:11px;color:#81c784;margin-bottom:6px;">🔑 GitHub Token（仅存本地浏览器，不上传）</div>
+        <div style="display:flex;gap:6px;">
+          <input id="gh-token-input" type="password" placeholder="ghp_xxxx..." style="flex:1;background:#1e3a1e;border:1px solid #4caf50;color:#c8e6c9;padding:4px 8px;border-radius:4px;font-size:12px;">
+          <button class="btn" onclick="saveGhToken()">保存</button>
+          <button class="btn" onclick="clearGhToken()" style="border-color:#ef5350;">清除</button>
+        </div>
+        <div id="gh-token-status" style="font-size:10px;color:#6a9a6a;margin-top:4px;"></div>
+      </div>
+      <!-- 云存档操作 -->
+      <div style="display:flex;gap:6px;margin-top:8px;align-items:center;">
+        <input id="cloud-save-name" type="text" placeholder="存档名称..." value="map_save" style="flex:1;background:#1e3a1e;border:1px solid #4caf50;color:#c8e6c9;padding:4px 8px;border-radius:4px;font-size:12px;">
+        <button class="btn" onclick="cloudSaveNew()">☁️ 保存到仓库</button>
+        <button class="btn" onclick="loadCloudList()">🔄 刷新列表</button>
+      </div>
+      <div class="modal-body" id="cloud-save-list" style="max-height:300px;overflow-y:auto;margin-top:6px;"><p style="color:#6a9a6a;padding:8px;font-size:12px;">点击「刷新列表」加载云存档</p></div>
+    </div>
   </div>
 </div>
 
@@ -1438,15 +1466,29 @@ function loadMapData(data) {
 }
 
 function loadLatestSave() {
-  const saves = getSaves();
-  if (saves.length === 0) return;
-  saves.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
-  loadMapData(saves[0].data);
+  // 优先尝试云端，失败后回退本地
+  loadLatestCloudSave().then(ok => {
+    if (!ok) {
+      const saves = getSaves();
+      if (saves.length === 0) return;
+      saves.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+      loadMapData(saves[0].data);
+    }
+  });
 }
 
 function showSaveModal() {
   renderSaveList();
+  refreshGhTokenStatus();
   openModal('save-modal');
+}
+
+function switchSaveTab(tab) {
+  document.getElementById('save-panel-local').style.display = tab === 'local' ? '' : 'none';
+  document.getElementById('save-panel-cloud').style.display = tab === 'cloud' ? '' : 'none';
+  document.getElementById('save-tab-local').style.background = tab === 'local' ? '#2e4a2e' : '#1e3a1e';
+  document.getElementById('save-tab-cloud').style.background = tab === 'cloud' ? '#2e4a2e' : '#1e3a1e';
+  if (tab === 'cloud') loadCloudList();
 }
 
 function renderSaveList() {
@@ -1515,6 +1557,202 @@ function deleteSave(idx) {
   saves.splice(idx, 1);
   setSaves(saves);
   renderSaveList();
+}
+
+// ============================================================
+// GITHUB CLOUD SAVE
+// ============================================================
+const GH_REPO  = 'weiyi330/farm-game';
+const GH_SAVES_DIR = 'assets/map_editor/map_saves';
+const GH_TOKEN_KEY = 'farm_gh_token';
+const GH_API   = 'https://api.github.com';
+
+function getGhToken() { return localStorage.getItem(GH_TOKEN_KEY) || ''; }
+function saveGhToken() {
+  const v = document.getElementById('gh-token-input').value.trim();
+  if (!v) { showToast('\u8bf7输入 Token'); return; }
+  localStorage.setItem(GH_TOKEN_KEY, v);
+  document.getElementById('gh-token-input').value = '';
+  refreshGhTokenStatus();
+  showToast('✅ Token 已保存（仅存本地）', 2000);
+}
+function clearGhToken() {
+  localStorage.removeItem(GH_TOKEN_KEY);
+  refreshGhTokenStatus();
+  showToast('已清除 Token', 1500);
+}
+function refreshGhTokenStatus() {
+  const el = document.getElementById('gh-token-status');
+  if (!el) return;
+  const t = getGhToken();
+  el.textContent = t ? `\u2705 Token 已设置（${t.slice(0,8)}...\uff09` : '\u26a0\ufe0f 未设置 Token，云存档功能不可用';
+  el.style.color = t ? '#81c784' : '#ffb74d';
+}
+
+function ghHeaders() {
+  return {
+    'Authorization': `token ${getGhToken()}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+}
+
+// 获取文件的 SHA（用于覆盖保存）
+async function getFileSha(path) {
+  try {
+    const r = await fetch(`${GH_API}/repos/${GH_REPO}/contents/${path}`, { headers: ghHeaders() });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.sha || null;
+  } catch { return null; }
+}
+
+// 保存文件到仓库
+async function ghPutFile(path, content, message) {
+  const sha = await getFileSha(path);
+  const body = {
+    message,
+    content: btoa(unescape(encodeURIComponent(content))),
+    ...(sha ? { sha } : {})
+  };
+  const r = await fetch(`${GH_API}/repos/${GH_REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: ghHeaders(),
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) {
+    const e = await r.json();
+    throw new Error(e.message || r.status);
+  }
+  return await r.json();
+}
+
+// 列出仓库存档目录
+async function ghListSaves() {
+  const r = await fetch(`${GH_API}/repos/${GH_REPO}/contents/${GH_SAVES_DIR}`, {
+    headers: ghHeaders()
+  });
+  if (r.status === 404) return []; // 目录不存在
+  if (!r.ok) throw new Error(await r.text());
+  const files = await r.json();
+  return files.filter(f => f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
+}
+
+// 下载某个存档文件
+async function ghGetFile(path) {
+  const r = await fetch(`${GH_API}/repos/${GH_REPO}/contents/${path}`, { headers: ghHeaders() });
+  if (!r.ok) throw new Error(await r.text());
+  const j = await r.json();
+  return decodeURIComponent(escape(atob(j.content.replace(/\n/g, ''))));
+}
+
+// 删除存档文件
+async function ghDeleteFile(path) {
+  const sha = await getFileSha(path);
+  if (!sha) return;
+  await fetch(`${GH_API}/repos/${GH_REPO}/contents/${path}`, {
+    method: 'DELETE',
+    headers: ghHeaders(),
+    body: JSON.stringify({ message: `删除存档: ${path}`, sha })
+  });
+}
+
+// 保存到仓库
+async function cloudSaveNew() {
+  const token = getGhToken();
+  if (!token) { showToast('\u26a0\ufe0f 请先设置 GitHub Token'); return; }
+  let name = (document.getElementById('cloud-save-name').value.trim() || 'map_save')
+    .replace(/[^a-zA-Z0-9_\-一-鿿]/g, '_');
+  const ts  = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const filename = `${name}_${ts}.json`;
+  const path = `${GH_SAVES_DIR}/${filename}`;
+  const content = JSON.stringify({ name, savedAt: Date.now(), data: currentMapData() }, null, 2);
+  showToast('\u2601\ufe0f 正在保存到仓库...', 5000);
+  try {
+    await ghPutFile(path, content, `地图存档: ${filename}`);
+    showToast(`\u2705 已保存: ${filename}`, 3000);
+    loadCloudList();
+    // 同步更新本地最新云存档记录
+    localStorage.setItem('farm_latest_cloud_save', path);
+  } catch(e) {
+    showToast(`\u274c 保存失败: ${e.message}`, 4000);
+  }
+}
+
+// 刷新云存档列表
+async function loadCloudList() {
+  const container = document.getElementById('cloud-save-list');
+  if (!container) return;
+  const token = getGhToken();
+  if (!token) {
+    container.innerHTML = '<p style="color:#ffb74d;padding:8px;font-size:12px;">⚠\ufe0f 请先设置 GitHub Token</p>';
+    return;
+  }
+  container.innerHTML = '<p style="color:#6a9a6a;padding:8px;font-size:12px;">加载中...</p>';
+  try {
+    const files = await ghListSaves();
+    if (files.length === 0) {
+      container.innerHTML = '<p style="color:#6a9a6a;padding:8px;font-size:12px;">暂无云存档</p>';
+      return;
+    }
+    container.innerHTML = files.map(f => `
+      <div class="save-item">
+        <div class="save-item-info">
+          <div class="save-item-name">${esc(f.name)}</div>
+          <div class="save-item-meta">仓库存档</div>
+        </div>
+        <div class="save-item-btns">
+          <button class="btn-sm" onclick="cloudLoadFile('${esc(f.path)}')">\u8f7d\u5165</button>
+          <button class="btn-sm danger" onclick="cloudDeleteFile('${esc(f.path)}')">\u5220\u9664</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    container.innerHTML = `<p style="color:#ef9a9a;padding:8px;font-size:12px;">加载失败: ${esc(e.message)}</p>`;
+  }
+}
+
+async function cloudLoadFile(path) {
+  showToast('\u2601\ufe0f 下载中...', 5000);
+  try {
+    const text = await ghGetFile(path);
+    const save = JSON.parse(text);
+    loadMapData(save.data || save);
+    closeModal('save-modal');
+    showToast(`\u2705 已载入: ${path.split('/').pop()}`, 2500);
+  } catch(e) {
+    showToast(`\u274c 载入失败: ${e.message}`, 4000);
+  }
+}
+
+async function cloudDeleteFile(path) {
+  if (!confirm(`确认删除仓库存档 "${path.split('/').pop()}"？`)) return;
+  try {
+    await ghDeleteFile(path);
+    showToast('\u5df2删除', 1500);
+    loadCloudList();
+  } catch(e) {
+    showToast(`\u274c 删除失败: ${e.message}`, 3000);
+  }
+}
+
+// 启动时自动拉取最新云存档
+async function loadLatestCloudSave() {
+  const token = getGhToken();
+  if (!token) return;
+  try {
+    const files = await ghListSaves();
+    if (files.length === 0) return;
+    // 按文件名逆序排序，取最新的
+    const latest = files[0];
+    const text = await ghGetFile(latest.path);
+    const save = JSON.parse(text);
+    loadMapData(save.data || save);
+    showToast(`\u2601\ufe0f 已自动载入最新云存档: ${latest.name}`, 3000);
+    return true;
+  } catch(e) {
+    console.warn('自动拉取云存档失败:', e.message);
+    return false;
+  }
 }
 
 // ============================================================
