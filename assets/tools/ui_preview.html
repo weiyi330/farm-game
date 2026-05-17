@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>UI 控件库预览</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a2a1a; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 16px; font-family: sans-serif; }
+h2 { color: #81c784; font-size: 14px; align-self: flex-start; margin-top: 8px; }
+canvas { background: #0d1a0d; border-radius: 10px; max-width: 100%; }
+</style>
+</head>
+<body>
+
+<h2>🎮 按钮样式</h2>
+<canvas id="c1" width="400" height="280"></canvas>
+
+<h2>📋 标签 + 面板</h2>
+<canvas id="c2" width="400" height="160"></canvas>
+
+<script src="./ui_components.js"></script>
+<script>
+// ── 演示1：各色按钮 ──
+const c1 = document.getElementById('c1');
+const ctx1 = c1.getContext('2d');
+
+const btns = [
+  new PixelButton(c1, { text: '登录游戏', x: 80, y: 20,  w: 240, h: 56, style: 'yellow' }),
+  new PixelButton(c1, { text: '开始冒险', x: 80, y: 96,  w: 240, h: 56, style: 'red' }),
+  new PixelButton(c1, { text: '查看地图', x: 80, y: 172, w: 240, h: 56, style: 'blue' }),
+  new PixelButton(c1, { text: '功能维护中', x: 80, y: 210, w: 240, h: 56, style: 'gray', disabled: true }),
+];
+
+function redraw1() {
+  ctx1.clearRect(0, 0, c1.width, c1.height);
+  btns.forEach(b => b.draw());
+}
+redraw1();
+btns.forEach(b => { b.onClick = () => { alert(b.text + ' 被点击了！'); }; });
+
+// ── 演示2：面板 + 标签 ──
+const c2 = document.getElementById('c2');
+const ctx2 = c2.getContext('2d');
+
+const panel = new PixelPanel(c2, { x: 20, y: 20, w: 360, h: 120, bgColor: 'rgba(0,30,10,0.9)', border: '#4caf50' });
+const lbl1  = new PixelLabel(c2, { text: '桃源农场', x: 200, y: 48, fontSize: 28, color: '#f5d84a', stroke: '#c8440a', align: 'center' });
+const lbl2  = new PixelLabel(c2, { text: '版本 v0.0.2', x: 200, y: 96, fontSize: 14, color: '#81c784', stroke: '#004400', align: 'center' });
+
+panel.draw();
+lbl1.draw();
+lbl2.draw();
+</script>
+</body>
+</html>
