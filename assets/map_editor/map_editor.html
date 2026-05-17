@@ -3,14 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="screen-orientation" content="landscape">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="地图编辑器">
-<meta name="theme-color" content="#2e7d32">
-<link rel="manifest" href="./manifest.json">
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
 <link rel="icon" type="image/png" sizes="280x280" href="./icons/favicon-280.png">
 <meta property="og:image" content="https://weiyi330.github.io/farm-game/assets/map_editor/icons/icon-512.png">
 <title>🌾 游戏地图编辑器</title>
@@ -552,7 +545,6 @@ select.topbar-select {
     <button class="btn" style="padding:9px;font-size:13px;" onclick="importJSON();closeMgrModal()">📥 导入地图</button>
     <button class="btn" style="padding:9px;font-size:13px;" onclick="showSaveModal();closeMgrModal()">💾 存档管理</button>
     <button class="btn" style="padding:9px;font-size:13px;" onclick="enterFullscreen();closeMgrModal()">🔲 全屏横屏</button>
-    <button class="btn" style="padding:9px;font-size:13px;background:#1b3a1b;" onclick="forceUpdate()">🔄 检查更新</button>
     <button class="btn" style="padding:7px;font-size:12px;background:transparent;border-color:#4caf5044;color:#6a9a6a;" onclick="closeMgrModal()">关闭</button>
   </div>
 </div>
@@ -2336,20 +2328,7 @@ splashScreen.addEventListener('click', async () => {
   setTimeout(() => splashScreen.style.display = 'none', 400);
 });
 
-// PWA 安装
-async function forceUpdate() {
-  if (confirm('将清除缓存并重新加载，确认吗？')) {
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-    }
-    location.reload(true);
-  }
-}
+
 </script>
 </body>
 </html>
