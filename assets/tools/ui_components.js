@@ -1,178 +1,182 @@
 /**
- * 桃源农场 UI 控件库 v1.0
- * 纯 Canvas 绘制，零图片依赖
- * 用法：
- *   const btn = new PixelButton(canvas, { text: '登录游戏', x, y, w, h });
- *   btn.draw();
- *   btn.onClick = () => { ... };
+ * 桃源农场 UI 控件库 v2.0
+ * 像素风格，对标原始按钮素材
  */
 
 class PixelButton {
   /**
    * @param {HTMLCanvasElement} canvas
    * @param {Object} opts
-   * @param {string}  opts.text       - 按钮文字
-   * @param {number}  opts.x          - 左上角 x
-   * @param {number}  opts.y          - 左上角 y
-   * @param {number}  opts.w          - 宽度
-   * @param {number}  opts.h          - 高度
-   * @param {string}  [opts.style]    - 'yellow'(默认) | 'red' | 'blue' | 'gray'
-   * @param {number}  [opts.fontSize] - 字号（默认按高度自动）
-   * @param {boolean} [opts.disabled] - 是否禁用
+   * @param {string}  opts.text
+   * @param {number}  opts.x
+   * @param {number}  opts.y
+   * @param {number}  opts.w
+   * @param {number}  opts.h
+   * @param {string}  [opts.style]   'yellow'|'red'|'blue'|'gray'
+   * @param {number}  [opts.fontSize]
+   * @param {boolean} [opts.disabled]
    */
   constructor(canvas, opts = {}) {
-    this.canvas = canvas;
-    this.ctx    = canvas.getContext('2d');
-    this.text   = opts.text    ?? '按钮';
-    this.x      = opts.x      ?? 0;
-    this.y      = opts.y      ?? 0;
-    this.w      = opts.w      ?? 200;
-    this.h      = opts.h      ?? 60;
-    this.style  = opts.style  ?? 'yellow';
+    this.canvas   = canvas;
+    this.ctx      = canvas.getContext('2d');
+    this.text     = opts.text     ?? '按钮';
+    this.x        = opts.x       ?? 0;
+    this.y        = opts.y       ?? 0;
+    this.w        = opts.w       ?? 240;
+    this.h        = opts.h       ?? 64;
+    this.style    = opts.style   ?? 'yellow';
     this.fontSize = opts.fontSize ?? null;
     this.disabled = opts.disabled ?? false;
     this.pressed  = false;
     this.onClick  = null;
 
-    // 颜色主题
     this.themes = {
       yellow: {
-        outerBorder:  '#c8440a',   // 最外层橙红边
-        innerBorder:  '#f5c842',   // 内层亮黄边
-        bgFrom:       '#f5d84a',   // 背景渐变左（亮黄）
-        bgTo:         '#e8a828',   // 背景渐变右（深黄）
-        shadow:       '#7a2a00',   // 底部阴影
-        highlight:    'rgba(255,255,255,0.7)', // 高光点
-        textColor:    '#ffffff',
-        textStroke:   '#c8440a',
+        shadow:      '#5a1a00',   // 底部阴影（最深）
+        outer:       '#b83a0c',   // 外层橙红
+        outerLight:  '#e05a20',   // 外层亮面（上边）
+        innerBorder: '#f0a830',   // 黄色内边框
+        bgFrom:      '#ffd840',   // 背景渐变（左亮）
+        bgTo:        '#f0a020',   // 背景渐变（右暗）
+        hlColor:     'rgba(255,255,255,0.85)',
+        textColor:   '#ffffff',
+        textStroke:  '#7a2000',
       },
       red: {
-        outerBorder:  '#8b0000',
-        innerBorder:  '#ff6666',
-        bgFrom:       '#e84040',
-        bgTo:         '#b82020',
-        shadow:       '#500000',
-        highlight:    'rgba(255,255,255,0.5)',
-        textColor:    '#ffffff',
-        textStroke:   '#8b0000',
+        shadow:      '#3a0000',
+        outer:       '#8b0000',
+        outerLight:  '#cc2020',
+        innerBorder: '#ff6060',
+        bgFrom:      '#e84040',
+        bgTo:        '#b01818',
+        hlColor:     'rgba(255,255,255,0.6)',
+        textColor:   '#ffffff',
+        textStroke:  '#500000',
       },
       blue: {
-        outerBorder:  '#003080',
-        innerBorder:  '#66aaff',
-        bgFrom:       '#4080e0',
-        bgTo:         '#2050b0',
-        shadow:       '#001050',
-        highlight:    'rgba(255,255,255,0.5)',
-        textColor:    '#ffffff',
-        textStroke:   '#003080',
+        shadow:      '#001040',
+        outer:       '#0030a0',
+        outerLight:  '#2060e0',
+        innerBorder: '#60a0ff',
+        bgFrom:      '#4080e0',
+        bgTo:        '#1848b0',
+        hlColor:     'rgba(255,255,255,0.5)',
+        textColor:   '#ffffff',
+        textStroke:  '#001060',
       },
       gray: {
-        outerBorder:  '#444',
-        innerBorder:  '#aaa',
-        bgFrom:       '#888',
-        bgTo:         '#555',
-        shadow:       '#222',
-        highlight:    'rgba(255,255,255,0.3)',
-        textColor:    '#ddd',
-        textStroke:   '#222',
+        shadow:      '#111',
+        outer:       '#333',
+        outerLight:  '#555',
+        innerBorder: '#888',
+        bgFrom:      '#777',
+        bgTo:        '#444',
+        hlColor:     'rgba(255,255,255,0.2)',
+        textColor:   '#ccc',
+        textStroke:  '#111',
       },
     };
 
     this._bindEvents();
   }
 
-  // ── 核心绘制 ──────────────────────────────
   draw() {
     const { ctx, x, y, w, h, disabled, pressed } = this;
-    const t = this.themes[this.style] || this.themes.yellow;
+    const t = disabled ? this.themes.gray : (this.themes[this.style] || this.themes.yellow);
+    const dy = pressed ? 2 : 0;          // 按下时整体下移
+    const shadowH = pressed ? 0 : 3;     // 底部阴影高度
 
-    // 按下偏移
-    const dy = pressed ? 3 : 0;
-
-    // 像素圆角（固定4px像素风）
-    const r = Math.max(4, Math.floor(h * 0.18));
-    // 边框层厚度
-    const b1 = Math.max(3, Math.floor(h * 0.09));  // 外层边框
-    const b2 = Math.max(2, Math.floor(h * 0.06));  // 内层边框
+    // 像素边框厚度（按高度比例）
+    const b  = Math.max(3, Math.round(h * 0.10));  // 外层厚度
+    const b2 = Math.max(2, Math.round(h * 0.055)); // 内层厚度
+    // 像素斜切角大小（固定像素风，不用圆弧）
+    const cut = Math.max(3, Math.round(h * 0.14));
 
     ctx.save();
+    ctx.imageSmoothingEnabled = false; // 像素锐化
 
-    // 1. 底部阴影（按下时消失）
+    // ── 1. 底部阴影 ──
     if (!pressed) {
       ctx.fillStyle = t.shadow;
-      this._roundRect(ctx, x + 2, y + h - b1 + dy + 3, w - 2, b1, r);
-      ctx.fill();
+      this._pixelRect(ctx, x + cut, y + h - shadowH + dy, w - cut * 2, shadowH);
+      this._pixelRect(ctx, x + cut + b, y + h - shadowH + 1 + dy, w - (cut + b) * 2, shadowH - 1);
     }
 
-    // 2. 最外层橙红边框
-    ctx.fillStyle = disabled ? '#666' : t.outerBorder;
-    this._roundRect(ctx, x, y + dy, w, h - (pressed ? 0 : 3), r);
+    // ── 2. 最外层橙红（带斜切角） ──
+    ctx.fillStyle = t.outer;
+    this._cutRect(ctx, x, y + dy, w, h - shadowH, cut);
     ctx.fill();
 
-    // 3. 内层亮黄边框
-    ctx.fillStyle = disabled ? '#888' : t.innerBorder;
-    this._roundRect(ctx, x + b1, y + b1 + dy, w - b1 * 2, h - b1 * 2 - (pressed ? 0 : 3), r - 1);
+    // 上边缘亮色（高光）
+    ctx.fillStyle = t.outerLight;
+    this._pixelRect(ctx, x + cut, y + dy, w - cut * 2, Math.max(2, Math.round(b * 0.4)));
+
+    // ── 3. 内层黄色边框 ──
+    ctx.fillStyle = t.innerBorder;
+    this._cutRect(ctx, x + b, y + b + dy, w - b * 2, h - b * 2 - shadowH, cut - Math.round(cut * 0.4));
     ctx.fill();
 
-    // 4. 主体背景渐变
-    const grad = ctx.createLinearGradient(x + b1 + b2, y, x + w - b1 - b2, y);
-    if (disabled) {
-      grad.addColorStop(0, '#999');
-      grad.addColorStop(1, '#666');
-    } else {
-      grad.addColorStop(0, t.bgFrom);
-      grad.addColorStop(1, t.bgTo);
-    }
+    // ── 4. 主体背景（渐变） ──
+    const bx = x + b + b2;
+    const by = y + b + b2 + dy;
+    const bw = w - (b + b2) * 2;
+    const bh = h - (b + b2) * 2 - shadowH;
+    const cutInner = Math.max(1, cut - Math.round(cut * 0.7));
+
+    const grad = ctx.createLinearGradient(bx, by, bx + bw, by);
+    grad.addColorStop(0,    t.bgFrom);
+    grad.addColorStop(0.45, t.bgFrom);
+    grad.addColorStop(1,    t.bgTo);
     ctx.fillStyle = grad;
-    this._roundRect(ctx, x + b1 + b2, y + b1 + b2 + dy, w - (b1 + b2) * 2, h - (b1 + b2) * 2 - (pressed ? 0 : 3), Math.max(2, r - 2));
+    this._cutRect(ctx, bx, by, bw, bh, cutInner);
     ctx.fill();
 
-    // 5. 像素高光（左上角几个小方块）
-    if (!disabled) {
-      ctx.fillStyle = t.highlight;
-      const px = Math.max(3, Math.floor(h * 0.1));
-      const hx = x + b1 + b2 + px;
-      const hy = y + b1 + b2 + px + dy;
-      ctx.fillRect(hx,      hy,      px, px);
-      ctx.fillRect(hx + px + 1, hy, px, px);
-      ctx.fillRect(hx,      hy + px + 1, px, px);
-    }
+    // ── 5. 像素高光（左上角小方块） ──
+    const px = Math.max(2, Math.round(h * 0.07));
+    const hx = bx + px * 2;
+    const hy = by + px;
+    ctx.fillStyle = t.hlColor;
+    // 3个高光像素块
+    ctx.fillRect(hx,          hy,          px, px);
+    ctx.fillRect(hx + px * 2, hy,          px, px);
+    ctx.fillRect(hx,          hy + px * 2, px, px);
 
-    // 6. 文字
-    const fs = this.fontSize ?? Math.floor(h * 0.42);
-    ctx.font = `bold ${fs}px "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif`;
+    // ── 6. 文字 ──
+    const fs = this.fontSize ?? Math.round(h * 0.44);
+    ctx.font         = `900 ${fs}px "PingFang SC", "Microsoft YaHei", "SimHei", sans-serif`;
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     const tx = x + w / 2;
-    const ty = y + h / 2 + dy - (pressed ? 0 : 1);
+    const ty = y + h / 2 + dy - Math.round(shadowH / 2);
 
-    // 文字描边（像素轮廓感）
-    ctx.strokeStyle = disabled ? '#333' : t.textStroke;
-    ctx.lineWidth   = Math.max(2, Math.floor(fs * 0.12));
+    // 描边（像素轮廓）
+    ctx.strokeStyle = t.textStroke;
+    ctx.lineWidth   = Math.max(3, Math.round(fs * 0.14));
     ctx.lineJoin    = 'round';
     ctx.strokeText(this.text, tx, ty);
-
-    // 文字填充
-    ctx.fillStyle = disabled ? '#aaa' : t.textColor;
+    // 填色
+    ctx.fillStyle   = t.textColor;
     ctx.fillText(this.text, tx, ty);
 
     ctx.restore();
   }
 
-  // ── 像素圆角矩形辅助 ─────────────────────
-  _roundRect(ctx, x, y, w, h, r) {
-    r = Math.min(r, w / 2, h / 2);
+  // ── 像素斜切角矩形路径 ──────────────────
+  _cutRect(ctx, x, y, w, h, cut) {
     ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y, x + w, y + r, r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x, y + h, x, y + h - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
+    ctx.moveTo(x + cut, y);
+    ctx.lineTo(x + w - cut, y);
+    ctx.lineTo(x + w, y + cut);
+    ctx.lineTo(x + w, y + h - cut);
+    ctx.lineTo(x + w - cut, y + h);
+    ctx.lineTo(x + cut, y + h);
+    ctx.lineTo(x, y + h - cut);
+    ctx.lineTo(x, y + cut);
     ctx.closePath();
+  }
+
+  _pixelRect(ctx, x, y, w, h) {
+    ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
   }
 
   // ── 命中检测 ─────────────────────────────
@@ -184,37 +188,25 @@ class PixelButton {
   // ── 事件绑定 ─────────────────────────────
   _bindEvents() {
     const el = this.canvas;
-
     const getPos = (e) => {
       const rect = el.getBoundingClientRect();
-      const scaleX = el.width  / rect.width;
-      const scaleY = el.height / rect.height;
+      const sx = el.width  / rect.width;
+      const sy = el.height / rect.height;
       const src = e.touches ? e.touches[0] : e;
-      return {
-        x: (src.clientX - rect.left)  * scaleX,
-        y: (src.clientY - rect.top)   * scaleY,
-      };
+      return { x: (src.clientX - rect.left) * sx, y: (src.clientY - rect.top) * sy };
     };
-
     const onDown = (e) => {
       if (this.disabled) return;
       const p = getPos(e);
-      if (this._hit(p.x, p.y)) {
-        this.pressed = true;
-        this.draw();
-        e.preventDefault();
-      }
+      if (this._hit(p.x, p.y)) { this.pressed = true; this.draw(); e.preventDefault(); }
     };
     const onUp = (e) => {
       if (!this.pressed) return;
       this.pressed = false;
       const p = getPos(e);
       this.draw();
-      if (this._hit(p.x, p.y) && this.onClick) {
-        this.onClick();
-      }
+      if (this._hit(p.x, p.y) && this.onClick) this.onClick();
     };
-
     el.addEventListener('mousedown',  onDown);
     el.addEventListener('mouseup',    onUp);
     el.addEventListener('mouseleave', () => { if (this.pressed) { this.pressed = false; this.draw(); } });
@@ -224,9 +216,7 @@ class PixelButton {
 }
 
 
-/**
- * PixelLabel — 纯文字标签（带像素描边）
- */
+/** PixelLabel — 像素风文字标签 */
 class PixelLabel {
   constructor(canvas, opts = {}) {
     this.canvas   = canvas;
@@ -240,15 +230,14 @@ class PixelLabel {
     this.align    = opts.align    ?? 'left';
     this.baseline = opts.baseline ?? 'top';
   }
-
   draw() {
     const { ctx, x, y, fontSize, color, stroke, align, baseline } = this;
     ctx.save();
-    ctx.font         = `bold ${fontSize}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+    ctx.font         = `900 ${fontSize}px "PingFang SC","Microsoft YaHei","SimHei",sans-serif`;
     ctx.textAlign    = align;
     ctx.textBaseline = baseline;
     ctx.strokeStyle  = stroke;
-    ctx.lineWidth    = Math.max(2, fontSize * 0.1);
+    ctx.lineWidth    = Math.max(2, fontSize * 0.12);
     ctx.lineJoin     = 'round';
     ctx.strokeText(this.text, x, y);
     ctx.fillStyle    = color;
@@ -258,44 +247,49 @@ class PixelLabel {
 }
 
 
-/**
- * PixelPanel — 像素风面板（背景框）
- */
+/** PixelPanel — 像素风面板背景框 */
 class PixelPanel {
   constructor(canvas, opts = {}) {
     this.canvas  = canvas;
     this.ctx     = canvas.getContext('2d');
-    this.x       = opts.x      ?? 0;
-    this.y       = opts.y      ?? 0;
-    this.w       = opts.w      ?? 200;
-    this.h       = opts.h      ?? 100;
-    this.bgColor = opts.bgColor ?? 'rgba(0,20,0,0.85)';
+    this.x       = opts.x       ?? 0;
+    this.y       = opts.y       ?? 0;
+    this.w       = opts.w       ?? 200;
+    this.h       = opts.h       ?? 100;
+    this.bgColor = opts.bgColor ?? 'rgba(0,20,0,0.9)';
     this.border  = opts.border  ?? '#4caf50';
-    this.radius  = opts.radius  ?? 8;
+    this.cut     = opts.cut     ?? 8;
   }
-
   draw() {
-    const { ctx, x, y, w, h, bgColor, border, radius } = this;
+    const { ctx, x, y, w, h, bgColor, border, cut } = this;
     ctx.save();
     // 外边框
-    ctx.strokeStyle = border;
-    ctx.lineWidth   = 3;
-    ctx.fillStyle   = bgColor;
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h, radius);
-    ctx.fill();
-    ctx.stroke();
+    ctx.fillStyle = border;
+    this._cutRect(ctx, x, y, w, h, cut); ctx.fill();
+    // 内填充
+    const b = 2;
+    ctx.fillStyle = bgColor;
+    this._cutRect(ctx, x + b, y + b, w - b*2, h - b*2, Math.max(1, cut - b)); ctx.fill();
     // 内高光线
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth   = 1;
-    ctx.beginPath();
-    ctx.roundRect(x + 2, y + 2, w - 4, h - 4, radius - 1);
-    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    this._cutRect(ctx, x + b*2, y + b*2, w - b*4, h - b*4, Math.max(1, cut - b*2)); ctx.stroke();
     ctx.restore();
+  }
+  _cutRect(ctx, x, y, w, h, cut) {
+    ctx.beginPath();
+    ctx.moveTo(x + cut, y);
+    ctx.lineTo(x + w - cut, y);
+    ctx.lineTo(x + w, y + cut);
+    ctx.lineTo(x + w, y + h - cut);
+    ctx.lineTo(x + w - cut, y + h);
+    ctx.lineTo(x + cut, y + h);
+    ctx.lineTo(x, y + h - cut);
+    ctx.lineTo(x, y + cut);
+    ctx.closePath();
   }
 }
 
-// 导出（兼容 ES module 和直接 script 引入）
 if (typeof module !== 'undefined') {
   module.exports = { PixelButton, PixelLabel, PixelPanel };
 }
