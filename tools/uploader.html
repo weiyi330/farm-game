@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📤 仓库文件上传</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: -apple-system, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+h1 {
+  font-size: 18px;
+  color: #58a6ff;
+  margin-bottom: 4px;
+}
+.subtitle {
+  font-size: 12px;
+  color: #8b949e;
+  margin-bottom: 20px;
+}
+
+/* 卡片 */
+.card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-size: 13px;
+  color: #8b949e;
+  margin-bottom: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* 输入框 */
+input[type="text"], input[type="password"], select {
+  width: 100%;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #c9d1d9;
+  padding: 10px 12px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  outline: none;
+  -webkit-appearance: none;
+}
+input:focus, select:focus {
+  border-color: #58a6ff;
+}
+input::placeholder {
+  color: #484f58;
+}
+label {
+  font-size: 12px;
+  color: #8b949e;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* 文件拖放区 */
+#drop-zone {
+  border: 2px dashed #30363d;
+  border-radius: 10px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+#drop-zone.dragover {
+  border-color: #58a6ff;
+  background: #1c2535;
+}
+#drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+.drop-icon { font-size: 36px; margin-bottom: 8px; }
+.drop-text { font-size: 14px; color: #8b949e; }
+.drop-hint { font-size: 11px; color: #484f58; margin-top: 4px; }
+
+/* 文件列表 */
+#file-list {
+  margin-top: 12px;
+}
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d1117;
+  border: 1px solid #21262d;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.file-item .file-icon { font-size: 18px; flex-shrink: 0; }
+.file-item .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c9d1d9; }
+.file-item .file-size { font-size: 11px; color: #8b949e; flex-shrink: 0; }
+.file-item .file-remove {
+  background: none;
+  border: none;
+  color: #6e7681;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+.file-item .file-remove:hover { color: #f85149; }
+.file-item .file-path-input {
+  width: 100%;
+  margin: 4px 0 0 0;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+/* 按钮 */
+.btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: #238636;
+  color: #fff;
+}
+.btn-primary:hover { background: #2ea043; }
+.btn-primary:disabled {
+  background: #21262d;
+  color: #484f58;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: #21262d;
+  color: #8b949e;
+  border: 1px solid #30363d;
+  margin-top: 8px;
+}
+
+/* 进度 */
+#progress-section { display: none; }
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.progress-item .pi-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progress-item .pi-status { font-size: 18px; flex-shrink: 0; }
+.progress-bar-wrap {
+  background: #21262d;
+  border-radius: 4px;
+  height: 4px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 4px;
+  background: #238636;
+  border-radius: 4px;
+  transition: width 0.3s;
+  width: 0%;
+}
+
+/* 结果 */
+#result-section { display: none; }
+.result-ok { color: #3fb950; font-size: 14px; margin-bottom: 6px; }
+.result-err { color: #f85149; font-size: 14px; margin-bottom: 6px; }
+.result-link {
+  display: inline-block;
+  color: #58a6ff;
+  font-size: 12px;
+  word-break: break-all;
+  text-decoration: none;
+  margin-top: 2px;
+}
+
+/* token 保存提示 */
+.save-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: -4px;
+  margin-bottom: 10px;
+}
+.save-row label {
+  margin: 0;
+  font-size: 12px;
+  color: #8b949e;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.save-row input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+/* 路径模式切换 */
+.mode-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mode-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+  background: #0d1117;
+  color: #8b949e;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+.mode-btn.active {
+  border-color: #58a6ff;
+  color: #58a6ff;
+  background: #1c2535;
+}
+
+/* 公共路径 */
+#common-path-section { display: none; }
+</style>
+</head>
+<body>
+
+<h1>📤 仓库文件上传</h1>
+<p class="subtitle">直接从手机上传文件到 GitHub 仓库</p>
+
+<!-- Token 配置 -->
+<div class="card">
+  <div class="card-title">🔑 GitHub 配置</div>
+  <label>Personal Access Token（需要 repo 权限）</label>
+  <input type="password" id="token" placeholder="ghp_xxxx..." autocomplete="off">
+  <div class="save-row">
+    <label><input type="checkbox" id="save-token"> 记住 Token（存本地，不上传）</label>
+  </div>
+  <label>仓库（owner/repo）</label>
+  <input type="text" id="repo" placeholder="weiyi330/farm-game">
+  <label>分支</label>
+  <input type="text" id="branch" value="main" placeholder="main">
+</div>
+
+<!-- 上传路径模式 -->
+<div class="card">
+  <div class="card-title">📁 上传路径</div>
+  <div class="mode-row">
+    <div class="mode-btn active" id="mode-common" onclick="setMode('common')">统一路径</div>
+    <div class="mode-btn" id="mode-individual" onclick="setMode('individual')">每个文件单独设</div>
+  </div>
+  <div id="common-path-section" style="display:block;">
+    <label>上传到仓库哪个目录</label>
+    <input type="text" id="common-path" placeholder="assets/images/ui/home/">
+    <div style="font-size:11px;color:#484f58;">留空则上传到根目录；末尾加 / 表示目录</div>
+  </div>
+</div>
+
+<!-- 文件选择 -->
+<div class="card">
+  <div class="card-title">📎 选择文件</div>
+  <div id="drop-zone">
+    <input type="file" id="file-input" multiple accept="*/*">
+    <div class="drop-icon">📁</div>
+    <div class="drop-text">点击选择文件</div>
+    <div class="drop-hint">支持多选 · 图片/JSON/任意文件</div>
+  </div>
+  <div id="file-list"></div>
+</div>
+
+<!-- 提交 commit 信息 -->
+<div class="card">
+  <div class="card-title">💬 Commit 信息</div>
+  <input type="text" id="commit-msg" placeholder="upload files via mobile uploader" value="upload files via mobile uploader">
+</div>
+
+<!-- 上传按钮 -->
+<button class="btn btn-primary" id="upload-btn" onclick="startUpload()" disabled>
+  ⬆️ 开始上传
+</button>
+<button class="btn btn-secondary" onclick="clearAll()">🗑 清空</button>
+
+<!-- 进度 -->
+<div class="card" id="progress-section" style="margin-top:14px;">
+  <div class="card-title">⏳ 上传进度</div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+  <div id="progress-list"></div>
+</div>
+
+<!-- 结果 -->
+<div class="card" id="result-section" style="margin-top:14px;">
+  <div class="card-title">✅ 上传结果</div>
+  <div id="result-list"></div>
+</div>
+
+<script>
+// ── 状态 ──
+let files = []; // [{file, path}]
+let pathMode = 'common'; // 'common' | 'individual'
+
+// ── 初始化：读取保存的配置 ──
+window.onload = () => {
+  const saved = localStorage.getItem('gh_uploader_token');
+  if (saved) {
+    document.getElementById('token').value = saved;
+    document.getElementById('save-token').checked = true;
+  }
+  const savedRepo = localStorage.getItem('gh_uploader_repo');
+  if (savedRepo) document.getElementById('repo').value = savedRepo;
+  const savedPath = localStorage.getItem('gh_uploader_path');
+  if (savedPath) document.getElementById('common-path').value = savedPath;
+};
+
+// ── 模式切换 ──
+function setMode(mode) {
+  pathMode = mode;
+  document.getElementById('mode-common').classList.toggle('active', mode === 'common');
+  document.getElementById('mode-individual').classList.toggle('active', mode === 'individual');
+  document.getElementById('common-path-section').style.display = mode === 'common' ? 'block' : 'none';
+  renderFileList();
+}
+
+// ── 文件选择 ──
+document.getElementById('file-input').addEventListener('change', e => {
+  const newFiles = Array.from(e.target.files);
+  newFiles.forEach(f => {
+    if (!files.find(x => x.file.name === f.name && x.file.size === f.size)) {
+      files.push({ file: f, path: '' });
+    }
+  });
+  renderFileList();
+  checkReady();
+  e.target.value = '';
+});
+
+// 拖放
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('dragover');
+  const newFiles = Array.from(e.dataTransfer.files);
+  newFiles.forEach(f => files.push({ file: f, path: '' }));
+  renderFileList();
+  checkReady();
+});
+
+function getFileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  const icons = { png:'🖼', jpg:'🖼', jpeg:'🖼', gif:'🖼', webp:'🖼', svg:'🖼',
+    json:'📋', js:'📜', html:'🌐', css:'🎨', md:'📝', txt:'📄',
+    mp3:'🎵', mp4:'🎬', wav:'🎵', zip:'📦', tar:'📦', gz:'📦' };
+  return icons[ext] || '📄';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + 'KB';
+  return (bytes / 1024 / 1024).toFixed(2) + 'MB';
+}
+
+function renderFileList() {
+  const list = document.getElementById('file-list');
+  if (files.length === 0) { list.innerHTML = ''; return; }
+  list.innerHTML = files.map((item, i) => `
+    <div class="file-item" style="flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;width:100%;">
+        <span class="file-icon">${getFileIcon(item.file.name)}</span>
+        <span class="file-name">${item.file.name}</span>
+        <span class="file-size">${formatSize(item.file.size)}</span>
+        <button class="file-remove" onclick="removeFile(${i})">✕</button>
+      </div>
+      ${pathMode === 'individual' ? `
+        <input type="text" class="file-path-input" placeholder="上传路径，如 assets/images/" 
+          value="${item.path}" oninput="updatePath(${i}, this.value)">
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function removeFile(i) {
+  files.splice(i, 1);
+  renderFileList();
+  checkReady();
+}
+
+function updatePath(i, val) {
+  files[i].path = val;
+}
+
+function checkReady() {
+  const hasFiles = files.length > 0;
+  const hasToken = document.getElementById('token').value.trim();
+  const hasRepo = document.getElementById('repo').value.trim();
+  document.getElementById('upload-btn').disabled = !(hasFiles && hasToken && hasRepo);
+}
+document.getElementById('token').addEventListener('input', checkReady);
+document.getElementById('repo').addEventListener('input', checkReady);
+
+// ── 上传逻辑 ──
+async function startUpload() {
+  const token = document.getElementById('token').value.trim();
+  const repo = document.getElementById('repo').value.trim();
+  const branch = document.getElementById('branch').value.trim() || 'main';
+  const commitMsg = document.getElementById('commit-msg').value.trim() || 'upload files via mobile uploader';
+  const commonPath = (document.getElementById('common-path').value.trim()).replace(/^\//, '');
+
+  // 保存配置
+  if (document.getElementById('save-token').checked) {
+    localStorage.setItem('gh_uploader_token', token);
+  } else {
+    localStorage.removeItem('gh_uploader_token');
+  }
+  localStorage.setItem('gh_uploader_repo', repo);
+  if (pathMode === 'common') localStorage.setItem('gh_uploader_path', commonPath);
+
+  // 显示进度区
+  document.getElementById('progress-section').style.display = 'block';
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('upload-btn').disabled = true;
+  document.getElementById('progress-bar').style.width = '0%';
+
+  const progressList = document.getElementById('progress-list');
+  progressList.innerHTML = files.map((item, i) => `
+    <div class="progress-item" id="pi-${i}">
+      <span class="pi-status" id="ps-${i}">⏳</span>
+      <span class="pi-name">${item.file.name}</span>
+      <span style="font-size:11px;color:#8b949e;" id="pm-${i}">等待中</span>
+    </div>
+  `).join('');
+
+  const results = [];
+  for (let i = 0; i < files.length; i++) {
+    const item = files[i];
+    document.getElementById('ps-' + i).textContent = '⬆️';
+    document.getElementById('pm-' + i).textContent = '上传中...';
+
+    // 构建目标路径
+    let dir = pathMode === 'common' ? commonPath : (item.path || '');
+    if (dir && !dir.endsWith('/')) dir += '/';
+    const targetPath = dir + item.file.name;
+
+    try {
+      // 读文件为 base64
+      const base64 = await readFileBase64(item.file);
+
+      // 检查文件是否已存在（获取 SHA）
+      let sha = null;
+      try {
+        const checkResp = await fetch(
+          `https://api.github.com/repos/${repo}/contents/${encodeURIPath(targetPath)}?ref=${branch}`,
+          { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' } }
+        );
+        if (checkResp.ok) {
+          const checkData = await checkResp.json();
+          sha = checkData.sha;
+        }
+      } catch (_) {}
+
+      // 上传
+      const body = { message: commitMsg, content: base64, branch };
+      if (sha) body.sha = sha;
+
+      const resp = await fetch(
+        `https://api.github.com/repos/${repo}/contents/${encodeURIPath(targetPath)}`,
+        {
+          method: 'PUT',
+          headers: {
+            Authorization: `token ${token}`,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        }
+      );
+
+      if (resp.ok) {
+        const data = await resp.json();
+        document.getElementById('ps-' + i).textContent = '✅';
+        document.getElementById('pm-' + i).textContent = sha ? '已覆盖' : '成功';
+        results.push({ ok: true, name: item.file.name, path: targetPath, url: data.content?.html_url });
+      } else {
+        const err = await resp.json();
+        throw new Error(err.message || resp.status);
+      }
+    } catch (e) {
+      document.getElementById('ps-' + i).textContent = '❌';
+      document.getElementById('pm-' + i).textContent = e.message;
+      results.push({ ok: false, name: item.file.name, error: e.message });
+    }
+
+    // 更新进度条
+    document.getElementById('progress-bar').style.width = ((i + 1) / files.length * 100) + '%';
+  }
+
+  // 显示结果
+  showResults(results, repo, branch);
+  document.getElementById('upload-btn').disabled = false;
+}
+
+function showResults(results, repo, branch) {
+  const section = document.getElementById('result-section');
+  section.style.display = 'block';
+  const ok = results.filter(r => r.ok);
+  const fail = results.filter(r => !r.ok);
+  let html = '';
+  if (ok.length) {
+    html += `<div class="result-ok">✅ 成功上传 ${ok.length} 个文件</div>`;
+    ok.forEach(r => {
+      html += `<div style="margin-bottom:8px;">
+        <div style="font-size:13px;color:#c9d1d9;">${r.name}</div>
+        <div style="font-size:11px;color:#8b949e;">→ ${r.path}</div>
+        ${r.url ? `<a class="result-link" href="${r.url}" target="_blank">在 GitHub 查看 ↗</a>` : ''}
+      </div>`;
+    });
+  }
+  if (fail.length) {
+    html += `<div class="result-err" style="margin-top:10px;">❌ 失败 ${fail.length} 个</div>`;
+    fail.forEach(r => {
+      html += `<div style="font-size:12px;color:#f85149;margin-bottom:4px;">${r.name}：${r.error}</div>`;
+    });
+  }
+  // GitHub Pages 链接
+  if (ok.length) {
+    html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid #21262d;font-size:12px;color:#8b949e;">
+      🌐 <a class="result-link" href="https://github.com/${repo}/tree/${branch}" target="_blank">查看仓库 ↗</a>
+    </div>`;
+  }
+  document.getElementById('result-list').innerHTML = html;
+  section.scrollIntoView({ behavior: 'smooth' });
+}
+
+function readFileBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const base64 = e.target.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function encodeURIPath(path) {
+  return path.split('/').map(encodeURIComponent).join('/');
+}
+
+function clearAll() {
+  files = [];
+  renderFileList();
+  document.getElementById('upload-btn').disabled = true;
+  document.getElementById('progress-section').style.display = 'none';
+  document.getElementById('result-section').style.display = 'none';
+}
+</script>
+</body>
+</html>
