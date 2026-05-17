@@ -3,66 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>UI 控件库预览 v2</title>
+<title>游戏主界面预览</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #2a3a2a; display: flex; flex-direction: column; align-items: center; padding: 20px 12px; gap: 10px; }
-h2 { color: #81c784; font-size: 13px; align-self: flex-start; margin-top: 10px; letter-spacing: 1px; }
-canvas { max-width: 100%; border-radius: 8px; }
+html, body { background: #000; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+canvas { max-width: 100%; max-height: 100vh; display: block; }
 </style>
 </head>
 <body>
-
-<h2>▶ 按钮样式（黄/红/蓝/禁用）</h2>
-<canvas id="c1" width="360" height="300"></canvas>
-
-<h2>▶ 按钮尺寸对比</h2>
-<canvas id="c2" width="360" height="200"></canvas>
-
-<h2>▶ 面板 + 标签</h2>
-<canvas id="c3" width="360" height="140"></canvas>
+<canvas id="c"></canvas>
 
 <script src="./ui_components.js"></script>
 <script>
-// ── 演示1：四种颜色 ──
-const c1 = document.getElementById('c1');
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
 
-const btns = [
-  new PixelButton(c1, { text: '登录游戏', x: 60, y: 16,  w: 240, h: 60, style: 'yellow' }),
-  new PixelButton(c1, { text: '开始冒险', x: 60, y: 92,  w: 240, h: 60, style: 'red'    }),
-  new PixelButton(c1, { text: '查看地图', x: 60, y: 168, w: 240, h: 60, style: 'blue'   }),
-  new PixelButton(c1, { text: '功能维护', x: 60, y: 224, w: 240, h: 60, style: 'yellow', disabled: true }),
+// 按背景图比例
+const W = 1366, H = 768;
+canvas.width  = W;
+canvas.height = H;
+
+const bg = new Image();
+bg.src = '../images/ui/home/ui_home_bg.jpg';
+bg.onload = () => {
+  draw();
+};
+
+// 按钮配置：三个按钮居中排列
+const btnW = 320, btnH = 74;
+const btnX = (W - btnW) / 2;
+const gap  = 20;
+// 垂直居中偏下一点（主界面按钮区）
+const startY = H * 0.54;
+
+const buttons = [
+  new PixelButton(canvas, { text: '登录游戏', x: btnX, y: startY,              w: btnW, h: btnH, style: 'yellow' }),
+  new PixelButton(canvas, { text: '载入存档', x: btnX, y: startY + btnH + gap, w: btnW, h: btnH, style: 'yellow' }),
+  new PixelButton(canvas, { text: '游戏设置', x: btnX, y: startY + (btnH + gap) * 2, w: btnW, h: btnH, style: 'blue' }),
 ];
 
-function drawAll1() {
-  c1.getContext('2d').clearRect(0, 0, c1.width, c1.height);
-  btns.forEach(b => b.draw());
+function draw() {
+  // 背景
+  ctx.drawImage(bg, 0, 0, W, H);
+  // 按钮区半透明遮罩（让按钮更突出）
+  const maskX = btnX - 30;
+  const maskY = startY - 20;
+  const maskW = btnW + 60;
+  const maskH = btnH * 3 + gap * 2 + 40;
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.roundRect(maskX, maskY, maskW, maskH, 12);
+  ctx.fill();
+  // 绘制按钮
+  buttons.forEach(b => b.draw());
 }
-drawAll1();
-btns.forEach(b => { b.onClick = () => alert(b.text); });
 
-// ── 演示2：尺寸对比 ──
-const c2 = document.getElementById('c2');
-
-const btns2 = [
-  new PixelButton(c2, { text: '大按钮', x: 60, y: 14,  w: 240, h: 72, style: 'yellow' }),
-  new PixelButton(c2, { text: '中按钮', x: 80, y: 102, w: 200, h: 52, style: 'yellow' }),
-  new PixelButton(c2, { text: '小按钮', x: 120, y: 164, w: 120, h: 38, style: 'yellow' }),
-];
-function drawAll2() {
-  c2.getContext('2d').clearRect(0, 0, c2.width, c2.height);
-  btns2.forEach(b => b.draw());
-}
-drawAll2();
-
-// ── 演示3：面板+标签 ──
-const c3 = document.getElementById('c3');
-
-const panel = new PixelPanel(c3, { x: 20, y: 16, w: 320, h: 108, bgColor: 'rgba(0,25,8,0.92)', border: '#4caf50', cut: 10 });
-const lbl1  = new PixelLabel(c3, { text: '桃源农场', x: 180, y: 44, fontSize: 30, color: '#ffd840', stroke: '#7a2000', align: 'center' });
-const lbl2  = new PixelLabel(c3, { text: 'v0.0.2  像素UI控件库', x: 180, y: 88, fontSize: 13, color: '#81c784', stroke: '#003300', align: 'center' });
-
-panel.draw(); lbl1.draw(); lbl2.draw();
+buttons.forEach(b => { b.onClick = () => alert(b.text); });
 </script>
 </body>
 </html>
