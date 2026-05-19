@@ -2355,16 +2355,16 @@ function layoutSplash() {
   splashTitle.style.left = '50%';
   splashTitle.style.top  = '50%';
   splashTitle.style.transform = isLandscape
-    ? 'translate(calc(-50% - 150px), -50%)'
-    : 'translate(calc(-50% + 150px), -50%) rotate(90deg)';
+    ? 'translate(calc(-50% - 250px), -50%)'
+    : 'translate(calc(-50% + 250px), -50%) rotate(90deg)';
 
-  // 按钮：纯居中，不偏移
+  // 按钮：居中 + 视觉向下移50px
   splashBtn.style.width = btnW + 'px';
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
-    ? 'translate(-50%, -50%)'
-    : 'translate(-50%, -50%) rotate(90deg)';
+    ? 'translate(-50%, calc(-50% + 50px))'
+    : 'translate(calc(-50% - 50px), -50%) rotate(90deg)';
 }
 
 layoutSplash();
