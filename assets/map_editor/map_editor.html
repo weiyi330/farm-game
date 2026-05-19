@@ -440,20 +440,19 @@ select.topbar-select {
   object-fit: cover;
   transform-origin: center center;
 }
-/* splash-inner 用绝对定位，由JS精确放置 */
-#splash-inner {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform-origin: center center;
-  z-index: 1;
-}
+/* splash-inner 不再用，改用独立元素定位 */
+#splash-inner { display: none; }
 #splash-title {
+  position: absolute;
+  z-index: 1;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  transform-origin: center center;
 }
 #splash-btn {
+  position: absolute;
+  z-index: 1;
   filter: drop-shadow(0 0 12px rgba(76,175,80,0.6));
+  transform-origin: center center;
 }
 
 @media (max-height: 450px) {
@@ -478,10 +477,8 @@ select.topbar-select {
 <!-- 启动页 -->
 <div id="splash-screen">
   <img id="splash-bg" src="../images/ui/home/ui_home_bj.webp" alt="">
-  <div id="splash-inner">
-    <img id="splash-title" src="../images/ui/home/ui_home_title.webp" alt="桃源拾光">
-    <img id="splash-btn" src="../images/ui/home/ui_home_denglu_button.png" alt="登录">
-  </div>
+  <img id="splash-title" src="../images/ui/home/ui_home_title.webp" alt="桃源拾光">
+  <img id="splash-btn" src="../images/ui/home/ui_home_denglu_button.png" alt="登录">
 </div>
 
 <!-- TOP BAR -->
@@ -2302,7 +2299,6 @@ async function enterFullscreen() {
 // 启动页逻辑 - 以背景图渲染尺寸为基准定位标题和按钮
 const splashScreen = document.getElementById('splash-screen');
 const splashBg = document.getElementById('splash-bg');
-const splashInner = document.getElementById('splash-inner');
 const splashTitle = document.getElementById('splash-title');
 const splashBtn = document.getElementById('splash-btn');
 
@@ -2314,12 +2310,9 @@ function layoutSplash() {
   const SH = window.innerHeight;
   const isLandscape = SW > SH;
 
-  // 计算背景图实际渲染尺寸（cover逻辑：填满屏幕，保持比例）
-  // 竖屏时背景图旋转90度，视觉宽=SH，视觉高=SW
-  let bgVisualW, bgVisualH, bgRotate;
+  // 计算背景图实际渲染尺寸（cover逻辑）
+  let bgVisualW, bgVisualH;
   if (isLandscape) {
-    bgRotate = 0;
-    // cover: 以屏幕为容器
     if (SW / SH > BG_RATIO) {
       bgVisualW = SW; bgVisualH = SW / BG_RATIO;
     } else {
@@ -2329,36 +2322,40 @@ function layoutSplash() {
     splashBg.style.height = bgVisualH + 'px';
     splashBg.style.transform = 'translate(-50%, -50%)';
   } else {
-    bgRotate = 90;
-    // 竖屏旋转后，视觉容器宽=SH，高=SW
+    // 竖屏旋转后，视觉宽=SH，视觉高=SW
     if (SH / SW > BG_RATIO) {
       bgVisualW = SH; bgVisualH = SH / BG_RATIO;
     } else {
       bgVisualH = SW; bgVisualW = SW * BG_RATIO;
     }
-    // 旋转前图片尺寸（width=视觉宽，height=视觉高，旋转90后宽高互换显示）
     splashBg.style.width = bgVisualW + 'px';
     splashBg.style.height = bgVisualH + 'px';
     splashBg.style.transform = 'translate(-50%, -50%) rotate(90deg)';
   }
 
-  // 标题和按钮宽度以背景图视觉宽为基准
+  // 元素尺寸以背景图视觉宽为基准
   const titleW = Math.round(bgVisualW * 0.42);
-  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7); // 缩小10%再缩小30%
-  const gap    = Math.round(bgVisualH * 0.06);
-  // 标题往上移50px（横屏坐标系，竖屏旋转后视觉方向一致）
-  const titleOffsetY = isLandscape ? -200 : -200;
+  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
 
   splashTitle.style.width = titleW + 'px';
-  splashBtn.style.width   = btnW   + 'px';
-  splashInner.style.gap   = gap    + 'px';
+  splashBtn.style.width   = btnW + 'px';
 
-  // 居中定位 splash-inner，竖屏同样旋转90度，标题上移通过translateY实现
-  splashInner.style.left = '50%';
-  splashInner.style.top  = '50%';
-  splashInner.style.transform = isLandscape
-    ? `translate(-50%, calc(-50% + ${titleOffsetY}px))`
-    : `translate(-50%, calc(-50% + ${titleOffsetY}px)) rotate(90deg)`;
+  // 标题和按钮各自独立居中，标题单独上移200px
+  // 竖屏时旋转90度：translateX就是视觉上下移动
+  const titleShift = -200;
+  const btnShift   = 80; // 按钮稍微向下偏移，补偿标题上移留下的空间
+
+  splashTitle.style.left = '50%';
+  splashTitle.style.top  = '50%';
+  splashTitle.style.transform = isLandscape
+    ? `translate(-50%, calc(-50% + ${titleShift}px))`
+    : `translate(-50%, calc(-50% + ${titleShift}px)) rotate(90deg)`;
+
+  splashBtn.style.left = '50%';
+  splashBtn.style.top  = '50%';
+  splashBtn.style.transform = isLandscape
+    ? `translate(-50%, calc(-50% + ${btnShift}px))`
+    : `translate(-50%, calc(-50% + ${btnShift}px)) rotate(90deg)`;
 }
 
 layoutSplash();
