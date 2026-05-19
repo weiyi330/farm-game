@@ -209,8 +209,10 @@ select.topbar-select {
   inset: 0;
   background: rgba(0,0,0,0.7);
   z-index: 1000;
+  align-items: center;
+  justify-content: center;
 }
-.modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
 .modal {
   background: #1a2a1a;
   border: 2px solid #4caf50;
@@ -361,9 +363,11 @@ select.topbar-select {
   inset: 0;
   background: rgba(0,0,0,0.75);
   z-index: 1000;
+  align-items: center;
+  justify-content: center;
   padding: 6px;
 }
-.modal-overlay.active { display: flex; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
 .modal {
   background: #1a2a1a;
   border: 2px solid #4caf50;
@@ -484,7 +488,7 @@ select.topbar-select {
 </div>
 
 <!-- 通用确认弹窗 -->
-<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99998;">
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99998;align-items:center;justify-content:center;">
   <div style="background:#1a2a1a;border:2px solid #4caf50;border-radius:10px;padding:20px 24px;min-width:240px;max-width:80vw;text-align:center;">
     <div id="confirm-msg" style="color:#c8e6c9;font-size:14px;margin-bottom:16px;"></div>
     <div style="display:flex;gap:10px;justify-content:center;">
@@ -609,7 +613,7 @@ select.topbar-select {
 
 <!-- SAVE MODAL -->
 <div class="modal-overlay" id="save-modal">
-  <div class="modal" style="position:relative;" onclick="event.stopPropagation()">
+  <div class="modal" style="position:relative;">
     <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
     <h2>💾 存档管理</h2>
     <!-- 存档标签切换 -->
@@ -641,7 +645,7 @@ select.topbar-select {
       <div style="display:flex;gap:6px;margin-top:8px;align-items:center;">
         <input id="cloud-save-name" type="text" placeholder="存档名称..." value="map_save" style="flex:1;background:#1e3a1e;border:1px solid #4caf50;color:#c8e6c9;padding:4px 8px;border-radius:4px;font-size:12px;">
         <button class="btn" onclick="cloudSaveNew()">☁️ 保存到仓库</button>
-        <button class="btn" onclick="loadCloudList();event.stopPropagation()">🔄 刷新列表</button>
+        <button class="btn" onclick="loadCloudList()">🔄 刷新列表</button>
       </div>
       <div class="modal-body" id="cloud-save-list" style="max-height:28vh;overflow-y:auto;margin-top:6px;"><p style="color:#6a9a6a;padding:8px;font-size:12px;">点击「刷新列表」加载云存档</p></div>
     </div>
@@ -1854,8 +1858,11 @@ async function loadCloudList() {
     return;
   }
   container.innerHTML = '<p style="color:#6a9a6a;padding:8px;font-size:12px;">加载中...</p>';
+  const [files] = await Promise.all([
+    ghListSaves(),
+    new Promise(r => setTimeout(r, 2000))
+  ]);
   try {
-    const files = await ghListSaves();
     if (files.length === 0) {
       container.innerHTML = '<p style="color:#6a9a6a;padding:8px;font-size:12px;">暂无云存档</p>';
       return;
@@ -2326,8 +2333,6 @@ function showConfirm(msg, onOk) {
   const modal = document.getElementById('confirm-modal');
   document.getElementById('confirm-msg').textContent = msg;
   modal.style.display = 'flex';
-  modal.style.alignItems = 'center';
-  modal.style.justifyContent = 'center';
   const okBtn = document.getElementById('confirm-ok');
   const cancelBtn = document.getElementById('confirm-cancel');
   const cleanup = () => { modal.style.display = 'none'; okBtn.onclick = null; cancelBtn.onclick = null; };
