@@ -2314,9 +2314,13 @@ const splashTitle = document.getElementById('splash-title');
 const splashBtn = document.getElementById('splash-btn');
 
 function layoutSplash() {
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-  const isLandscape = W > H;
+  // 用 screen 的短边/长边，不受浏览器缩放/地址栏影响
+  const shortEdge = Math.min(screen.width, screen.height);
+  const longEdge = Math.max(screen.width, screen.height);
+  const isLandscape = window.innerWidth > window.innerHeight;
+  // 竖屏时：视觉横屏宽=shortEdge→longEdge，高=longEdge→shortEdge
+  const W = isLandscape ? longEdge : shortEdge;
+  const H = isLandscape ? shortEdge : longEdge;
 
   if (isLandscape) {
     // 真实横屏：直接铺满
