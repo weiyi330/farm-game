@@ -2357,8 +2357,8 @@ function layoutSplash() {
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
-    ? 'translate(calc(-50% + 150px), -50%)'
-    : 'translate(-50%, calc(-50% + 150px)) rotate(90deg)';
+    ? 'translate(calc(-50% - 150px), -50%)'
+    : 'translate(calc(-50% - 150px), -50%) rotate(90deg)';
 }
 
 layoutSplash();
