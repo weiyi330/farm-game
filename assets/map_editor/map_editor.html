@@ -450,6 +450,9 @@ select.topbar-select {
   z-index: 1;
 }
 #splash-title {
+  position: absolute;
+  z-index: 1;
+  transform-origin: center center;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
 }
 #splash-btn {
@@ -478,8 +481,8 @@ select.topbar-select {
 <!-- 启动页 -->
 <div id="splash-screen">
   <img id="splash-bg" src="../images/ui/home/ui_home_bj.webp" alt="">
+  <img id="splash-title" src="../images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
-    <img id="splash-title" src="../images/ui/home/ui_home_title.webp" alt="桃源拾光">
     <img id="splash-btn" src="../images/ui/home/ui_home_denglu_button.png" alt="登录">
   </div>
 </div>
@@ -2344,21 +2347,24 @@ function layoutSplash() {
 
   // 标题和按钮宽度以背景图视觉宽为基准
   const titleW = Math.round(bgVisualW * 0.42);
-  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7); // 缩小10%再缩小30%
-  const gap    = Math.round(bgVisualH * 0.06);
-  // 标题往上移50px（横屏坐标系，竖屏旋转后视觉方向一致）
-  const titleOffsetY = isLandscape ? -200 : -200;
+  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
 
+  // 标题：居中 + 视觉向上移150px
+  // 竖屏旋转90度后：视觉“向上” = 代码 translateX 正方向(+150px)
   splashTitle.style.width = titleW + 'px';
-  splashBtn.style.width   = btnW   + 'px';
-  splashInner.style.gap   = gap    + 'px';
+  splashTitle.style.left = '50%';
+  splashTitle.style.top  = '50%';
+  splashTitle.style.transform = isLandscape
+    ? 'translate(calc(-50% - 150px), -50%)'
+    : 'translate(calc(-50% + 150px), -50%) rotate(90deg)';
 
-  // 居中定位 splash-inner，竖屏同样旋转90度，只做左右居中不做上下偏移
+  // 按钮：纯居中，不偏移
+  splashBtn.style.width = btnW + 'px';
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
-    ? 'translate(calc(-50% - 150px), -50%)'
-    : 'translate(calc(-50% - 150px), -50%) rotate(90deg)';
+    ? 'translate(-50%, -50%)'
+    : 'translate(-50%, -50%) rotate(90deg)';
 }
 
 layoutSplash();
