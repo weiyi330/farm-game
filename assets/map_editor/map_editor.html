@@ -1860,7 +1860,7 @@ async function loadCloudList() {
   container.innerHTML = '<p style="color:#6a9a6a;padding:8px;font-size:12px;">加载中...</p>';
   const [files] = await Promise.all([
     ghListSaves(),
-    new Promise(r => setTimeout(r, 2000))
+    new Promise(r => setTimeout(r, 1000))
   ]);
   try {
     if (files.length === 0) {
