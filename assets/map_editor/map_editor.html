@@ -609,7 +609,7 @@ select.topbar-select {
 
 <!-- SAVE MODAL -->
 <div class="modal-overlay" id="save-modal">
-  <div class="modal" style="position:relative;">
+  <div class="modal" style="position:relative;" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeModal('save-modal')">✕</button>
     <h2>💾 存档管理</h2>
     <!-- 存档标签切换 -->
@@ -641,7 +641,7 @@ select.topbar-select {
       <div style="display:flex;gap:6px;margin-top:8px;align-items:center;">
         <input id="cloud-save-name" type="text" placeholder="存档名称..." value="map_save" style="flex:1;background:#1e3a1e;border:1px solid #4caf50;color:#c8e6c9;padding:4px 8px;border-radius:4px;font-size:12px;">
         <button class="btn" onclick="cloudSaveNew()">☁️ 保存到仓库</button>
-        <button class="btn" onclick="loadCloudList()">🔄 刷新列表</button>
+        <button class="btn" onclick="loadCloudList();event.stopPropagation()">🔄 刷新列表</button>
       </div>
       <div class="modal-body" id="cloud-save-list" style="max-height:28vh;overflow-y:auto;margin-top:6px;"><p style="color:#6a9a6a;padding:8px;font-size:12px;">点击「刷新列表」加载云存档</p></div>
     </div>
