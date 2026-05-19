@@ -430,50 +430,29 @@ select.topbar-select {
   inset: 0;
   background: #0d1a0d;
   z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
   overflow: hidden;
+  cursor: pointer;
 }
 #splash-bg {
   position: absolute;
   top: 50%;
   left: 50%;
-  /* 竖屏：宽度等于屏幕高度（旋转后的横屏宽） */
-  width: 100vh;
-  height: calc(100vh * 9 / 16);
   object-fit: cover;
-  transform: translate(-50%, -50%) rotate(90deg);
   transform-origin: center center;
 }
-@media (orientation: landscape) {
-  #splash-bg {
-    width: 100vw;
-    height: 100vh;
-    transform: translate(-50%, -50%);
-  }
-}
+/* splash-inner 用绝对定位，由JS精确放置 */
 #splash-inner {
-  position: relative;
-  z-index: 1;
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  width: 100vh;
-  transform: rotate(90deg);
   transform-origin: center center;
-}
-@media (orientation: landscape) {
-  #splash-inner { transform: none; width: 100%; }
+  z-index: 1;
 }
 #splash-title {
-  width: min(480px, 75vmax);
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
 }
 #splash-btn {
-  width: min(320px, 55vmax);
   animation: btn-pulse 1.4s ease-in-out infinite;
   filter: drop-shadow(0 0 12px rgba(76,175,80,0.6));
 }
@@ -2325,8 +2304,69 @@ async function enterFullscreen() {
   } catch(e) {}
 }
 
-// 启动页逻辑
+// 启动页逻辑 - 以背景图渲染尺寸为基准定位标题和按钮
 const splashScreen = document.getElementById('splash-screen');
+const splashBg = document.getElementById('splash-bg');
+const splashInner = document.getElementById('splash-inner');
+const splashTitle = document.getElementById('splash-title');
+const splashBtn = document.getElementById('splash-btn');
+
+// 背景图原始宽高比
+const BG_RATIO = 2732 / 1534;
+
+function layoutSplash() {
+  const SW = window.innerWidth;
+  const SH = window.innerHeight;
+  const isLandscape = SW > SH;
+
+  // 计算背景图实际渲染尺寸（cover逻辑：填满屏幕，保持比例）
+  // 竖屏时背景图旋转90度，视觉宽=SH，视觉高=SW
+  let bgVisualW, bgVisualH, bgRotate;
+  if (isLandscape) {
+    bgRotate = 0;
+    // cover: 以屏幕为容器
+    if (SW / SH > BG_RATIO) {
+      bgVisualW = SW; bgVisualH = SW / BG_RATIO;
+    } else {
+      bgVisualH = SH; bgVisualW = SH * BG_RATIO;
+    }
+    splashBg.style.width = bgVisualW + 'px';
+    splashBg.style.height = bgVisualH + 'px';
+    splashBg.style.transform = 'translate(-50%, -50%)';
+  } else {
+    bgRotate = 90;
+    // 竖屏旋转后，视觉容器宽=SH，高=SW
+    if (SH / SW > BG_RATIO) {
+      bgVisualW = SH; bgVisualH = SH / BG_RATIO;
+    } else {
+      bgVisualH = SW; bgVisualW = SW * BG_RATIO;
+    }
+    // 旋转前图片尺寸（width=视觉宽，height=视觉高，旋转90后宽高互换显示）
+    splashBg.style.width = bgVisualW + 'px';
+    splashBg.style.height = bgVisualH + 'px';
+    splashBg.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+  }
+
+  // 标题和按钮宽度以背景图视觉宽为基准
+  const titleW = Math.round(bgVisualW * 0.42);
+  const btnW   = Math.round(bgVisualW * 0.28);
+  const gap    = Math.round(bgVisualH * 0.06);
+
+  splashTitle.style.width = titleW + 'px';
+  splashBtn.style.width   = btnW   + 'px';
+  splashInner.style.gap   = gap    + 'px';
+
+  // 居中定位 splash-inner，竖屏同样旋转90度
+  splashInner.style.left = '50%';
+  splashInner.style.top  = '50%';
+  splashInner.style.transform = isLandscape
+    ? 'translate(-50%, -50%)'
+    : 'translate(-50%, -50%) rotate(90deg)';
+}
+
+layoutSplash();
+window.addEventListener('resize', layoutSplash);
+
 splashScreen.addEventListener('click', async () => {
   await enterFullscreen();
   splashScreen.style.transition = 'opacity 0.4s';
