@@ -2353,12 +2353,12 @@ function layoutSplash() {
   splashBtn.style.width   = btnW   + 'px';
   splashInner.style.gap   = gap    + 'px';
 
-  // 居中定位 splash-inner，竖屏同样旋转90度，标题上移通过translateY实现
+  // 居中定位 splash-inner，竖屏同样旋转90度，只做左右居中不做上下偏移
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
-    ? `translate(-50%, calc(-50% + ${titleOffsetY}px))`
-    : `translate(-50%, calc(-50% + ${titleOffsetY}px)) rotate(90deg)`;
+    ? 'translate(-50%, -50%)'
+    : 'translate(-50%, -50%) rotate(90deg)';
 }
 
 layoutSplash();
