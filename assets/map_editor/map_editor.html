@@ -440,8 +440,19 @@ select.topbar-select {
   position: absolute;
   top: 50%;
   left: 50%;
+  /* 竖屏：宽度等于屏幕高度（旋转后的横屏宽） */
+  width: 100vh;
+  height: calc(100vh * 9 / 16);
   object-fit: cover;
+  transform: translate(-50%, -50%) rotate(90deg);
   transform-origin: center center;
+}
+@media (orientation: landscape) {
+  #splash-bg {
+    width: 100vw;
+    height: 100vh;
+    transform: translate(-50%, -50%);
+  }
 }
 #splash-inner {
   position: relative;
@@ -449,12 +460,20 @@ select.topbar-select {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 16px;
+  width: 100vh;
+  transform: rotate(90deg);
   transform-origin: center center;
 }
+@media (orientation: landscape) {
+  #splash-inner { transform: none; width: 100%; }
+}
 #splash-title {
+  width: min(480px, 75vmax);
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
 }
 #splash-btn {
+  width: min(320px, 55vmax);
   animation: btn-pulse 1.4s ease-in-out infinite;
   filter: drop-shadow(0 0 12px rgba(76,175,80,0.6));
 }
@@ -2308,48 +2327,6 @@ async function enterFullscreen() {
 
 // 启动页逻辑
 const splashScreen = document.getElementById('splash-screen');
-const splashBg = document.getElementById('splash-bg');
-const splashInner = document.getElementById('splash-inner');
-const splashTitle = document.getElementById('splash-title');
-const splashBtn = document.getElementById('splash-btn');
-
-function layoutSplash() {
-  // 用 screen 的短边/长边，不受浏览器缩放/地址栏影响
-  const shortEdge = Math.min(screen.width, screen.height);
-  const longEdge = Math.max(screen.width, screen.height);
-  const isLandscape = window.innerWidth > window.innerHeight;
-  // 竖屏时：视觉横屏宽=shortEdge→longEdge，高=longEdge→shortEdge
-  const W = isLandscape ? longEdge : shortEdge;
-  const H = isLandscape ? shortEdge : longEdge;
-
-  if (isLandscape) {
-    // 真实横屏：直接铺满
-    splashBg.style.width = W + 'px';
-    splashBg.style.height = H + 'px';
-    splashBg.style.transform = 'translate(-50%, -50%)';
-    splashInner.style.width = W + 'px';
-    splashInner.style.transform = 'none';
-    splashInner.style.gap = Math.round(H * 0.04) + 'px';
-    splashTitle.style.width = Math.min(480, Math.round(W * 0.55)) + 'px';
-    splashBtn.style.width = Math.min(320, Math.round(W * 0.38)) + 'px';
-  } else {
-    // 竖屏：旋转90度模拟横屏，用真实像素计算
-    // 旋转后：视觉宽=H，视觉高=W
-    splashBg.style.width = H + 'px';
-    splashBg.style.height = W + 'px';
-    splashBg.style.transform = 'translate(-50%, -50%) rotate(90deg)';
-    splashInner.style.width = H + 'px';
-    splashInner.style.transform = 'rotate(90deg)';
-    splashInner.style.gap = Math.round(W * 0.04) + 'px';
-    // 视觉横屏宽=H，按比例算元素宽
-    splashTitle.style.width = Math.min(480, Math.round(H * 0.55)) + 'px';
-    splashBtn.style.width = Math.min(320, Math.round(H * 0.38)) + 'px';
-  }
-}
-
-layoutSplash();
-window.addEventListener('resize', layoutSplash);
-
 splashScreen.addEventListener('click', async () => {
   await enterFullscreen();
   splashScreen.style.transition = 'opacity 0.4s';
