@@ -504,6 +504,9 @@ select.topbar-select {
   <div class="sep"></div>
   <button class="btn" onclick="showMgrModal()">⚙️ 管理</button>
   <div class="sep"></div>
+  <button class="btn" id="btn-undo" onclick="undo()" style="opacity:0.4" disabled title="撤销 (Ctrl+Z)">↩ 撤销</button>
+  <button class="btn" id="btn-redo" onclick="redo()" style="opacity:0.4" disabled title="重做 (Ctrl+Y)">↪ 重做</button>
+  <div class="sep"></div>
   <button class="btn" onclick="fillCurrentLayer()">🖌 全填</button>
   <button class="btn danger" onclick="clearCurrentLayer()">🗑 清空</button>
   <div class="sep"></div>
@@ -791,6 +794,12 @@ let state = {
   isDrawing: false,
   lastCell: null,
   spawnEditCell: null,  // {row, col}
+
+  // ── 撤销/重做 ──
+  history: [],      // 撤销栈，每项为快照
+  redoStack: [],    // 重做栈
+  historyMax: 50,
+  _pendingSnapshot: false, // 当前笔画是否已存快照
 };
 
 function initMapData(cols, rows) {
@@ -818,6 +827,7 @@ window.addEventListener('load', () => {
   updateStatus();
   loadLatestSave();
   initAtlas();
+  updateUndoRedoUI();
 });
 
 // ============================================================
@@ -1206,6 +1216,9 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
+  // 每次按下鼠标开始新笔画前，先存一次历史快照
+  pushHistory();
+
   state.isDrawing = true;
   state.lastCell = null;
   applyTool(cell, e.button === 2 ? 'erase' : null);
@@ -1234,6 +1247,8 @@ canvas.addEventListener('mousemove', e => {
 });
 
 canvas.addEventListener('mouseup', () => { state.isDrawing = false; state.lastCell = null; });
+// 触摸事件：也要在 touchstart 存快照
+canvas.addEventListener('touchstart', () => { if (state.currentTile !== null || selectedAtlasTile) pushHistory(); }, {passive: true});
 canvas.addEventListener('mouseleave', () => {
   state.isDrawing = false;
   hoverCell = null;
@@ -1470,6 +1485,102 @@ function floodFillBlock(r, c, val) {
 }
 
 // ============================================================
+// UNDO / REDO
+// ============================================================
+
+/** 深拷贝地图核心数据（tiles / blocked / spawns），不含 UI 状态 */
+function snapshotMapData() {
+  return {
+    tiles:   state.tiles.map(layer => layer.map(row => row.map(v =>
+      (v && typeof v === 'object') ? Object.assign({}, v) : v
+    ))),
+    blocked: state.blocked.map(row => [...row]),
+    spawns:  state.spawns.map(row => row.map(cell => cell.map(s => Object.assign({}, s)))),
+    cols: state.cols,
+    rows: state.rows,
+  };
+}
+
+/** 把快照应用回 state（不触发存档，只刷新渲染） */
+function applySnapshot(snap) {
+  state.cols = snap.cols;
+  state.rows = snap.rows;
+  state.tiles   = snap.tiles.map(layer => layer.map(row => row.map(v =>
+    (v && typeof v === 'object') ? Object.assign({}, v) : v
+  )));
+  state.blocked = snap.blocked.map(row => [...row]);
+  state.spawns  = snap.spawns.map(row => row.map(cell => cell.map(s => Object.assign({}, s))));
+  document.getElementById('input-cols').value = state.cols;
+  document.getElementById('input-rows').value = state.rows;
+  resizeCanvas();
+  fullRender();
+  updateUndoRedoUI();
+}
+
+/** 在操作前推入撤销栈 */
+function pushHistory() {
+  const snap = snapshotMapData();
+  state.history.push(snap);
+  if (state.history.length > state.historyMax) state.history.shift();
+  // 新操作清空重做栈
+  state.redoStack = [];
+  updateUndoRedoUI();
+}
+
+/** 撤销 */
+function undo() {
+  if (state.history.length === 0) { showToast('已经是最早的操作了', 1500); return; }
+  // 把当前状态压入重做栈
+  state.redoStack.push(snapshotMapData());
+  if (state.redoStack.length > state.historyMax) state.redoStack.shift();
+  // 取出上一个快照恢复
+  const prev = state.history.pop();
+  applySnapshot(prev);
+  showToast(`↩ 撤销（还可撤销 ${state.history.length} 步）`, 1200);
+}
+
+/** 重做 */
+function redo() {
+  if (state.redoStack.length === 0) { showToast('没有可重做的操作', 1500); return; }
+  state.history.push(snapshotMapData());
+  if (state.history.length > state.historyMax) state.history.shift();
+  const next = state.redoStack.pop();
+  applySnapshot(next);
+  showToast(`↪ 重做（还可重做 ${state.redoStack.length} 步）`, 1200);
+}
+
+/** 更新撤销/重做按钮状态 */
+function updateUndoRedoUI() {
+  const undoBtn = document.getElementById('btn-undo');
+  const redoBtn = document.getElementById('btn-redo');
+  if (undoBtn) {
+    undoBtn.disabled = state.history.length === 0;
+    undoBtn.style.opacity = state.history.length === 0 ? '0.4' : '1';
+    undoBtn.title = `撤销 (Ctrl+Z)  可撤销: ${state.history.length} 步`;
+  }
+  if (redoBtn) {
+    redoBtn.disabled = state.redoStack.length === 0;
+    redoBtn.style.opacity = state.redoStack.length === 0 ? '0.4' : '1';
+    redoBtn.title = `重做 (Ctrl+Y)  可重做: ${state.redoStack.length} 步`;
+  }
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', e => {
+  // 输入框内不触发
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.ctrlKey || e.metaKey) {
+    if (e.key === 'z' || e.key === 'Z') {
+      e.preventDefault();
+      if (e.shiftKey) { redo(); } else { undo(); }
+    } else if (e.key === 'y' || e.key === 'Y') {
+      e.preventDefault();
+      redo();
+    }
+  }
+});
+
+// ============================================================
 // TOOLBAR ACTIONS
 // ============================================================
 function changeCellSize(val) {
@@ -1482,6 +1593,7 @@ function resizeMap() {
   const nc = Math.max(1, Math.min(99999, parseInt(document.getElementById('input-cols').value) || state.cols));
   const nr = Math.max(1, Math.min(99999, parseInt(document.getElementById('input-rows').value) || state.rows));
   if (nc === state.cols && nr === state.rows) return;
+  pushHistory(); // resize 前先存历史
 
   // Resize tiles
   LAYERS.forEach((layer, li) => {
@@ -1516,6 +1628,7 @@ function resizeMap() {
 function fillCurrentLayer() {
   const layer = state.currentLayer;
   if (layer === 'spawn') return;
+  pushHistory(); // 全填前先存历史
 
   if (layer === 'block') {
     for (let r = 0; r < state.rows; r++)
@@ -1537,6 +1650,7 @@ function fillCurrentLayer() {
 
 function clearCurrentLayer() {
   const layer = state.currentLayer;
+  pushHistory(); // 清空前先存历史
   if (layer === 'spawn') {
     for (let r = 0; r < state.rows; r++)
       for (let c = 0; c < state.cols; c++)
