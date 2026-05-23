@@ -2581,46 +2581,10 @@ function layoutSplash() {
   splashInner.style.transform = isLandscape
     ? `translate(-50%, calc(-50% + ${btnShift}px))`
     : `translate(calc(-50% - ${btnShift}px), -50%) rotate(90deg)`;
-
-  // 微信提示条：挂在 editor-wrap 内，直接用底部居中（无需额外旋转）
-  const wechatHint = document.getElementById('wechat-hint');
-  if (wechatHint) {
-    wechatHint.style.bottom = '12px';
-    wechatHint.style.top    = 'auto';
-    wechatHint.style.left   = '50%';
-    wechatHint.style.right  = 'auto';
-    wechatHint.style.transform = 'translateX(-50%)';
-    wechatHint.style.transformOrigin = '';
-  }
 }
 
 layoutSplash();
 window.addEventListener('resize', layoutSplash);
-
-// 微信环境:在启动页显示『在浏览器中打开』的指引提示
-if (IS_WECHAT) {
-  const hint = document.createElement('div');
-  hint.id = 'wechat-hint';
-  hint.style.cssText = [
-    'position:absolute',  // absolute 才能随父元素旋转
-    'bottom:14px', 'left:50%',
-    'transform:translateX(-50%)',
-    'background:rgba(0,0,0,0.65)',
-    'color:#fff', 'font-size:13px',
-    'padding:8px 16px', 'border-radius:20px',
-    'z-index:999999', 'white-space:nowrap',
-    'pointer-events:none',
-    'text-align:center', 'line-height:1.6'
-  ].join(';');
-  hint.innerHTML = '点击右上角 ••• → 『在浏览器中打开』可全屏体验';
-  // 挂在 editor-wrap 里，跟随旋转
-  document.getElementById('editor-wrap').appendChild(hint);
-  layoutSplash(); // 立刻更新一次位置
-  // 进入编辑器后消失
-  splashScreen.addEventListener('click', () => {
-    setTimeout(() => hint.remove(), 500);
-  }, { once: true });
-}
 
 splashScreen.addEventListener('click', async () => {
   await enterFullscreen();
