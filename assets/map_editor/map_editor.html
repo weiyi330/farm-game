@@ -355,7 +355,7 @@ select.topbar-select {
 
 /* ============================================================
    MODALS - 小屏横屏适配
-   横屏手机：宽度充裗，高度有限，各元素要紧凑
+   横屏手机:宽度充裗,高度有限,各元素要紧凑
 ============================================================ */
 .modal-overlay {
   display: none;
@@ -397,7 +397,7 @@ select.topbar-select {
 }
 .modal-body { overflow-y: auto; flex: 1; min-height: 0; }
 
-/* 横屏手机：高度最紧张 */
+/* 横屏手机:高度最紧张 */
 @media (max-height: 450px) {
   .modal { padding: 8px 10px; gap: 6px; max-height: 96vh; border-radius: 6px; }
   .modal h2 { font-size: 13px; }
@@ -414,7 +414,7 @@ select.topbar-select {
   .form-row { margin-bottom: 4px; }
 }
 
-/* 横屏手机：宽度迃不下时自动收紧 */
+/* 横屏手机:宽度迃不下时自动收紧 */
 @media (max-width: 560px) {
   .modal { max-width: 100%; border-radius: 8px; }
   .new-save-row { flex-direction: column; gap: 5px; }
@@ -440,7 +440,7 @@ select.topbar-select {
   object-fit: cover;
   transform-origin: center center;
 }
-/* splash-inner 用绝对定位，由JS精确放置 */
+/* splash-inner 用绝对定位,由JS精确放置 */
 #splash-inner {
   position: absolute;
   display: flex;
@@ -497,7 +497,7 @@ select.topbar-select {
   </div>
 </div>
 
-<!-- 编辑器主体（微信竖屏时整体旋转）-->
+<!-- 编辑器主体(微信竖屏时整体旋转)-->
 <div id="editor-wrap">
 
 <!-- 通用确认弹窗 -->
@@ -624,7 +624,7 @@ select.topbar-select {
   <button id="status-copy-btn" class="btn" style="display:none;padding:2px 8px;font-size:11px;margin-left:4px;" onclick="copyCellBrush()">📋 复制画笔</button>
 </div>
 
-<!-- 顶部提示条（错误/警告） -->
+<!-- 顶部提示条(错误/警告) -->
 <div id="toast" style="display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);background:#b71c1c;color:#fff;padding:6px 18px;border-radius:6px;font-size:13px;z-index:9999;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>
 
 <!-- SAVE MODAL -->
@@ -635,7 +635,7 @@ select.topbar-select {
     <!-- 存档标签切换 -->
     <div style="display:flex;gap:6px;border-bottom:1px solid #2e7d32;padding-bottom:8px;">
       <button class="btn" id="save-tab-local" onclick="switchSaveTab('local')" style="flex:1;">📁 本地存档</button>
-      <button class="btn" id="save-tab-cloud" onclick="switchSaveTab('cloud')" style="flex:1;background:#1e3a1e;">☁️ 云存档（GitHub）</button>
+      <button class="btn" id="save-tab-cloud" onclick="switchSaveTab('cloud')" style="flex:1;background:#1e3a1e;">☁️ 云存档(GitHub)</button>
     </div>
     <!-- 本地存档区 -->
     <div id="save-panel-local">
@@ -649,7 +649,7 @@ select.topbar-select {
     <div id="save-panel-cloud" style="display:none;">
       <!-- GitHub Token 配置 -->
       <div style="background:#111e11;border:1px solid #2e7d32;border-radius:6px;padding:10px;margin-top:8px;">
-        <div style="font-size:11px;color:#81c784;margin-bottom:6px;">🔑 GitHub Token（仅存本地浏览器，不上传）</div>
+        <div style="font-size:11px;color:#81c784;margin-bottom:6px;">🔑 GitHub Token(仅存本地浏览器,不上传)</div>
         <div style="display:flex;gap:6px;">
           <input id="gh-token-input" type="password" placeholder="ghp_xxxx..." style="flex:1;background:#1e3a1e;border:1px solid #4caf50;color:#c8e6c9;padding:4px 8px;border-radius:4px;font-size:12px;">
           <button class="btn" onclick="saveGhToken()">保存</button>
@@ -754,12 +754,12 @@ select.topbar-select {
 // ============================================================
 const LAYERS = [
   { id: 'ground_low',  label: '地块底层',   desc: '水/泥土基底' },
-  { id: 'ground_high', label: '地块上层',   desc: '草地/路/农田（默认编辑层）' },
+  { id: 'ground_high', label: '地块上层',   desc: '草地/路/农田(默认编辑层)' },
   { id: 'decor',       label: '装饰层',     desc: '花草/石头/小物件' },
   { id: 'overlay',     label: '叠加层',     desc: '过渡/混合效果' },
-  { id: 'above',       label: '遮挡层',     desc: '树冠/屋顶，盖在角色上' },
-  { id: 'block',       label: '阻挡层',     desc: '碰撞（红色半透明 🚫）' },
-  { id: 'spawn',       label: '刷新点层',   desc: '多刷新点，点击管理' },
+  { id: 'above',       label: '遮挡层',     desc: '树冠/屋顶,盖在角色上' },
+  { id: 'block',       label: '阻挡层',     desc: '碰撞(红色半透明 🚫)' },
+  { id: 'spawn',       label: '刷新点层',   desc: '多刷新点,点击管理' },
 ];
 
 const TILE_TYPES = [
@@ -796,7 +796,7 @@ let state = {
   currentTool: 'pencil',
   layerVisible: Object.fromEntries(LAYERS.map(l => [l.id, true])),
   atlasVisible: Object.fromEntries(LAYERS.map(l => [l.id, true])),
-  currentTile: null, // null = 「无」，不修改格子
+  currentTile: null, // null = 「无」,不修改格子
   // tiles[layerIdx][row][col] = tileId or null
   tiles: null,
   // blocked[row][col] = bool
@@ -809,7 +809,7 @@ let state = {
   spawnEditCell: null,  // {row, col}
 
   // ── 撤销/重做 ──
-  history: [],      // 撤销栈，每项为快照
+  history: [],      // 撤销栈,每项为快照
   redoStack: [],    // 重做栈
   historyMax: 50,
   _pendingSnapshot: false, // 当前笔画是否已存快照
@@ -884,7 +884,7 @@ function selectLayer(id) {
 
 function updateLayerDesc() {
   const l = LAYERS.find(l => l.id === state.currentLayer);
-  document.getElementById('layer-desc-text').textContent = l ? `${l.label}：${l.desc}` : '';
+  document.getElementById('layer-desc-text').textContent = l ? `${l.label}:${l.desc}` : '';
 }
 
 function buildTileGrid() {
@@ -896,7 +896,7 @@ function buildTileGrid() {
   noneBtn.className = 'tile-btn' + (state.currentTile === null ? ' active' : '');
   noneBtn.id = 'tbtn-none';
   noneBtn.style.cssText = 'background:#1a2a1a;border-color:#4caf5055;grid-column:1/-1;';
-  noneBtn.innerHTML = `⚪<span>无（查看模式）</span>`;
+  noneBtn.innerHTML = `⚪<span>无(查看模式)</span>`;
   noneBtn.onclick = () => selectTile(null);
   grid.appendChild(noneBtn);
 
@@ -905,7 +905,7 @@ function buildTileGrid() {
   groups.forEach(group => {
     const header = document.createElement('div');
     header.style.cssText = 'grid-column:1/-1;font-size:10px;color:#81c784;padding:4px 2px 1px;border-top:1px solid #2e7d3266;margin-top:2px;';
-    header.textContent = `― ${group} ―`;
+    header.textContent = `- ${group} -`;
     grid.appendChild(header);
     TILE_TYPES.filter(t => t.group === group).forEach(t => {
       const btn = document.createElement('button');
@@ -922,7 +922,7 @@ function buildTileGrid() {
 
 function selectTile(id) {
   state.currentTile = id;
-  // 选择地块类型时，清除图集选中（地块模式和图集模式互斥）
+  // 选择地块类型时,清除图集选中(地块模式和图集模式互斥)
   selectedAtlasTile = null;
   document.querySelectorAll('[data-atlas-cell]').forEach(el => {
     el.style.borderColor = '#3a5020';
@@ -932,7 +932,7 @@ function selectTile(id) {
   if (id === null) {
     const nb = document.getElementById('tbtn-none');
     if (nb) { nb.classList.add('active'); nb.style.borderColor = '#ffca28'; }
-    document.getElementById('status-tile').textContent = '地块: 无（查看模式）';
+    document.getElementById('status-tile').textContent = '地块: 无(查看模式)';
     return;
   }
   const t = TILE_TYPES.find(t => t.id === id);
@@ -1047,7 +1047,7 @@ function render() {
   }
 }
 
-// 各层的默认色（关闭图集且无地块类型时回退用）
+// 各层的默认色(关闭图集且无地块类型时回退用)
 const LAYER_FALLBACK_COLORS = {
   ground_low:  '#78909c',
   ground_high: '#4caf50',
@@ -1068,12 +1068,12 @@ function renderTileLayer(layer, li, cs) {
       if (val === null) continue;
       const x = c * cs, y = r * cs;
 
-      // ── 图集对象（所有层通用）──
+      // ── 图集对象(所有层通用)──
       if (val && typeof val === 'object' && val.atlas) {
         if (state.atlasVisible[layer.id]) {
           renderAtlasCellOnCanvas(ctx, val, x, y, cs);
         } else {
-          // 图集关闭：优先回退到 tileId 对应地块类型显示
+          // 图集关闭:优先回退到 tileId 对应地块类型显示
           const t = (val.tileId !== null && val.tileId !== undefined)
             ? TILE_TYPES.find(t => t.id === val.tileId) : null;
           if (t) {
@@ -1092,7 +1092,7 @@ function renderTileLayer(layer, li, cs) {
             ctx.fillText('🖼', x + cs/2, y + cs/2);
           }
         }
-      // ── 地块类型 ID（整数，所有层通用）──
+      // ── 地块类型 ID(整数,所有层通用)──
       } else if (typeof val === 'number') {
         const t = TILE_TYPES.find(t => t.id === val);
         if (!t) continue;
@@ -1101,7 +1101,7 @@ function renderTileLayer(layer, li, cs) {
         ctx.font = `${emoji_size}px serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(t.emoji, x + cs/2, y + cs/2);
-      // ── 旧格式兼容：非数字非图集对象（如 null 已 continue，其余显示回退色）──
+      // ── 旧格式兼容:非数字非图集对象(如 null 已 continue,其余显示回退色)──
       } else {
         const fc = LAYER_FALLBACK_COLORS[layer.id] || '#90a4ae';
         ctx.fillStyle = fc + '88';
@@ -1223,13 +1223,13 @@ canvas.addEventListener('mousedown', e => {
     return;
   }
 
-  // 查看模式（无画笔）下点击显示格子地块信息
+  // 查看模式(无画笔)下点击显示格子地块信息
   if (state.currentTile === null && !selectedAtlasTile) {
     updateCellInfo(cell.r, cell.c);
     return;
   }
 
-  // 每次按下鼠标开始新笔画前，先存一次历史快照
+  // 每次按下鼠标开始新笔画前,先存一次历史快照
   pushHistory();
 
   state.isDrawing = true;
@@ -1260,7 +1260,7 @@ canvas.addEventListener('mousemove', e => {
 });
 
 canvas.addEventListener('mouseup', () => { state.isDrawing = false; state.lastCell = null; });
-// 触摸事件：也要在 touchstart 存快照
+// 触摸事件:也要在 touchstart 存快照
 canvas.addEventListener('touchstart', () => { if (state.currentTile !== null || selectedAtlasTile) pushHistory(); }, {passive: true});
 canvas.addEventListener('mouseleave', () => {
   state.isDrawing = false;
@@ -1281,7 +1281,7 @@ function showToast(msg, duration = 2500) {
   toastTimer = setTimeout(() => { el.style.display = 'none'; }, duration);
 }
 
-// 当前查看格子缓存（用于复制画笔）
+// 当前查看格子缓存(用于复制画笔)
 let currentCellCache = null; // { r, c, val }
 
 function updateCellInfo(r, c) {
@@ -1330,15 +1330,15 @@ function updateCellInfo(r, c) {
   currentCellCache = t ? { r, c, val } : null;
 }
 
-// 复制画笔：从当前悬停格子复制地块类型+图集作为画笔
+// 复制画笔:从当前悬停格子复制地块类型+图集作为画笔
 function copyCellBrush() {
   if (!currentCellCache) return;
   const val = currentCellCache.val;
 
   if (val && typeof val === 'object' && val.atlas) {
-    // 先设 selectedAtlasTile（不能先调 selectTile，否则会把 selectedAtlasTile 清掉）
+    // 先设 selectedAtlasTile(不能先调 selectTile,否则会把 selectedAtlasTile 清掉)
     selectedAtlasTile = { src: val.src, sx: val.sx, sy: val.sy, tileSize: val.tileSize, label: val.label };
-    // 再设地块类型（直接操作 state，不调 selectTile 避免图集被清）
+    // 再设地块类型(直接操作 state,不调 selectTile 避免图集被清)
     if (val.tileId !== null && val.tileId !== undefined) {
       state.currentTile = val.tileId;
       document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('active'));
@@ -1348,12 +1348,12 @@ function copyCellBrush() {
     const t = val.tileId !== null ? TILE_TYPES.find(t => t.id === val.tileId) : null;
     const tileLabel = t ? `${t.emoji}${t.name}` : '无类型';
     document.getElementById('status-tile').textContent = `地块: ${tileLabel} | 🖼 ${val.label || '图集'}`;
-    showToast(`✅ 已复制画笔：${tileLabel} + ${val.label || '图集'}，切层后可直接绘制`, 2000);
+    showToast(`✅ 已复制画笔:${tileLabel} + ${val.label || '图集'},切层后可直接绘制`, 2000);
   } else if (typeof val === 'number') {
     // 纯地块类型
     selectTile(val);
     const t = TILE_TYPES.find(t => t.id === val);
-    showToast(`✅ 已复制画笔：${t?.emoji || ''}${t?.name || ''}`, 1800);
+    showToast(`✅ 已复制画笔:${t?.emoji || ''}${t?.name || ''}`, 1800);
   }
 }
 
@@ -1373,12 +1373,12 @@ function applyTool(cell, forceErase) {
   const layer = state.currentLayer;
   const tool = forceErase ? 'eraser' : state.currentTool;
 
-  // 「无」模式：不是橡皮就什么都不做
+  // 「无」模式:不是橡皮就什么都不做
   if (state.currentTile === null && !selectedAtlasTile && tool !== 'eraser') return;
 
-  // 图集画笔但未选地块类型：拦截并提示
+  // 图集画笔但未选地块类型:拦截并提示
   if (selectedAtlasTile && state.currentTile === null && tool !== 'eraser') {
-    showToast('⚠️ 请先在「🎨 地块」选项卡选择地块类型，再使用图集绘制');
+    showToast('⚠️ 请先在「🎨 地块」选项卡选择地块类型,再使用图集绘制');
     return;
   }
 
@@ -1398,7 +1398,7 @@ function applyTool(cell, forceErase) {
 
   const li = LAYERS.findIndex(l => l.id === layer);
 
-  // 当前画笔：图集模式 or 地块类型模式（所有层通用）
+  // 当前画笔:图集模式 or 地块类型模式(所有层通用)
   const brushValue = getBrushValue(layer);
 
   if (tool === 'eraser') {
@@ -1416,10 +1416,10 @@ function applyTool(cell, forceErase) {
   fullRender();
 }
 
-// 获取当前画笔值：图集选中时返回图集对象，否则返回地块类型ID（所有层通用）
+// 获取当前画笔值:图集选中时返回图集对象,否则返回地块类型ID(所有层通用)
 function getBrushValue(layer) {
   if (selectedAtlasTile) {
-    // 图集模式：带上当前地块类型ID（关闭图集时回退显示用，所有层均支持）
+    // 图集模式:带上当前地块类型ID(关闭图集时回退显示用,所有层均支持)
     return {
       atlas: true,
       src: selectedAtlasTile.src,
@@ -1430,7 +1430,7 @@ function getBrushValue(layer) {
       tileId: state.currentTile !== null ? state.currentTile : null
     };
   }
-  // 地块类型模式：所有层均支持（null = 无画笔/查看模式）
+  // 地块类型模式:所有层均支持(null = 无画笔/查看模式)
   if (state.currentTile === null) return undefined;
   return state.currentTile;
 }
@@ -1501,7 +1501,7 @@ function floodFillBlock(r, c, val) {
 // UNDO / REDO
 // ============================================================
 
-/** 深拷贝地图核心数据（tiles / blocked / spawns），不含 UI 状态 */
+/** 深拷贝地图核心数据(tiles / blocked / spawns),不含 UI 状态 */
 function snapshotMapData() {
   return {
     tiles:   state.tiles.map(layer => layer.map(row => row.map(v =>
@@ -1514,7 +1514,7 @@ function snapshotMapData() {
   };
 }
 
-/** 把快照应用回 state（不触发存档，只刷新渲染） */
+/** 把快照应用回 state(不触发存档,只刷新渲染) */
 function applySnapshot(snap) {
   state.cols = snap.cols;
   state.rows = snap.rows;
@@ -1549,7 +1549,7 @@ function undo() {
   // 取出上一个快照恢复
   const prev = state.history.pop();
   applySnapshot(prev);
-  showToast(`↩ 撤销（还可撤销 ${state.history.length} 步）`, 1200);
+  showToast(`↩ 撤销(还可撤销 ${state.history.length} 步)`, 1200);
 }
 
 /** 重做 */
@@ -1559,7 +1559,7 @@ function redo() {
   if (state.history.length > state.historyMax) state.history.shift();
   const next = state.redoStack.pop();
   applySnapshot(next);
-  showToast(`↪ 重做（还可重做 ${state.redoStack.length} 步）`, 1200);
+  showToast(`↪ 重做(还可重做 ${state.redoStack.length} 步)`, 1200);
 }
 
 /** 更新撤销/重做按钮状态 */
@@ -1749,7 +1749,7 @@ function loadMapData(data) {
 }
 
 function loadLatestSave() {
-  // 优先尝试云端，失败后回退本地
+  // 优先尝试云端,失败后回退本地
   loadLatestCloudSave().then(ok => {
     if (!ok) {
       const saves = getSaves();
@@ -1836,7 +1836,7 @@ function copySave(idx) {
 
 function deleteSave(idx) {
   const saves = getSaves().sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
-  showConfirm(`确认删除存档「${saves[idx]?.name}」？`, () => {
+  showConfirm(`确认删除存档「${saves[idx]?.name}」?`, () => {
     saves.splice(idx, 1);
     setSaves(saves);
     renderSaveList();
@@ -1857,7 +1857,7 @@ function saveGhToken() {
   localStorage.setItem(GH_TOKEN_KEY, v);
   document.getElementById('gh-token-input').value = '';
   refreshGhTokenStatus();
-  showToast('✅ Token 已保存（仅存本地）', 2000);
+  showToast('✅ Token 已保存(仅存本地)', 2000);
 }
 function clearGhToken() {
   localStorage.removeItem(GH_TOKEN_KEY);
@@ -1868,7 +1868,7 @@ function refreshGhTokenStatus() {
   const el = document.getElementById('gh-token-status');
   if (!el) return;
   const t = getGhToken();
-  el.textContent = t ? `\u2705 Token 已设置（${t.slice(0,8)}...\uff09` : '\u26a0\ufe0f 未设置 Token，云存档功能不可用';
+  el.textContent = t ? `\u2705 Token 已设置(${t.slice(0,8)}...\uff09` : '\u26a0\ufe0f 未设置 Token,云存档功能不可用';
   el.style.color = t ? '#81c784' : '#ffb74d';
 }
 
@@ -1880,7 +1880,7 @@ function ghHeaders() {
   };
 }
 
-// 获取文件的 SHA（用于覆盖保存）
+// 获取文件的 SHA(用于覆盖保存)
 async function getFileSha(path) {
   try {
     const r = await fetch(`${GH_API}/repos/${GH_REPO}/contents/${path}`, { headers: ghHeaders() });
@@ -1926,7 +1926,7 @@ async function ghGetFile(path) {
   const r = await fetch(`${GH_API}/repos/${GH_REPO}/contents/${path}`, { headers: ghHeaders() });
   if (!r.ok) throw new Error(await r.text());
   const j = await r.json();
-  // GitHub API 超过 1MB 的文件不返回 content，用 download_url 直接下载
+  // GitHub API 超过 1MB 的文件不返回 content,用 download_url 直接下载
   if (j.content) {
     return decodeURIComponent(escape(atob(j.content.replace(/\n/g, ''))));
   } else if (j.download_url) {
@@ -2020,7 +2020,7 @@ async function cloudLoadFile(path) {
 }
 
 async function cloudDeleteFile(path) {
-  showConfirm(`确认删除仓库存档「${path.split('/').pop()}」？`, async () => {
+  showConfirm(`确认删除仓库存档「${path.split('/').pop()}」?`, async () => {
     try {
       await ghDeleteFile(path);
       showToast('\u5df2删除', 1500);
@@ -2038,7 +2038,7 @@ async function loadLatestCloudSave() {
   try {
     const files = await ghListSaves();
     if (files.length === 0) return;
-    // 按文件名逆序排序，取最新的
+    // 按文件名逆序排序,取最新的
     const latest = files[0];
     const text = await ghGetFile(latest.path);
     const save = JSON.parse(text);
@@ -2204,7 +2204,7 @@ function deleteTemplate(idx) {
 }
 
 // ============================================================
-// ATLAS 图集同步（从 assets/map_editor/index.json 加载）
+// ATLAS 图集同步(从 assets/map_editor/index.json 加载)
 // ============================================================
 const ATLAS_INDEX_URL = 'https://weiyi330.github.io/farm-game/assets/map_editor/index.json';
 const ATLAS_BASE_URL  = 'https://weiyi330.github.io/farm-game/';
@@ -2219,17 +2219,17 @@ async function syncAtlas() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     atlasData = await res.json();
     localStorage.setItem('farm_atlas_cache', JSON.stringify(atlasData));
-    hint.textContent = `同步成功，共 ${atlasData.groups.length} 个分组`;
+    hint.textContent = `同步成功,共 ${atlasData.groups.length} 个分组`;
     renderAtlasPanel();
   } catch(e) {
     // 尝试读缓存
     const cached = localStorage.getItem('farm_atlas_cache');
     if (cached) {
       atlasData = JSON.parse(cached);
-      hint.textContent = '网络失败，使用缓存（' + atlasData.groups.length + '个分组）';
+      hint.textContent = '网络失败,使用缓存(' + atlasData.groups.length + '个分组)';
       renderAtlasPanel();
     } else {
-      hint.textContent = '加载失败：' + e.message;
+      hint.textContent = '加载失败:' + e.message;
     }
   }
 }
@@ -2338,7 +2338,7 @@ function renderAtlasChild(container, group, child) {
       body.appendChild(sgDiv);
     });
   } else if (child.gridMode === 'flat') {
-    // 平铺模式（如四季装饰物），直接按行列顺序全部铺开
+    // 平铺模式(如四季装饰物),直接按行列顺序全部铺开
     const grid = document.createElement('div');
     grid.style.cssText = `display:flex;flex-wrap:wrap;gap:2px;padding:4px 0;`;
     for (let r=0; r<child.rows; r++) {
@@ -2350,17 +2350,17 @@ function renderAtlasChild(container, group, child) {
     }
     body.appendChild(grid);
   } else {
-    // 无 subgroup：按4×4组块顺序排列
-    // 扫描顺序：先横向遍历所有 hGroup，再换行到下一行 vGroup
-    // 视觉效果：左→右排组块，排满自动换行
+    // 无 subgroup:按4×4组块顺序排列
+    // 扫描顺序:先横向遍历所有 hGroup,再换行到下一行 vGroup
+    // 视觉效果:左→右排组块,排满自动换行
     const SGC = child.subgroupCols || 4;
     const SGR = child.subgroupRows || 4;
     const hGroups = Math.ceil(child.cols / SGC);
     const vGroups = Math.ceil(child.rows / SGR);
-    // 每个组块的像素宽：SGC格 × (28px cell + 1px gap) + 2px padding + 2px border
+    // 每个组块的像素宽:SGC格 × (28px cell + 1px gap) + 2px padding + 2px border
     const blockPx = SGC * (28 + 1) + 4;
     const wrapper = document.createElement('div');
-    // flex-wrap 自动折行，组块从左往右填满再换行
+    // flex-wrap 自动折行,组块从左往右填满再换行
     wrapper.style.cssText = `display:flex;flex-wrap:wrap;gap:4px;padding:4px 0;`;
     for (let vg = 0; vg < vGroups; vg++) {
       for (let hg = 0; hg < hGroups; hg++) {
@@ -2396,7 +2396,7 @@ function initAtlas() {
   if (cached) {
     try {
       atlasData = JSON.parse(cached);
-      document.getElementById('atlas-sync-hint').textContent = `已加载缓存（${atlasData.groups.length}个分组），点同步获取最新`;
+      document.getElementById('atlas-sync-hint').textContent = `已加载缓存(${atlasData.groups.length}个分组),点同步获取最新`;
       renderAtlasPanel();
     } catch(e) {}
   }
@@ -2441,21 +2441,21 @@ document.getElementById('mgr-modal').addEventListener('click', e => { if (e.targ
 // ── 微信/企微内置浏览器检测 ──
 const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
 
-// ── CSS 强制横屏（微信 WebView 无法真正全屏时使用）──
+// ── CSS 强制横屏(微信 WebView 无法真正全屏时使用)──
 function applyCSSLandscape() {
   const W = window.innerWidth;
   const H = window.innerHeight;
-  if (W >= H) return; // 已经横屏，无需处理
+  if (W >= H) return; // 已经横屏,无需处理
   const wrap = document.getElementById('editor-wrap');
   // 经典 CSS 旋转横屏公式:
-  // 设 wrap 宽=H, 高=W，以中心点旋转90度
-  // 旋转后视觉尺寸: 宽=W(=原屏宽)，高=H(=原屏高)——正好充满屏幕
+  // 设 wrap 宽=H, 高=W,以中心点旋转90度
+  // 旋转后视觉尺寸: 宽=W(=原屏宽),高=H(=原屏高)--正好充满屏幕
   wrap.style.position = 'fixed';
   wrap.style.width  = H + 'px';
   wrap.style.height = W + 'px';
-  // left/top: 居中布局 (left 贯中屏幕，上下居中)
-  const offsetX = (W - H) / 2;  // 负数，元素向左偶出
-  const offsetY = (H - W) / 2;  // 正数，元素向下偶出
+  // left/top: 居中布局 (left 贯中屏幕,上下居中)
+  const offsetX = (W - H) / 2;  // 负数,元素向左偶出
+  const offsetY = (H - W) / 2;  // 正数,元素向下偶出
   wrap.style.left = offsetX + 'px';
   wrap.style.top  = offsetY + 'px';
   wrap.style.transformOrigin = 'center center';
@@ -2468,7 +2468,7 @@ function applyCSSLandscape() {
 // ── 全屏函数 ──
 async function enterFullscreen() {
   if (IS_WECHAT) {
-    // 微信/企微不支持 requestFullscreen，直接用 CSS 旋转
+    // 微信/企微不支持 requestFullscreen,直接用 CSS 旋转
     applyCSSLandscape();
     return;
   }
@@ -2479,7 +2479,7 @@ async function enterFullscreen() {
   } catch(e) {}
   try {
     if (screen.orientation && screen.orientation.lock) {
-      // 优先用 landscape-primary（普通横屏），避免锁到反向横屏
+      // 优先用 landscape-primary(普通横屏),避免锁到反向横屏
       try {
         await screen.orientation.lock('landscape-primary');
       } catch(e2) {
@@ -2488,17 +2488,17 @@ async function enterFullscreen() {
       }
     }
   } catch(e) {
-    // 全屏/锁向失败（部分浏览器不支持），fallback 到 CSS 旋转
+    // 全屏/锁向失败(部分浏览器不支持),fallback 到 CSS 旋转
     applyCSSLandscape();
   }
-  // 全屏成功后，检查是否已经横屏，若仍是竖屏则 fallback
+  // 全屏成功后,检查是否已经横屏,若仍是竖屏则 fallback
   setTimeout(() => {
     if (window.innerWidth < window.innerHeight) applyCSSLandscape();
   }, 300);
 }
 
 // 启动页逻辑 - 以背景图渲染尺寸为基准定位标题和按钮
-// 通用确认弹窗（替代 window.confirm，不会解除全屏）
+// 通用确认弹窗(替代 window.confirm,不会解除全屏)
 function showConfirm(msg, onOk) {
   const modal = document.getElementById('confirm-modal');
   document.getElementById('confirm-msg').textContent = msg;
@@ -2524,8 +2524,8 @@ function layoutSplash() {
   const SH = window.innerHeight;
   const isLandscape = SW > SH;
 
-  // 计算背景图实际渲染尺寸（cover逻辑：填满屏幕，保持比例）
-  // 竖屏时背景图旋转90度，视觉宽=SH，视觉高=SW
+  // 计算背景图实际渲染尺寸(cover逻辑:填满屏幕,保持比例)
+  // 竖屏时背景图旋转90度,视觉宽=SH,视觉高=SW
   let bgVisualW, bgVisualH, bgRotate;
   if (isLandscape) {
     bgRotate = 0;
@@ -2540,13 +2540,13 @@ function layoutSplash() {
     splashBg.style.transform = 'translate(-50%, -50%)';
   } else {
     bgRotate = 90;
-    // 竖屏旋转后，视觉容器宽=SH，高=SW
+    // 竖屏旋转后,视觉容器宽=SH,高=SW
     if (SH / SW > BG_RATIO) {
       bgVisualW = SH; bgVisualH = SH / BG_RATIO;
     } else {
       bgVisualH = SW; bgVisualW = SW * BG_RATIO;
     }
-    // 旋转前图片尺寸（width=视觉宽，height=视觉高，旋转90后宽高互换显示）
+    // 旋转前图片尺寸(width=视觉宽,height=视觉高,旋转90后宽高互换显示)
     splashBg.style.width = bgVisualW + 'px';
     splashBg.style.height = bgVisualH + 'px';
     splashBg.style.transform = 'translate(-50%, -50%) rotate(90deg)';
@@ -2556,34 +2556,61 @@ function layoutSplash() {
   const titleW = Math.round(bgVisualW * 0.42);
   const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
 
-  // 标题：居中 + 视觉向上移150px
-  // 竖屏旋转90度后：视觉“向上” = 代码 translateX 正方向(+150px)
+  // 偏移量动态计算，避免超出可视区
+  // 竖屏时：视觉宽=SH，视觉高=SW；偏移量不超过视觉高的26%
+  const titleShift = isLandscape
+    ? Math.min(250, bgVisualW * 0.20)
+    : Math.min(SH * 0.26, bgVisualH * 0.26);
+  const btnShift = isLandscape
+    ? Math.min(50, bgVisualW * 0.04)
+    : Math.min(SW * 0.06, bgVisualH * 0.06);
+
+  // 标题：居中 + 偏移
   splashTitle.style.width = titleW + 'px';
   splashTitle.style.left = '50%';
   splashTitle.style.top  = '50%';
   splashTitle.style.transform = isLandscape
-    ? 'translate(calc(-50% - 250px), -50%)'
-    : 'translate(calc(-50% + 250px), -50%) rotate(90deg)';
+    ? `translate(calc(-50% - ${titleShift}px), -50%)`
+    : `translate(calc(-50% + ${titleShift}px), -50%) rotate(90deg)`;
 
-  // 按钮：居中 + 视觉向下移50px
+  // 按钮：居中 + 偏移
   splashBtn.style.width = btnW + 'px';
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
-    ? 'translate(-50%, calc(-50% + 50px))'
-    : 'translate(calc(-50% - 50px), -50%) rotate(90deg)';
+    ? `translate(-50%, calc(-50% + ${btnShift}px))`
+    : `translate(calc(-50% - ${btnShift}px), -50%) rotate(90deg)`;
+
+  // 微信提示条：竖屏时旋转90°跟随视觉方向
+  const wechatHint = document.getElementById('wechat-hint');
+  if (wechatHint) {
+    if (isLandscape) {
+      wechatHint.style.bottom = '12px';
+      wechatHint.style.top    = 'auto';
+      wechatHint.style.left   = '50%';
+      wechatHint.style.right  = 'auto';
+      wechatHint.style.transform = 'translateX(-50%)';
+    } else {
+      // 竖屏旋转90°：视觉底部 = 物理屏幕左边，放在左侧12px垂直居中再旋转
+      wechatHint.style.bottom = 'auto';
+      wechatHint.style.top    = '50%';
+      wechatHint.style.left   = '12px';
+      wechatHint.style.right  = 'auto';
+      wechatHint.style.transform = 'translateY(-50%) rotate(90deg)';
+      wechatHint.style.transformOrigin = 'left center';
+    }
+  }
 }
 
 layoutSplash();
 window.addEventListener('resize', layoutSplash);
 
-// 微信环境：在启动页显示『在浏览器中打开』的指引提示
+// 微信环境:在启动页显示『在浏览器中打开』的指引提示
 if (IS_WECHAT) {
   const hint = document.createElement('div');
   hint.id = 'wechat-hint';
   hint.style.cssText = [
-    'position:fixed', 'bottom:12px', 'left:50%',
-    'transform:translateX(-50%)',
+    'position:fixed',
     'background:rgba(0,0,0,0.65)',
     'color:#fff', 'font-size:13px',
     'padding:8px 16px', 'border-radius:20px',
@@ -2593,6 +2620,7 @@ if (IS_WECHAT) {
   ].join(';');
   hint.innerHTML = '点击右上角 ••• → 『在浏览器中打开』可全屏体验';
   document.body.appendChild(hint);
+  layoutSplash(); // 立刻更新一次位置
   // 进入编辑器后消失
   splashScreen.addEventListener('click', () => {
     setTimeout(() => hint.remove(), 500);
