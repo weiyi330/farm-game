@@ -466,6 +466,7 @@ select.topbar-select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;  /* 让 absolute 子元素相对它定位 */
 }
 /* CSS横屏斶由 JS 动态覆盖 width/height/transform */
 
@@ -2601,7 +2602,9 @@ if (IS_WECHAT) {
   const hint = document.createElement('div');
   hint.id = 'wechat-hint';
   hint.style.cssText = [
-    'position:fixed',
+    'position:absolute',  // absolute 才能随父元素旋转
+    'bottom:14px', 'left:50%',
+    'transform:translateX(-50%)',
     'background:rgba(0,0,0,0.65)',
     'color:#fff', 'font-size:13px',
     'padding:8px 16px', 'border-radius:20px',
