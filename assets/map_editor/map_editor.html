@@ -2478,11 +2478,23 @@ async function enterFullscreen() {
     else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
   } catch(e) {}
   try {
-    if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape');
+    if (screen.orientation && screen.orientation.lock) {
+      // 优先用 landscape-primary（普通横屏），避免锁到反向横屏
+      try {
+        await screen.orientation.lock('landscape-primary');
+      } catch(e2) {
+        // landscape-primary 不支持时尝试 landscape
+        await screen.orientation.lock('landscape');
+      }
+    }
   } catch(e) {
     // 全屏/锁向失败（部分浏览器不支持），fallback 到 CSS 旋转
     applyCSSLandscape();
   }
+  // 全屏成功后，检查是否已经横屏，若仍是竖屏则 fallback
+  setTimeout(() => {
+    if (window.innerWidth < window.innerHeight) applyCSSLandscape();
+  }, 300);
 }
 
 // 启动页逻辑 - 以背景图渲染尺寸为基准定位标题和按钮
