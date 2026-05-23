@@ -2581,24 +2581,15 @@ function layoutSplash() {
     ? `translate(-50%, calc(-50% + ${btnShift}px))`
     : `translate(calc(-50% - ${btnShift}px), -50%) rotate(90deg)`;
 
-  // 微信提示条：竖屏时旋转90°跟随视觉方向
+  // 微信提示条：挂在 editor-wrap 内，直接用底部居中（无需额外旋转）
   const wechatHint = document.getElementById('wechat-hint');
   if (wechatHint) {
-    if (isLandscape) {
-      wechatHint.style.bottom = '12px';
-      wechatHint.style.top    = 'auto';
-      wechatHint.style.left   = '50%';
-      wechatHint.style.right  = 'auto';
-      wechatHint.style.transform = 'translateX(-50%)';
-    } else {
-      // 竖屏旋转90°：视觉底部 = 物理屏幕左边，放在左侧12px垂直居中再旋转
-      wechatHint.style.bottom = 'auto';
-      wechatHint.style.top    = '50%';
-      wechatHint.style.left   = '12px';
-      wechatHint.style.right  = 'auto';
-      wechatHint.style.transform = 'translateY(-50%) rotate(90deg)';
-      wechatHint.style.transformOrigin = 'left center';
-    }
+    wechatHint.style.bottom = '12px';
+    wechatHint.style.top    = 'auto';
+    wechatHint.style.left   = '50%';
+    wechatHint.style.right  = 'auto';
+    wechatHint.style.transform = 'translateX(-50%)';
+    wechatHint.style.transformOrigin = '';
   }
 }
 
@@ -2619,7 +2610,8 @@ if (IS_WECHAT) {
     'text-align:center', 'line-height:1.6'
   ].join(';');
   hint.innerHTML = '点击右上角 ••• → 『在浏览器中打开』可全屏体验';
-  document.body.appendChild(hint);
+  // 挂在 editor-wrap 里，跟随旋转
+  document.getElementById('editor-wrap').appendChild(hint);
   layoutSplash(); // 立刻更新一次位置
   // 进入编辑器后消失
   splashScreen.addEventListener('click', () => {
