@@ -1261,8 +1261,49 @@ canvas.addEventListener('mousemove', e => {
 });
 
 canvas.addEventListener('mouseup', () => { state.isDrawing = false; state.lastCell = null; });
-// 触摸事件:也要在 touchstart 存快照
-canvas.addEventListener('touchstart', () => { if (state.currentTile !== null || selectedAtlasTile) pushHistory(); }, {passive: true});
+// ── 触摸事件：支持长按拖动连续填充 ──
+function getCellFromTouch(t) {
+  const rect = canvas.getBoundingClientRect();
+  const x = t.clientX - rect.left;
+  const y = t.clientY - rect.top;
+  const cs = state.cellSize;
+  const c = Math.floor(x / cs);
+  const r = Math.floor(y / cs);
+  if (c < 0 || c >= state.cols || r < 0 || r >= state.rows) return null;
+  return { r, c };
+}
+
+canvas.addEventListener('touchstart', e => {
+  if (state.currentTile !== null || selectedAtlasTile || state.currentTool === 'eraser') {
+    pushHistory();
+    const cell = getCellFromTouch(e.touches[0]);
+    if (cell) {
+      state.isDrawing = true;
+      state.lastCell = null;
+      applyTool(cell, null);
+      fullRender();
+    }
+  }
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  if (!state.isDrawing) return;
+  e.preventDefault();
+  const cell = getCellFromTouch(e.touches[0]);
+  if (cell) {
+    const key = cell.r + '_' + cell.c;
+    if (state.lastCell !== key) {
+      state.lastCell = key;
+      applyTool(cell, null);
+      fullRender();
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', () => {
+  state.isDrawing = false;
+  state.lastCell = null;
+});
 canvas.addEventListener('mouseleave', () => {
   state.isDrawing = false;
   hoverCell = null;
