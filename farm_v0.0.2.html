@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="screen-orientation" content="landscape">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="icon" type="image/webp" href="assets/images/ui/home/ui_home_app_icon.webp">
+<link rel="apple-touch-icon" href="assets/images/ui/home/ui_home_app_icon_192.webp">
+<title>桃源田居</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:100%; height:100%;
+  background:#1a3320;
+  font-family:'STKaiti','KaiTi','楷体',serif;
+  overflow:hidden; touch-action:none; user-select:none;
+}
+canvas { display:block; }
+
+/* ── 启动页 ── */
+#splash-screen {
+  position:fixed; inset:0; z-index:999;
+  background:#0d1f0a;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+#splash-bg {
+  position:absolute; left:50%; top:50%;
+  object-fit:cover;
+}
+#splash-title {
+  position:absolute;
+  object-fit:contain;
+  pointer-events:none;
+}
+#splash-inner {
+  position:absolute;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+#splash-btn {
+  display:block;
+  object-fit:contain;
+  cursor:pointer;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  transition:transform 0.12s;
+}
+#splash-btn:active { transform:scale(0.93); }
+
+/* ── game-wrap：横屏后充满屏幕 ── */
+#game-wrap { width:100%; height:100%; position:relative; }
+
+/* HUD */
+#hud {
+  position:absolute; top:0; left:0; right:0;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:10px 14px;
+  pointer-events:none; z-index:10;
+}
+.hud-left { display:flex; flex-direction:column; gap:4px; }
+.hud-coin {
+  display:flex; align-items:center; gap:5px;
+  background:rgba(40,25,8,0.7); border:1px solid #c8922a;
+  border-radius:16px; padding:4px 12px;
+  font-size:14px; color:#f5d78e;
+}
+.hud-day {
+  display:flex; align-items:center; gap:5px;
+  background:rgba(40,25,8,0.7); border:1px solid #6a8a40;
+  border-radius:16px; padding:4px 12px;
+  font-size:13px; color:#c8e890;
+}
+
+/* 底部UI */
+#bottom-ui {
+  position:absolute; bottom:0; left:0; right:0;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  padding:0 16px 16px;
+  pointer-events:none; z-index:10;
+}
+
+/* 摇杆 */
+#joystick-wrap {
+  width:100px; height:100px; position:relative;
+  pointer-events:all; flex-shrink:0;
+}
+#joy-base {
+  width:100px; height:100px; border-radius:50%;
+  background:rgba(40,25,8,0.4); border:2px solid rgba(200,160,60,0.35);
+  position:absolute;
+}
+#joy-stick {
+  width:42px; height:42px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, rgba(255,200,80,0.9), rgba(180,120,30,0.7));
+  border:2px solid rgba(240,180,60,0.7);
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  position:absolute; top:29px; left:29px;
+  pointer-events:none;
+}
+
+/* 工具栏 */
+#toolbar {
+  display:flex; gap:6px; align-items:flex-end;
+  pointer-events:all;
+}
+.tool-btn {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  background:rgba(40,25,8,0.7); border:1.5px solid #6a4a20;
+  border-radius:12px; padding:7px 10px; cursor:pointer;
+  transition:all 0.15s;
+}
+.tool-btn.active {
+  background:rgba(160,110,20,0.5); border-color:#e8b84a;
+  box-shadow:0 0 10px rgba(232,184,74,0.4);
+}
+.tool-btn:active { transform:scale(0.92); }
+.tool-icon { font-size:20px; }
+.tool-name { font-size:9px; color:#b08040; letter-spacing:1px; }
+.tool-btn.active .tool-name { color:#f5d78e; }
+
+/* 行动按钮 */
+#action-btn {
+  width:70px; height:70px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%, rgba(120,200,80,0.9), rgba(60,130,30,0.7));
+  border:2px solid rgba(140,220,80,0.7);
+  box-shadow:0 3px 12px rgba(0,0,0,0.3);
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; cursor:pointer; pointer-events:all;
+  flex-shrink:0;
+}
+#action-btn:active { transform:scale(0.9); }
+
+/* Toast */
+#toast {
+  position:absolute; top:56px; left:50%; transform:translateX(-50%);
+  background:rgba(40,25,8,0.9); border:1px solid #c8922a;
+  border-radius:20px; padding:7px 18px;
+  font-size:13px; color:#f5d78e; letter-spacing:1px;
+  z-index:20; pointer-events:none; white-space:nowrap;
+  opacity:0; transition:opacity 0.3s;
+}
+#toast.show { opacity:1; }
+
+/* 商店 */
+#shop-panel {
+  position:absolute; inset:0; z-index:30;
+  background:rgba(10,5,0,0.8);
+  display:none; align-items:center; justify-content:center;
+}
+.shop-box {
+  background:linear-gradient(160deg,#3d2010,#251508);
+  border:2px solid #c8922a; border-radius:18px;
+  padding:16px; width:360px; max-height:85vh; overflow-y:auto;
+  display:flex; flex-direction:column; gap:10px;
+}
+.shop-title { text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
+.shop-section-label { font-size:10px; color:#a08040; letter-spacing:2px; }
+.shop-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.sitem {
+  background:rgba(180,130,50,0.1); border:1px solid #6a4a20;
+  border-radius:10px; padding:8px 4px;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  cursor:pointer;
+}
+.sitem:active { transform:scale(0.93); background:rgba(200,160,60,0.2); }
+.sitem-icon { font-size:20px; }
+.sitem-name { font-size:10px; color:#d4a060; }
+.sitem-price { font-size:10px; color:#f5d78e; }
+.sitem-desc { font-size:9px; color:#886640; text-align:center; }
+.shop-close {
+  padding:9px; background:rgba(140,60,20,0.4); border:1px solid #b06030;
+  border-radius:10px; color:#f0a060; font-size:13px;
+  cursor:pointer; font-family:inherit; letter-spacing:2px; text-align:center;
+}
+</style>
+</head>
+<body>
+
+<!-- ── 启动页 ── -->
+<div id="splash-screen">
+  <img id="splash-bg" src="assets/images/ui/home/ui_home_bj.webp" alt="">
+  <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
+  <div id="splash-inner">
+    <img id="splash-btn" src="assets/images/ui/home/ui_home_denglu_button.png" alt="开始游戏">
+  </div>
+</div>
+
+<!-- ── 游戏主体 ── -->
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-left">
+      <div class="hud-coin">🪙 <span id="coinVal">80</span> 枚</div>
+      <div class="hud-day">第<span id="dayVal">1</span>天 &nbsp;<span id="seasonVal">🌸春</span></div>
+    </div>
+  </div>
+
+  <!-- 底部UI -->
+  <div id="bottom-ui">
+    <div id="joystick-wrap">
+      <div id="joy-base"></div>
+      <div id="joy-stick"></div>
+    </div>
+    <div id="toolbar">
+      <div class="tool-btn active" data-tool="hoe" onclick="setTool(this,'hoe')"><span class="tool-icon">⛏️</span><span class="tool-name">锄地</span></div>
+      <div class="tool-btn" data-tool="seed" onclick="setTool(this,'seed')"><span class="tool-icon">🌱</span><span class="tool-name">播种</span></div>
+      <div class="tool-btn" id="seed-switch-btn" onclick="switchSeed()" title="切换种子"><span class="tool-icon" id="seed-switch-icon">🌾</span><span class="tool-name" id="seed-switch-name">小麦</span></div>
+      <div class="tool-btn" data-tool="water" onclick="setTool(this,'water')"><span class="tool-icon">💧</span><span class="tool-name">浇水</span></div>
+      <div class="tool-btn" data-tool="harvest" onclick="setTool(this,'harvest')"><span class="tool-icon">🌾</span><span class="tool-name">收获</span></div>
+      <div class="tool-btn" data-tool="shop" onclick="openShop()"><span class="tool-icon">🏪</span><span class="tool-name">商店</span></div>
+      <div class="tool-btn" data-tool="sleep" onclick="nextDay()"><span class="tool-icon">🌙</span><span class="tool-name">入睡</span></div>
+    </div>
+    <div id="action-btn" onclick="doAction()">✅</div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="shop-panel">
+    <div class="shop-box">
+      <div class="shop-title">📜 桃源杂货铺</div>
+      <div class="shop-section-label">── 种子 ──</div>
+      <div class="shop-grid">
+        <div class="sitem" onclick="buySeed('wheat')"><span class="sitem-icon">🌾</span><span class="sitem-name">小麦</span><span class="sitem-price">🪙5</span><span class="sitem-desc">3天·售10</span></div>
+        <div class="sitem" onclick="buySeed('carrot')"><span class="sitem-icon">🥕</span><span class="sitem-name">萝卜</span><span class="sitem-price">🪙8</span><span class="sitem-desc">4天·售18</span></div>
+        <div class="sitem" onclick="buySeed('cabbage')"><span class="sitem-icon">🥬</span><span class="sitem-name">白菜</span><span class="sitem-price">🪙12</span><span class="sitem-desc">5天·售30</span></div>
+        <div class="sitem" onclick="buySeed('peach')"><span class="sitem-icon">🍑</span><span class="sitem-name">桃子</span><span class="sitem-price">🪙30</span><span class="sitem-desc">7天·售80</span></div>
+      </div>
+      <div class="shop-section-label">── 出售农产品 ──</div>
+      <div class="shop-grid" id="sellGrid"></div>
+      <div class="shop-close" onclick="closeShop()">关闭</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 地图数据（来自地图编辑器，75×70）
+// ============================================================
+const MAP_DATA = {"cols":75,"rows":70,"defaultTile":{"s":"Tileset_Grass_Spring.png","x":144,"y":224,"t":1},"layers":[[[0,70,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[0,71,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[0,72,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[0,73,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[0,74,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[1,73,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[1,74,{"s":"Tileset_Grass_Spring.png","x":144,"y":288,"t":0}],[58,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[59,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[60,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[60,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[61,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[61,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[61,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[62,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[62,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[62,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[62,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[63,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[63,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[63,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[63,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[63,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[64,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[64,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[64,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[64,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[64,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[64,5,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,5,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[65,6,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,5,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,6,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,7,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[66,8,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,5,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,6,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,7,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,8,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[67,9,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,5,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,6,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,7,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,8,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,9,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,10,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[68,11,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,0,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,1,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,2,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,3,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,4,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,5,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,6,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,7,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,8,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,9,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,10,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,11,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,12,{"s":"Water_tile.png","x":0,"y":0,"t":9}],[69,13,{"s":"Water_tile.png","x":0,"y":0,"t":9}]],[[0,69,{"s":"Tileset_Grass_Spring.png","x":128,"y":272,"t":1}],[1,69,{"s":"Tileset_Grass_Spring.png","x":128,"y":304,"t":0}],[1,70,{"s":"Tileset_Grass_Spring.png","x":144,"y":304,"t":0}],[1,71,{"s":"Tileset_Grass_Spring.png","x":144,"y":304,"t":0}],[1,72,{"s":"Tileset_Grass_Spring.png","x":80,"y":288,"t":0}],[2,72,{"s":"Tileset_Grass_Spring.png","x":128,"y":304,"t":0}],[2,73,{"s":"Tileset_Grass_Spring.png","x":144,"y":304,"t":0}],[2,74,{"s":"Tileset_Grass_Spring.png","x":144,"y":304,"t":0}],[58,0,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":16,"t":9}],[59,0,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":16,"t":9}],[60,0,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[60,1,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[61,1,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[61,2,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[62,2,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[62,3,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[63,3,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[63,4,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[64,4,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[64,5,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[65,5,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[65,6,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[66,6,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[66,7,{"s":"Tileset_Grass_Water_Spring.png","x":144,"y":48,"t":9}],[66,8,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[67,8,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[67,9,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[68,9,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[68,10,{"s":"Tileset_Grass_Water_Spring.png","x":144,"y":48,"t":9}],[68,11,{"s":"Tileset_Grass_Water_Spring.png","x":80,"y":32,"t":9}],[69,11,{"s":"Tileset_Grass_Water_Spring.png","x":128,"y":48,"t":9}],[69,12,{"s":"Tileset_Grass_Water_Spring.png","x":144,"y":48,"t":9}],[69,13,{"s":"Tileset_Grass_Water_Spring.png","x":144,"y":48,"t":9}]],[[0,69,{"s":"ALL_props_seasons.png","x":160,"y":0,"t":11}],[0,70,{"s":"ALL_props_seasons.png","x":192,"y":0,"t":11}],[0,71,{"s":"ALL_props_seasons.png","x":32,"y":0,"t":11}],[0,72,{"s":"ALL_props_seasons.png","x":16,"y":0,"t":11}],[0,73,{"s":"ALL_props_seasons.png","x":32,"y":0,"t":11}],[0,74,{"s":"ALL_props_seasons.png","x":160,"y":0,"t":11}],[1,71,{"s":"ALL_props_seasons.png","x":160,"y":0,"t":11}],[1,72,{"s":"ALL_props_seasons.png","x":0,"y":0,"t":11}],[1,73,{"s":"ALL_props_seasons.png","x":16,"y":0,"t":11}],[1,74,{"s":"ALL_props_seasons.png","x":48,"y":0,"t":11}],[2,70,{"s":"ALL_props_seasons.png","x":224,"y":0,"t":11}],[2,72,{"s":"ALL_props_seasons.png","x":176,"y":0,"t":11}],[3,74,{"s":"ALL_props_seasons.png","x":160,"y":0,"t":11}]],[[0,73,{"s":"ALL_props_seasons.png","x":176,"y":0,"t":11}]],[],[]]};
+
+// ============================================================
+// 地图初始化：将稀疏层数据展开为完整二维数组
+// ============================================================
+const MAP_COLS = MAP_DATA.cols;  // 75
+const MAP_ROWS = MAP_DATA.rows;  // 70
+const TILE_BASE_DIR = 'assets/images/map/tiles/';
+const TS = 16; // tileset 单格大小
+
+// tileId 语义（与地图编辑器保持一致）
+const T = { GRASS:1, SOIL:0, TILLED:2, CROP:3, HOUSE:4, WELL:5, SHOP:6, TREE:7, PATH:8, WATER:9, DECOR:11 };
+
+// 展开地图：构建 mapLayers[layerIdx][r][c] = cell | null
+function buildMap() {
+  const numLayers = MAP_DATA.layers.length;
+  const layers = [];
+  for (let li = 0; li < numLayers; li++) {
+    const layer = [];
+    for (let r = 0; r < MAP_ROWS; r++) {
+      layer.push(new Array(MAP_COLS).fill(null));
+    }
+    // 层0默认填草地
+    if (li === 0) {
+      const def = MAP_DATA.defaultTile;
+      for (let r = 0; r < MAP_ROWS; r++)
+        for (let c = 0; c < MAP_COLS; c++)
+          layer[r][c] = def;
+    }
+    // 覆盖稀疏格子
+    for (const [r, c, cell] of MAP_DATA.layers[li]) {
+      if (r < MAP_ROWS && c < MAP_COLS) layer[r][c] = cell;
+    }
+    layers.push(layer);
+  }
+  return layers;
+}
+
+const mapLayers = buildMap();
+
+// tileMap: 游戏逻辑层（来自 ground_low 的 tileId）
+let tileMap = [];
+let cropMap = [];
+for (let r = 0; r < MAP_ROWS; r++) {
+  tileMap.push([]);
+  cropMap.push(new Array(MAP_COLS).fill(null));
+  for (let c = 0; c < MAP_COLS; c++) {
+    const cell = mapLayers[0][r][c];
+    tileMap[r][c] = cell ? cell.t : T.GRASS;
+  }
+}
+
+// ============================================================
+// 画布初始化
+// ============================================================
+const wrap = document.getElementById('game-wrap');
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ============================================================
+// 作物配置
+// ============================================================
+const CROPS = {
+  wheat:   {icon:'🌾',name:'小麦',days:3,cost:5, sell:10, stages:['🌱','🌿','🌾']},
+  carrot:  {icon:'🥕',name:'萝卜',days:4,cost:8, sell:18, stages:['🌱','🌿','🥕','🥕']},
+  cabbage: {icon:'🥬',name:'白菜',days:5,cost:12,sell:30, stages:['🌱','🌿','🥬','🥬','🥬']},
+  peach:   {icon:'🍑',name:'桃子',days:7,cost:30,sell:80, stages:['🌱','🌿','🌲','🌳','🌳','🌳','🍑']},
+};
+
+// ============================================================
+// 游戏状态
+// ============================================================
+let coins=80, day=1, seasonIdx=0;
+let currentTool='hoe', selectedSeed='wheat';
+let seedBag={wheat:3,carrot:1}, harvestBag={};
+const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
+
+// ============================================================
+// 玩家
+// ============================================================
+const player = { wx:10, wy:10, dir:'down', moving:false };
+
+// ============================================================
+// 相机
+// ============================================================
+let camX=0, camY=0;
+
+const TILE = 48;
+
+function worldToScreen(wx, wy) {
+  return {
+    x: wx * TILE + TILE/2 - camX,
+    y: wy * TILE + TILE/2 - camY,
+  };
+}
+
+// ============================================================
+// 图片缓存
+// ============================================================
+const imgCache = {};
+function getImg(src) {
+  if (!imgCache[src]) {
+    const img = new Image();
+    img.src = src;
+    imgCache[src] = { img, loaded: false };
+    img.onload = () => { imgCache[src].loaded = true; };
+  }
+  return imgCache[src];
+}
+
+// 预加载地图用到的图片
+function preloadMapImages() {
+  const srcs = new Set();
+  for (let li = 0; li < mapLayers.length; li++) {
+    for (let r = 0; r < MAP_ROWS; r++) {
+      for (let c = 0; c < MAP_COLS; c++) {
+        const cell = mapLayers[li][r][c];
+        if (cell && cell.s) srcs.add(TILE_BASE_DIR + cell.s);
+      }
+    }
+  }
+  srcs.forEach(src => getImg(src));
+}
+preloadMapImages();
+
+// ============================================================
+// 绘制地块
+// ============================================================
+function drawCell(cell, x, y, highlight=false) {
+  if (!cell || !cell.s) return;
+  const entry = getImg(TILE_BASE_DIR + cell.s);
+  if (!entry.loaded) return;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(entry.img, cell.x, cell.y, TS, TS, x - TILE/2, y - TILE/2, TILE, TILE);
+  if (highlight) {
+    ctx.fillStyle = 'rgba(255,220,80,0.35)';
+    ctx.fillRect(x - TILE/2, y - TILE/2, TILE, TILE);
+    ctx.strokeStyle='rgba(255,220,80,0.9)'; ctx.lineWidth=2;
+    ctx.strokeRect(x - TILE/2, y - TILE/2, TILE, TILE);
+  }
+  ctx.restore();
+}
+
+function drawTile(r, c) {
+  const {x, y} = worldToScreen(c, r);
+  const W = canvas.width, H = canvas.height;
+  if (x < -TILE*2 || x > W+TILE*2 || y < -TILE*2 || y > H+TILE*2) return;
+
+  const pr = Math.round(player.wy), pc = Math.round(player.wx);
+  const isPlayerTile = (r===pr && c===pc);
+  const type = tileMap[r][c];
+
+  // 层0：地面底层
+  drawCell(mapLayers[0][r][c], x, y, false);
+  // 层1：地面上层（边缘过渡等）
+  drawCell(mapLayers[1][r][c], x, y, false);
+
+  // 游戏逻辑叠加
+  // 翻土纹路
+  if (type===T.TILLED || type===T.CROP) {
+    ctx.strokeStyle='rgba(80,40,10,0.4)'; ctx.lineWidth=0.8;
+    for(let i=1;i<4;i++){
+      const ly = y - TILE/2 + (TILE/4)*i;
+      ctx.beginPath();
+      ctx.moveTo(x - TILE/2 + 4, ly);
+      ctx.lineTo(x + TILE/2 - 4, ly);
+      ctx.stroke();
+    }
+  }
+  // 水面波纹
+  if (type===T.WATER) {
+    ctx.strokeStyle=`rgba(255,255,255,${0.2+Math.sin(Date.now()*0.003+c)*0.15})`;
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(x-12, y-2); ctx.lineTo(x+12, y-2);
+    ctx.stroke();
+  }
+
+  // 装饰层（decor = 层2）
+  drawCell(mapLayers[2][r][c], x, y, false);
+  // 叠加层（overlay = 层3）
+  drawCell(mapLayers[3][r][c], x, y, false);
+
+  // 作物
+  const crop = cropMap[r][c];
+  if (crop) {
+    const cfg=CROPS[crop.type];
+    const si=crop.ready?cfg.stages.length-1:Math.min(crop.daysGrown,cfg.stages.length-1);
+    const sz=crop.ready?28:22;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font=`${sz}px serif`;
+    ctx.fillText(cfg.stages[si], x, y);
+    if(crop.ready) {
+      const a=(Math.sin(Date.now()*0.006)+1)*0.4+0.2;
+      ctx.strokeStyle=`rgba(255,220,60,${a})`; ctx.lineWidth=2;
+      ctx.strokeRect(x-TILE/2, y-TILE/2, TILE, TILE);
+    }
+    if(crop.watered) {
+      ctx.fillStyle='rgba(80,160,240,0.15)';
+      ctx.fillRect(x-TILE/2, y-TILE/2, TILE, TILE);
+    }
+  }
+
+  // 玩家所在格高亮
+  if (isPlayerTile) {
+    ctx.strokeStyle='rgba(255,220,80,0.6)'; ctx.lineWidth=2;
+    ctx.strokeRect(x - TILE/2, y - TILE/2, TILE, TILE);
+  }
+
+  // 遮挡层（above = 层4，渲染在角色上面，放后面处理）
+}
+
+function drawAbove(r, c) {
+  const {x, y} = worldToScreen(c, r);
+  const W = canvas.width, H = canvas.height;
+  if (x < -TILE*2 || x > W+TILE*2 || y < -TILE*2 || y > H+TILE*2) return;
+  drawCell(mapLayers[4][r][c], x, y, false);
+}
+
+// ============================================================
+// 角色 Sprite
+// ============================================================
+const characterSprite = new Image();
+characterSprite.src = 'assets/images/player/walk/base/player_walk_base01.png';
+let spriteLoaded = false;
+characterSprite.onload = () => { spriteLoaded = true; };
+
+const SP_FRAME_W = 32, SP_FRAME_H = 32;
+const SP_FRAMES = 6;
+const SP_DIRS = { down:0, up:1, right:2, left:3 };
+const SP_SCALE = 2.5;
+const SP_FRAME_MS = 130;
+let spFrame = 0, spFrameTimer = 0;
+
+function drawPlayer(x, y) {
+  const footY = y + SP_FRAME_H * SP_SCALE * 0.3;
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(x, footY, 14, 5, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  if (!spriteLoaded) {
+    ctx.fillStyle = '#f0a040';
+    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI*2); ctx.fill();
+    return;
+  }
+  const dirIdx = SP_DIRS[player.dir] ?? 0;
+  const frameIdx = player.moving ? spFrame : 0;
+  const sx = (dirIdx * SP_FRAMES + frameIdx) * SP_FRAME_W;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    characterSprite, sx, 0, SP_FRAME_W, SP_FRAME_H,
+    x - SP_FRAME_W * SP_SCALE / 2,
+    y - SP_FRAME_H * SP_SCALE / 2,
+    SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
+  );
+  ctx.restore();
+}
+
+// ============================================================
+// 渲染
+// ============================================================
+function render() {
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#2d5a1b';
+  ctx.fillRect(0, 0, W, H);
+
+  // 地图（不含遮挡层）
+  for(let r=0;r<MAP_ROWS;r++)
+    for(let c=0;c<MAP_COLS;c++)
+      drawTile(r,c);
+
+  // 角色
+  const {x,y}=worldToScreen(player.wx, player.wy);
+  drawPlayer(x, y);
+
+  // 遮挡层（在角色上面）
+  for(let r=0;r<MAP_ROWS;r++)
+    for(let c=0;c<MAP_COLS;c++)
+      drawAbove(r,c);
+
+  // 提示文字
+  ctx.fillStyle='rgba(245,215,142,0.75)';
+  ctx.font='12px serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+  const hints={
+    hoe:'走到任意地块，按✅锄地',
+    seed:`播种:${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}(剩${seedBag[selectedSeed]||0}袋)`,
+    water:'走到作物旁，按✅浇水',
+    harvest:'走到成熟作物旁，按✅收获'
+  };
+  if(hints[currentTool]) ctx.fillText(hints[currentTool], W/2, H-130);
+}
+
+// ============================================================
+// 摇杆
+// ============================================================
+const joyWrap=document.getElementById('joystick-wrap');
+const joyStick=document.getElementById('joy-stick');
+const JR=50, JSR=21;
+let joyActive=false, joyDX=0, joyDY=0, joyTid=null;
+
+joyWrap.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const t=e.changedTouches[0]; joyTid=t.identifier; joyActive=true; updateJoy(t);
+},{passive:false});
+window.addEventListener('touchmove',e=>{
+  if(!joyActive) return;
+  for(let t of e.changedTouches) if(t.identifier===joyTid){updateJoy(t);break;}
+},{passive:false});
+window.addEventListener('touchend',e=>{
+  for(let t of e.changedTouches) if(t.identifier===joyTid){
+    joyActive=false; joyDX=0; joyDY=0;
+    joyStick.style.transform='translate(0,0)'; break;
+  }
+});
+function updateJoy(touch){
+  const rect=joyWrap.getBoundingClientRect();
+  const cx=rect.left+JR, cy=rect.top+JR;
+  let dx=touch.clientX-cx, dy=touch.clientY-cy;
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  const maxD=JR-JSR;
+  if(dist>maxD){dx=dx/dist*maxD; dy=dy/dist*maxD;}
+  joyDX=dx/maxD; joyDY=dy/maxD;
+  joyStick.style.transform=`translate(${dx}px,${dy}px)`;
+}
+
+// ============================================================
+// 游戏循环
+// ============================================================
+let lastT=0;
+const SPEED=3.5;
+const BLOCKED_TYPES = [T.WATER];
+
+function canWalk(wx, wy) {
+  if (wx < 0 || wx >= MAP_COLS - 1) return false;
+  if (wy < 0 || wy >= MAP_ROWS - 1) return false;
+  const HALF = 0.4;
+  const corners = [
+    [Math.floor(wy - HALF), Math.floor(wx - HALF)],
+    [Math.floor(wy - HALF), Math.floor(wx + HALF)],
+    [Math.floor(wy + HALF), Math.floor(wx - HALF)],
+    [Math.floor(wy + HALF), Math.floor(wx + HALF)],
+  ];
+  for (const [r, c] of corners) {
+    const rr = Math.max(0, Math.min(MAP_ROWS-1, r));
+    const cc = Math.max(0, Math.min(MAP_COLS-1, c));
+    if (BLOCKED_TYPES.includes(tileMap[rr][cc])) return false;
+  }
+  return true;
+}
+
+function loop(ts){
+  const dt=Math.min((ts-lastT)/1000,0.05); lastT=ts;
+
+  if(joyActive && (Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08)){
+    const sp=SPEED*dt;
+    const nx = player.wx + (joyDX + joyDY)*sp;
+    const ny = player.wy + (joyDY - joyDX)*sp;
+
+    if (canWalk(nx, ny)) {
+      player.wx = nx; player.wy = ny;
+    } else if (canWalk(nx, player.wy)) {
+      player.wx = nx;
+    } else if (canWalk(player.wx, ny)) {
+      player.wy = ny;
+    }
+    if(Math.abs(joyDX)>Math.abs(joyDY)) player.dir=joyDX>0?'right':'left';
+    else player.dir=joyDY>0?'down':'up';
+    player.moving=true;
+  } else { player.moving=false; }
+
+  if (player.moving) {
+    spFrameTimer += dt * 1000;
+    if (spFrameTimer >= SP_FRAME_MS) { spFrameTimer=0; spFrame=(spFrame+1)%SP_FRAMES; }
+  } else { spFrame=0; spFrameTimer=0; }
+
+  // 相机跟随
+  const {x:tx,y:ty}=worldToScreen(player.wx,player.wy);
+  camX+=(tx-canvas.width/2)*0.12;
+  camY+=(ty-canvas.height/2)*0.12;
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ============================================================
+// 行动按钮
+// ============================================================
+function doAction(){
+  const r=Math.round(player.wy), c=Math.round(player.wx);
+  if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
+  const type=tileMap[r][c];
+
+  if(currentTool==='hoe'){
+    if(type===T.GRASS||type===T.PATH||type===T.SOIL){
+      tileMap[r][c]=T.TILLED; showToast('翻土完成 ⛏️');
+    } else if(type===T.TILLED){ showToast('已翻过土啦～'); }
+    else showToast('这里不能翻土');
+  }
+  else if(currentTool==='seed'){
+    if(type!==T.TILLED){ showToast('请先锄地再播种'); return; }
+    if(!(seedBag[selectedSeed]>0)){ showToast(`没有${CROPS[selectedSeed].name}种子了！`); return; }
+    seedBag[selectedSeed]--;
+    tileMap[r][c]=T.CROP;
+    cropMap[r][c]={type:selectedSeed,daysGrown:0,watered:false,ready:false};
+    showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}`);
+  }
+  else if(currentTool==='water'){
+    const crop=cropMap[r][c];
+    if(!crop){ showToast('这里没有作物'); return; }
+    if(crop.watered){ showToast('今天已经浇过水啦 💧'); return; }
+    crop.watered=true; showToast('浇水完成 💧');
+  }
+  else if(currentTool==='harvest'){
+    const crop=cropMap[r][c];
+    if(!crop||!crop.ready){
+      showToast(crop?'还没成熟，再等等～':'这里没有作物'); return;
+    }
+    const cfg=CROPS[crop.type];
+    coins+=cfg.sell; harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
+    showToast(`收获${cfg.icon}${cfg.name}！+${cfg.sell}枚铜钱 🎉`);
+    updateHUD();
+    tileMap[r][c]=T.TILLED; cropMap[r][c]=null;
+  }
+}
+
+// ============================================================
+// 工具 / 商店 / 入睡
+// ============================================================
+function setTool(el,tool){
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); currentTool=tool;
+}
+
+function switchSeed(){
+  const allTypes = Object.keys(CROPS);
+  const withStock = allTypes.filter(t => (seedBag[t]||0) > 0);
+  if(!withStock.length){ showToast('没有任何种子，去商店购买！'); return; }
+  const idx = withStock.indexOf(selectedSeed);
+  selectedSeed = withStock[(idx+1)%withStock.length];
+  const seedBtn = document.querySelector('[data-tool="seed"]');
+  setTool(seedBtn, 'seed');
+  updateSeedSwitchUI();
+  showToast(`切换种子：${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}(剩${seedBag[selectedSeed]}袋)`);
+}
+
+function updateSeedSwitchUI(){
+  const cfg = CROPS[selectedSeed];
+  const stock = seedBag[selectedSeed] || 0;
+  document.getElementById('seed-switch-icon').textContent = cfg.icon;
+  document.getElementById('seed-switch-name').textContent = cfg.name + (stock>0 ? `x${stock}` : '无');
+  document.getElementById('seed-switch-btn').style.opacity = stock > 0 ? '1' : '0.4';
+}
+
+function nextDay(){
+  day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
+  for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
+    const crop=cropMap[r][c];
+    if(crop&&!crop.ready){ if(crop.watered) crop.daysGrown++; crop.watered=false;
+      if(crop.daysGrown>=CROPS[crop.type].days) crop.ready=true; }
+  }
+  updateHUD(); showToast(`🌙 第${day}天开始了`);
+}
+
+function openShop(){ updateSellGrid(); document.getElementById('shop-panel').style.display='flex'; }
+function closeShop(){ document.getElementById('shop-panel').style.display='none'; }
+
+function buySeed(type){
+  const cfg=CROPS[type];
+  if(coins<cfg.cost){ showToast('铜钱不够！'); return; }
+  coins-=cfg.cost; seedBag[type]=(seedBag[type]||0)+1;
+  selectedSeed=type; updateHUD(); updateSeedSwitchUI();
+  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('[data-tool="seed"]').classList.add('active');
+  currentTool='seed';
+  showToast(`购入${cfg.icon}${cfg.name}种子 -${cfg.cost}枚`);
+  closeShop();
+}
+
+function sellCrop(type){
+  const qty=harvestBag[type]||0; if(!qty) return;
+  const earned=qty*CROPS[type].sell; coins+=earned; harvestBag[type]=0;
+  updateHUD(); showToast(`出售${CROPS[type].icon}x${qty} +${earned}枚！`);
+  updateSellGrid();
+}
+
+function updateSellGrid(){
+  const el=document.getElementById('sellGrid');
+  const entries=Object.entries(harvestBag).filter(([k,v])=>v>0);
+  if(!entries.length){ el.innerHTML='<div style="color:#886640;font-size:11px;padding:6px;grid-column:1/-1">暂无农产品</div>'; return; }
+  el.innerHTML=entries.map(([t,q])=>`<div class="sitem" onclick="sellCrop('${t}')">
+    <span class="sitem-icon">${CROPS[t].icon}</span>
+    <span class="sitem-name">${CROPS[t].name}x${q}</span>
+    <span class="sitem-price">🪙${CROPS[t].sell}</span>
+    <span class="sitem-desc">点击出售</span>
+  </div>`).join('');
+}
+
+function updateHUD(){
+  document.getElementById('coinVal').textContent=coins;
+  document.getElementById('dayVal').textContent=day;
+  document.getElementById('seasonVal').textContent=SEASONS[seasonIdx];
+}
+
+let toastT=null;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ============================================================
+// 启动页 + 横屏全屏（从地图编辑器移植）
+// ============================================================
+const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
+
+function applyCSSLandscape() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  if (W >= H) return;
+  const gameWrap = document.getElementById('game-wrap');
+  gameWrap.style.position = 'fixed';
+  gameWrap.style.width  = H + 'px';
+  gameWrap.style.height = W + 'px';
+  const offsetX = (W - H) / 2;
+  const offsetY = (H - W) / 2;
+  gameWrap.style.left = offsetX + 'px';
+  gameWrap.style.top  = offsetY + 'px';
+  gameWrap.style.transformOrigin = 'center center';
+  gameWrap.style.transform = 'rotate(90deg)';
+  gameWrap.style.overflow = 'hidden';
+  window._cssLandscape = true;
+  setTimeout(() => { resize(); window.dispatchEvent(new Event('resize')); }, 50);
+}
+
+async function enterFullscreen() {
+  if (IS_WECHAT) {
+    applyCSSLandscape();
+    return;
+  }
+  try {
+    const el = document.documentElement;
+    if (el.requestFullscreen) await el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+  } catch(e) {}
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      try { await screen.orientation.lock('landscape-primary'); }
+      catch(e2) { await screen.orientation.lock('landscape'); }
+    }
+  } catch(e) { applyCSSLandscape(); }
+  setTimeout(() => {
+    if (window.innerWidth < window.innerHeight) applyCSSLandscape();
+  }, 300);
+}
+
+// 启动页布局
+const BG_RATIO = 2732 / 1534;
+const splashScreen = document.getElementById('splash-screen');
+const splashBg     = document.getElementById('splash-bg');
+const splashInner  = document.getElementById('splash-inner');
+const splashTitle  = document.getElementById('splash-title');
+const splashBtn    = document.getElementById('splash-btn');
+
+function layoutSplash() {
+  const SW = window.innerWidth, SH = window.innerHeight;
+  const isLandscape = SW > SH;
+  let bgVisualW, bgVisualH;
+
+  if (isLandscape) {
+    if (SW / SH > BG_RATIO) { bgVisualW=SW; bgVisualH=SW/BG_RATIO; }
+    else { bgVisualH=SH; bgVisualW=SH*BG_RATIO; }
+    splashBg.style.width  = bgVisualW + 'px';
+    splashBg.style.height = bgVisualH + 'px';
+    splashBg.style.transform = 'translate(-50%,-50%)';
+  } else {
+    if (SH / SW > BG_RATIO) { bgVisualW=SH; bgVisualH=SH/BG_RATIO; }
+    else { bgVisualH=SW; bgVisualW=SW*BG_RATIO; }
+    splashBg.style.width  = bgVisualW + 'px';
+    splashBg.style.height = bgVisualH + 'px';
+    splashBg.style.transform = 'translate(-50%,-50%) rotate(90deg)';
+  }
+
+  const titleW = Math.round(bgVisualW * 0.42);
+  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
+  const titleShift = isLandscape
+    ? Math.min(250, bgVisualW * 0.20)
+    : Math.min(SH * 0.26, bgVisualH * 0.26);
+  const btnShift = isLandscape
+    ? Math.min(50, bgVisualW * 0.04)
+    : Math.min(SW * 0.06, bgVisualH * 0.06);
+
+  splashTitle.style.width = titleW + 'px';
+  splashTitle.style.left  = '50%';
+  splashTitle.style.top   = '50%';
+  splashTitle.style.transform = isLandscape
+    ? `translate(calc(-50% - ${titleShift}px),-50%)`
+    : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
+
+  splashBtn.style.width = btnW + 'px';
+  splashInner.style.left = '50%';
+  splashInner.style.top  = '50%';
+  splashInner.style.transform = isLandscape
+    ? `translate(-50%,calc(-50% + ${btnShift}px))`
+    : `translate(calc(-50% - ${btnShift}px),-50%) rotate(90deg)`;
+}
+
+layoutSplash();
+window.addEventListener('resize', layoutSplash);
+
+splashScreen.addEventListener('click', async () => {
+  await enterFullscreen();
+  splashScreen.style.transition = 'opacity 0.4s';
+  splashScreen.style.opacity = '0';
+  setTimeout(() => {
+    splashScreen.style.display = 'none';
+    resize();
+  }, 400);
+});
+
+// ============================================================
+// 启动游戏循环
+// ============================================================
+const {x:ix, y:iy} = worldToScreen(player.wx, player.wy);
+camX = ix - canvas.width/2;
+camY = iy - canvas.height/2;
+updateSeedSwitchUI();
+requestAnimationFrame(ts => { lastT=ts; loop(ts); });
+</script>
+</body>
+</html>
