@@ -650,9 +650,9 @@ const BLOCKED_TYPES = [T.WATER];
 // 脚点偏移：角色脱点在sprite中心下方，转换为格子单位
 // footY = y + SP_FRAME_H * SP_SCALE * 0.3 = 32*2.5*0.3 = 24px
 // 按TILE=48px: 24/48 = 0.5格
-const FOOT_OFFSET_Y = 0.5;  // 脚点在中心点下方多少格
-const FOOT_HALF_X = 0.3;    // 脚部左右碰撞半宽
-const FOOT_HALF_Y = 0.15;   // 脚部前后碰撞半宽
+const FOOT_OFFSET_Y = 0.0;  // 脚点=角色中心（对称碰撞）
+const FOOT_HALF_X = 0.45;   // 脚部左右碰撞半宽（接近格子边缘）
+const FOOT_HALF_Y = 0.45;   // 脚部前后碰撞半宽（接近格子边缘）
 
 function canWalk(wx, wy) {
   // 脚点坐标
