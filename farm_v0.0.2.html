@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="icon" type="image/webp" href="assets/images/ui/home/ui_home_app_icon.webp">
 <link rel="apple-touch-icon" href="assets/images/ui/home/ui_home_app_icon_192.webp">
-<title>桃源田居</title>
+<title>桃源拾光</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body {
@@ -246,7 +246,7 @@ const MAP_DATA = {"cols":120,"rows":100,"tiles":[{"s":"Tileset_Grass_Spring.png"
 // ============================================================
 const MAP_COLS = MAP_DATA.cols;  // 120
 const MAP_ROWS = MAP_DATA.rows;  // 100
-const TILE_BASE_DIR = 'assets/images/map/tiles/';
+const TILE_BASE_DIR = 'assets/images/map/tiles/map_tiles_';
 const TS = 16; // tileset 单格大小
 
 // tileId 语义（与地图编辑器保持一致）
@@ -390,7 +390,12 @@ preloadMapImages();
 function drawCell(cell, x, y, highlight=false) {
   if (!cell || !cell.s) return;
   const entry = getImg(TILE_BASE_DIR + cell.s);
-  if (!entry.loaded) return;
+  if (!entry.loaded) {
+    // 图片未加载时显示占位色（按tileId区分水/草）
+    ctx.fillStyle = cell.t === 9 ? '#5ab8e8' : '#5aaa3a';
+    ctx.fillRect(x - TILE/2, y - TILE/2, TILE, TILE);
+    return;
+  }
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(entry.img, cell.x, cell.y, TS, TS, x - TILE/2, y - TILE/2, TILE, TILE);
