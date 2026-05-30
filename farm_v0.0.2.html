@@ -420,7 +420,6 @@ function drawTile(r, c) {
   if (x < -TILE*2 || x > W+TILE*2 || y < -TILE*2 || y > H+TILE*2) return;
 
   const pr = Math.round(player.wy), pc = Math.round(player.wx);
-  const isPlayerTile = (r===pr && c===pc);
   const type = tileMap[r][c];
 
   // 层0：地面底层
@@ -474,11 +473,7 @@ function drawTile(r, c) {
     }
   }
 
-  // 玩家所在格高亮
-  if (isPlayerTile) {
-    ctx.strokeStyle='rgba(255,220,80,0.5)'; ctx.lineWidth=2;
-    ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
-  }
+
 
   // 遮挡层（above = 层4，渲染在角色上面，放后面处理）
 }
@@ -553,47 +548,7 @@ function render() {
   const py = Math.round(player.wy * TILE - camY);
   drawPlayer(px, py);
 
-  // ===== 调试：画出碰撞脚点和范围 =====
-  // ===== 调试：画格子网格线（角色周围5格范围）=====
-  {
-    const pr = Math.round(player.wy), pc = Math.round(player.wx);
-    ctx.strokeStyle = 'rgba(255,255,0,0.4)'; ctx.lineWidth = 1;
-    for (let dr = -3; dr <= 3; dr++) {
-      for (let dc = -3; dc <= 3; dc++) {
-        const rr = pr + dr, cc = pc + dc;
-        if (rr < 0 || rr >= MAP_ROWS || cc < 0 || cc >= MAP_COLS) continue;
-        const {x: gx, y: gy} = worldToScreen(cc, rr);
-        // 格子左上角
-        ctx.strokeRect(gx - TILE/2, gy - TILE/2, TILE, TILE);
-        // 如果是水格子，填红色半透明
-        if (tileMap[rr][cc] === T.WATER) {
-          ctx.fillStyle = 'rgba(255,0,0,0.25)';
-          ctx.fillRect(gx - TILE/2, gy - TILE/2, TILE, TILE);
-        }
-      }
-    }
-  }
 
-  if (true) { // DEBUG_COLLISION
-    const fx = player.wx;
-    const fy = player.wy + FOOT_OFFSET_Y;
-    // 碰撞框四边的世界坐标
-    const boxL = fx - FOOT_HALF_X;
-    const boxR = fx + FOOT_HALF_X;
-    const boxT = fy - FOOT_HALF_Y;
-    const boxB = fy + FOOT_HALF_Y;
-    // 转屏幕坐标：格子左边缘 = wx*TILE - camX
-    const sL = Math.round(boxL * TILE - camX);
-    const sR = Math.round(boxR * TILE - camX);
-    const sT = Math.round(boxT * TILE - camY);
-    const sB = Math.round(boxB * TILE - camY);
-    // 脚点红点（和角色同一坐标系：格子左边缘）
-    ctx.fillStyle = 'red';
-    ctx.beginPath(); ctx.arc(Math.round(fx*TILE-camX), Math.round(fy*TILE-camY), 4, 0, Math.PI*2); ctx.fill();
-    // 洋红碰撞框
-    ctx.strokeStyle = 'magenta'; ctx.lineWidth = 2;
-    ctx.strokeRect(sL, sT, sR - sL, sB - sT);
-  }
 
   // 遮挡层（在角色上面）
   for(let r=0;r<MAP_ROWS;r++)
@@ -706,8 +661,8 @@ function loop(ts){
   } else { spFrame=0; spFrameTimer=0; }
 
   // 相机跟随
-  const targetX = player.wx * TILE + TILE/2 - canvas.width/2;
-  const targetY = player.wy * TILE + TILE/2 - canvas.height/2;
+  const targetX = player.wx * TILE - canvas.width/2;
+  const targetY = player.wy * TILE - canvas.height/2;
   camX += (targetX - camX) * 0.12;
   camY += (targetY - camY) * 0.12;
   camX = Math.round(camX);
@@ -956,9 +911,8 @@ splashScreen.addEventListener('click', async () => {
 // ============================================================
 // 启动游戏循环
 // ============================================================
-const {x:ix, y:iy} = worldToScreen(player.wx, player.wy);
-camX = Math.round(player.wx * TILE + TILE/2 - canvas.width/2);
-camY = Math.round(player.wy * TILE + TILE/2 - canvas.height/2);
+camX = Math.round(player.wx * TILE - canvas.width/2);
+camY = Math.round(player.wy * TILE - canvas.height/2);
 updateSeedSwitchUI();
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 </script>
