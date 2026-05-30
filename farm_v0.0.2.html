@@ -602,16 +602,26 @@ function updateJoy(touch){
 let lastT=0;
 const SPEED=3.5;
 const BLOCKED_TYPES = [T.WATER];
+// 脚点偏移：角色脱点在sprite中心下方，转换为格子单位
+// footY = y + SP_FRAME_H * SP_SCALE * 0.3 = 32*2.5*0.3 = 24px
+// 按TILE=48px: 24/48 = 0.5格
+const FOOT_OFFSET_Y = (SP_FRAME_H * SP_SCALE * 0.3) / TILE; // 约 0.5
+// 水平方向稍简些，与向右对齐
+const FOOT_HALF_X = 0.3;  // 脚部左右碰撞半宽
+const FOOT_HALF_Y = 0.15; // 脚部前后碰撞半宽（脚点很小）
 
 function canWalk(wx, wy) {
-  if (wx < 0 || wx >= MAP_COLS - 1) return false;
-  if (wy < 0 || wy >= MAP_ROWS - 1) return false;
-  const HALF = 0.4;
+  // 脚点坐标
+  const fx = wx;
+  const fy = wy + FOOT_OFFSET_Y;
+  if (fx - FOOT_HALF_X < 0 || fx + FOOT_HALF_X > MAP_COLS - 1) return false;
+  if (fy - FOOT_HALF_Y < 0 || fy + FOOT_HALF_Y > MAP_ROWS - 1) return false;
+  // 检查脚点围围四角
   const corners = [
-    [Math.floor(wy - HALF), Math.floor(wx - HALF)],
-    [Math.floor(wy - HALF), Math.floor(wx + HALF)],
-    [Math.floor(wy + HALF), Math.floor(wx - HALF)],
-    [Math.floor(wy + HALF), Math.floor(wx + HALF)],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
   ];
   for (const [r, c] of corners) {
     const rr = Math.max(0, Math.min(MAP_ROWS-1, r));
