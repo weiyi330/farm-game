@@ -1273,34 +1273,63 @@ function getCellFromTouch(t) {
   return { r, c };
 }
 
+// 长按填充：按住3秒不动激活填充，立即拖动视为滚动地图
+let _longPressTimer = null;
+let _touchStartX = 0, _touchStartY = 0;
+const LONG_PRESS_MS = 600;   // 长按触发时间(ms)
+const MOVE_THRESHOLD = 10;   // 移动超过这个像素视为拖动地图(px)
+
 canvas.addEventListener('touchstart', e => {
-  if (state.currentTile !== null || selectedAtlasTile || state.currentTool === 'eraser') {
+  if (!(state.currentTile !== null || selectedAtlasTile || state.currentTool === 'eraser')) return;
+  const t = e.touches[0];
+  _touchStartX = t.clientX;
+  _touchStartY = t.clientY;
+  state.isDrawing = false;
+
+  _longPressTimer = setTimeout(() => {
+    _longPressTimer = null;
+    // 长按触发：激活填充
     pushHistory();
-    const cell = getCellFromTouch(e.touches[0]);
+    const cell = getCellFromTouch(e.touches[0] || { clientX: _touchStartX, clientY: _touchStartY });
     if (cell) {
       state.isDrawing = true;
       state.lastCell = null;
       applyTool(cell, null);
       fullRender();
+      // 震动反馈
+      if (navigator.vibrate) navigator.vibrate(40);
     }
-  }
+  }, LONG_PRESS_MS);
 }, { passive: true });
 
 canvas.addEventListener('touchmove', e => {
-  if (!state.isDrawing) return;
-  e.preventDefault();
-  const cell = getCellFromTouch(e.touches[0]);
-  if (cell) {
-    const key = cell.r + '_' + cell.c;
-    if (state.lastCell !== key) {
-      state.lastCell = key;
-      applyTool(cell, null);
-      fullRender();
+  const t = e.touches[0];
+  const dx = t.clientX - _touchStartX;
+  const dy = t.clientY - _touchStartY;
+
+  // 移动超过阈值，取消长按计时器（视为滚动地图）
+  if (_longPressTimer && Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) {
+    clearTimeout(_longPressTimer);
+    _longPressTimer = null;
+  }
+
+  // 填充模式：拦截滚动，连续填充
+  if (state.isDrawing) {
+    e.preventDefault();
+    const cell = getCellFromTouch(t);
+    if (cell) {
+      const key = cell.r + '_' + cell.c;
+      if (state.lastCell !== key) {
+        state.lastCell = key;
+        applyTool(cell, null);
+        fullRender();
+      }
     }
   }
 }, { passive: false });
 
 canvas.addEventListener('touchend', () => {
+  if (_longPressTimer) { clearTimeout(_longPressTimer); _longPressTimer = null; }
   state.isDrawing = false;
   state.lastCell = null;
 });
