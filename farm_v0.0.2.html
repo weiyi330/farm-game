@@ -326,8 +326,9 @@ window.addEventListener('resize', resize);
 // ============================================================
 const TILLED_SRC = 'Tilled_Soil_and_wet_soil.png';
 const TS_SIZE = 16;
-function tilledPos(n) {  // 编号→{x,y}
-  return { x: (n % 24) * 16, y: Math.floor(n / 24) * 16 };
+function tilledPos(n) {  // 编号→{x,y}，编号从1开始
+  const idx = n - 1;
+  return { x: (idx % 24) * 16, y: Math.floor(idx / 24) * 16 };
 }
 // 形状编号映射
 const TILLED_TILES = {
