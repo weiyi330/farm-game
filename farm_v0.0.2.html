@@ -578,25 +578,21 @@ function render() {
     const fx = player.wx;
     const fy = player.wy + FOOT_OFFSET_Y;
     // 碰撞框四边的世界坐标
-    const boxL = fx - FOOT_HALF_X;  // 左边
-    const boxR = fx + FOOT_HALF_X;  // 右边
-    const boxT = fy - FOOT_HALF_Y;  // 上边
-    const boxB = fy + FOOT_HALF_Y;  // 下边
-    // 转屏幕坐标：格子(wx)的左边缘 = wx*TILE - camX
+    const boxL = fx - FOOT_HALF_X;
+    const boxR = fx + FOOT_HALF_X;
+    const boxT = fy - FOOT_HALF_Y;
+    const boxB = fy + FOOT_HALF_Y;
+    // 转屏幕坐标：格子左边缘 = wx*TILE - camX
     const sL = Math.round(boxL * TILE - camX);
     const sR = Math.round(boxR * TILE - camX);
     const sT = Math.round(boxT * TILE - camY);
     const sB = Math.round(boxB * TILE - camY);
-    // 脚点红点（格子中心坐标）
+    // 脚点红点（和角色同一坐标系：格子左边缘）
     ctx.fillStyle = 'red';
-    ctx.beginPath(); ctx.arc(Math.round(fx*TILE+TILE/2-camX), Math.round(fy*TILE+TILE/2-camY), 4, 0, Math.PI*2); ctx.fill();
-    // 洋红碰撞框（对齐格子边界）
+    ctx.beginPath(); ctx.arc(Math.round(fx*TILE-camX), Math.round(fy*TILE-camY), 4, 0, Math.PI*2); ctx.fill();
+    // 洋红碰撞框
     ctx.strokeStyle = 'magenta'; ctx.lineWidth = 2;
     ctx.strokeRect(sL, sT, sR - sL, sB - sT);
-    // 数值
-    ctx.fillStyle = 'yellow'; ctx.font = '12px monospace';
-    ctx.fillText(`wx=${player.wx.toFixed(2)} wy=${player.wy.toFixed(2)} fx=${fx.toFixed(2)} fy=${fy.toFixed(2)}`,
-      Math.round(fx*TILE+TILE/2-camX)-60, Math.round(fy*TILE+TILE/2-camY)-20);
   }
 
   // 遮挡层（在角色上面）
