@@ -548,9 +548,10 @@ function render() {
     for(let c=0;c<MAP_COLS;c++)
       drawTile(r,c);
 
-  // 角色
-  const {x,y}=worldToScreen(player.wx, player.wy);
-  drawPlayer(x, y);
+  // 角色：以格子左上角为基准（和碰撞框坐标系一致）
+  const px = Math.round(player.wx * TILE - camX);
+  const py = Math.round(player.wy * TILE - camY);
+  drawPlayer(px, py);
 
   // ===== 调试：画出碰撞脚点和范围 =====
   // ===== 调试：画格子网格线（角色周围5格范围）=====
