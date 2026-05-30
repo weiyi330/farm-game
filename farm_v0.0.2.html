@@ -660,16 +660,12 @@ function canWalk(wx, wy) {
   const fy = wy + FOOT_OFFSET_Y;
   if (fx - FOOT_HALF_X < 0 || fx + FOOT_HALF_X > MAP_COLS - 1) return false;
   if (fy - FOOT_HALF_Y < 0 || fy + FOOT_HALF_Y > MAP_ROWS - 1) return false;
-  // 四角检测：上/左用floor，下/右用ceil-1（确保框边缘刚好碰到格子才停）
-  const rTop    = Math.floor(fy - FOOT_HALF_Y);
-  const rBottom = Math.ceil(fy  + FOOT_HALF_Y) - 1;
-  const cLeft   = Math.floor(fx - FOOT_HALF_X);
-  const cRight  = Math.ceil(fx  + FOOT_HALF_X) - 1;
+  // 四角检测：全部用floor，框边缘进入格子才停
   const corners = [
-    [rTop,    cLeft ],
-    [rTop,    cRight],
-    [rBottom, cLeft ],
-    [rBottom, cRight],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
   ];
   for (const [r, c] of corners) {
     const rr = Math.max(0, Math.min(MAP_ROWS-1, r));
