@@ -292,6 +292,7 @@ const mapLayers = buildMap();
 // tileMap: 游戏逻辑层（layer0 + layer1 合并，水优先）
 let tileMap = [];
 let cropMap = [];
+let wateredMap = {};  // 独立浇水状态（无作物的锄地格）
 for (let r = 0; r < MAP_ROWS; r++) {
   tileMap.push([]);
   cropMap.push(new Array(MAP_COLS).fill(null));
@@ -362,7 +363,7 @@ const WET_TILES = {
 function getWetTileNum(row, col) {
   const isWet = (r, c) =>
     r >= 0 && r < MAP_ROWS && c >= 0 && c < MAP_COLS &&
-    cropMap[r][c] && cropMap[r][c].watered;
+    ((cropMap[r][c] && cropMap[r][c].watered) || (wateredMap[r] && wateredMap[r][c]));
   const U = isWet(row-1, col), D = isWet(row+1, col);
   const L = isWet(row, col-1), R = isWet(row, col+1);
   if (!U && !D && !L && !R) return WET_TILES.single;
@@ -553,7 +554,7 @@ function drawTile(r, c) {
     }
     // 浇水叠加层（湿土覆盖在干土上）
     const isWatered = (tileMap[r][c] === T.TILLED || tileMap[r][c] === T.CROP)
-      && cropMap[r][c] && cropMap[r][c].watered;
+      && ((cropMap[r][c] && cropMap[r][c].watered) || (wateredMap[r] && wateredMap[r][c]));
     if (isWatered) {
       const wnum = getWetTileNum(r, c);
       const wp = tilledPos(wnum);
@@ -574,7 +575,7 @@ function drawTile(r, c) {
 
   // 作物
   const crop = cropMap[r][c];
-  if (crop) {
+  if (crop && crop.type) {
     const cfg=CROPS[crop.type];
     const si=crop.ready?cfg.stages.length-1:Math.min(crop.daysGrown,cfg.stages.length-1);
     const sz=crop.ready?28:22;
@@ -812,10 +813,15 @@ function doAction(){
   }
   else if(currentTool==='water'){
     if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
-    if(!cropMap[r][c]) cropMap[r][c] = { type: null, daysGrown: 0, watered: false, ready: false };
-    const crop = cropMap[r][c];
-    if(crop.watered){ showToast('今天已经浇过水啦 💧'); return; }
-    crop.watered = true; showToast('浇水完成 💧');
+    if(!wateredMap[r]) wateredMap[r] = {};
+    if(cropMap[r][c]) {
+      if(cropMap[r][c].watered){ showToast('今天已经浇过水啦 💧'); return; }
+      cropMap[r][c].watered = true;
+    } else {
+      if(wateredMap[r][c]){ showToast('今天已经浇过水啦 💧'); return; }
+      wateredMap[r][c] = true;
+    }
+    showToast('浇水完成 💧');
   }
   else if(currentTool==='harvest'){
     const crop=cropMap[r][c];
