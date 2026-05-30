@@ -557,8 +557,8 @@ function render() {
     // 碰撞矩形（荆色）
     ctx.strokeStyle = 'magenta'; ctx.lineWidth = 2;
     ctx.strokeRect(
-      fdx - FOOT_LEFT * TILE, fdy - FOOT_UP * TILE,
-      (FOOT_LEFT + FOOT_RIGHT) * TILE, (FOOT_UP + FOOT_DOWN) * TILE
+      fdx - FOOT_HALF_X * TILE, fdy - FOOT_HALF_Y * TILE,
+      FOOT_HALF_X * 2 * TILE, FOOT_HALF_Y * 2 * TILE
     );
     // 显示wy数值
     ctx.fillStyle = 'yellow'; ctx.font = '12px monospace';
@@ -624,24 +624,22 @@ const BLOCKED_TYPES = [T.WATER];
 // 脚点偏移：角色脱点在sprite中心下方，转换为格子单位
 // footY = y + SP_FRAME_H * SP_SCALE * 0.3 = 32*2.5*0.3 = 24px
 // 按TILE=48px: 24/48 = 0.5格
-// 四方向不对称碰撞偏移（根据实测校准）
-const FOOT_OFFSET_Y = 0.5;  // 脚点在中心下方
-const FOOT_LEFT  = 0.8;    // 向左碰撞距离（实测差0.5格，补正）
-const FOOT_RIGHT = 0.3;    // 向右碰撞距离（已准确）
-const FOOT_UP    = 0.15;   // 向上碰撞距离
-const FOOT_DOWN  = 0.15;   // 向下碰撞距离（已准确）
+const FOOT_OFFSET_Y = 0.5;  // 脚点在中心点下方多少格
+const FOOT_HALF_X = 0.3;    // 脚部左右碰撞半宽
+const FOOT_HALF_Y = 0.15;   // 脚部前后碰撞半宽
 
 function canWalk(wx, wy) {
+  // 脚点坐标
   const fx = wx;
   const fy = wy + FOOT_OFFSET_Y;
-  if (fx - FOOT_LEFT  < 0 || fx + FOOT_RIGHT > MAP_COLS - 1) return false;
-  if (fy - FOOT_UP    < 0 || fy + FOOT_DOWN  > MAP_ROWS - 1) return false;
-  // 四角检测（不对称）
+  if (fx - FOOT_HALF_X < 0 || fx + FOOT_HALF_X > MAP_COLS - 1) return false;
+  if (fy - FOOT_HALF_Y < 0 || fy + FOOT_HALF_Y > MAP_ROWS - 1) return false;
+  // 检查脚点围围四角
   const corners = [
-    [Math.floor(fy - FOOT_UP),   Math.floor(fx - FOOT_LEFT)],
-    [Math.floor(fy - FOOT_UP),   Math.floor(fx + FOOT_RIGHT)],
-    [Math.floor(fy + FOOT_DOWN), Math.floor(fx - FOOT_LEFT)],
-    [Math.floor(fy + FOOT_DOWN), Math.floor(fx + FOOT_RIGHT)],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
   ];
   for (const [r, c] of corners) {
     const rr = Math.max(0, Math.min(MAP_ROWS-1, r));
