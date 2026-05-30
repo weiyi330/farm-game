@@ -350,11 +350,45 @@ const TILLED_TILES = {
   b:  82,  // 下边
   br: 84,  // 右下角
 };
-// 湿土偏移：编号+12
-const TILLED_WET_OFFSET = 12;
+// 湿土(浇水)tile编号（独立一层叠在锄地上）
+const WET_TILES = {
+  single:   85,
+  h_left:   86, h_mid:  87, h_right: 88,
+  v_top:    13, v_mid:  37, v_bottom: 61,
+  tl: 21, t: 23, tr: 24,
+  l:  45, c: 70, r:  72,
+  bl: 93, b: 94, br: 96,
+};
+function getWetTileNum(row, col) {
+  const isWet = (r, c) =>
+    r >= 0 && r < MAP_ROWS && c >= 0 && c < MAP_COLS &&
+    cropMap[r][c] && cropMap[r][c].watered;
+  const U = isWet(row-1, col), D = isWet(row+1, col);
+  const L = isWet(row, col-1), R = isWet(row, col+1);
+  if (!U && !D && !L && !R) return WET_TILES.single;
+  if (!U && !D) {
+    if (L && R)  return WET_TILES.h_mid;
+    if (L)       return WET_TILES.h_right;
+    return WET_TILES.h_left;
+  }
+  if (!L && !R) {
+    if (U && D)  return WET_TILES.v_mid;
+    if (U)       return WET_TILES.v_bottom;
+    return WET_TILES.v_top;
+  }
+  if (!U && !L) return WET_TILES.tl;
+  if (!U && !R) return WET_TILES.tr;
+  if (!D && !L) return WET_TILES.bl;
+  if (!D && !R) return WET_TILES.br;
+  if (!U) return WET_TILES.t;
+  if (!D) return WET_TILES.b;
+  if (!L) return WET_TILES.l;
+  if (!R) return WET_TILES.r;
+  return WET_TILES.c;
+}
 
 // 根据四周邻居判断该格的tilled tile编号（watered=true时返回湿土编号）
-function getTilledTileNum(row, col, watered=false) {
+function getTilledTileNum(row, col) {
   const isTilled = (r, c) =>
     r >= 0 && r < MAP_ROWS && c >= 0 && c < MAP_COLS &&
     (tileMap[r][c] === T.TILLED || tileMap[r][c] === T.CROP);
@@ -363,29 +397,29 @@ function getTilledTileNum(row, col, watered=false) {
   const L = isTilled(row, col-1);
   const R = isTilled(row, col+1);
 
-  if (!U && !D && !L && !R) return watered ? TILLED_TILES.single+TILLED_WET_OFFSET : TILLED_TILES.single;
+  if (!U && !D && !L && !R) return TILLED_TILES.single;
   // 纯横向
   if (!U && !D) {
-    if (L && R)  return watered ? TILLED_TILES.h_mid+TILLED_WET_OFFSET : TILLED_TILES.h_mid;
-    if (L && !R) return watered ? TILLED_TILES.h_right+TILLED_WET_OFFSET : TILLED_TILES.h_right;
-    if (!L && R) return watered ? TILLED_TILES.h_left+TILLED_WET_OFFSET : TILLED_TILES.h_left;
+    if (L && R)  return TILLED_TILES.h_mid;
+    if (L && !R) return TILLED_TILES.h_right;
+    if (!L && R) return TILLED_TILES.h_left;
   }
   // 纯竖向
   if (!L && !R) {
-    if (U && D)  return watered ? TILLED_TILES.v_mid+TILLED_WET_OFFSET : TILLED_TILES.v_mid;
-    if (U && !D) return watered ? TILLED_TILES.v_bottom+TILLED_WET_OFFSET : TILLED_TILES.v_bottom;
-    if (!U && D) return watered ? TILLED_TILES.v_top+TILLED_WET_OFFSET : TILLED_TILES.v_top;
+    if (U && D)  return TILLED_TILES.v_mid;
+    if (U && !D) return TILLED_TILES.v_bottom;
+    if (!U && D) return TILLED_TILES.v_top;
   }
   // 多行多列（有上下也有左右）
-  if (!U && !L) return watered ? TILLED_TILES.tl+TILLED_WET_OFFSET : TILLED_TILES.tl;
-  if (!U && !R) return watered ? TILLED_TILES.tr+TILLED_WET_OFFSET : TILLED_TILES.tr;
-  if (!D && !L) return watered ? TILLED_TILES.bl+TILLED_WET_OFFSET : TILLED_TILES.bl;
-  if (!D && !R) return watered ? TILLED_TILES.br+TILLED_WET_OFFSET : TILLED_TILES.br;
-  if (!U)       return watered ? TILLED_TILES.t+TILLED_WET_OFFSET : TILLED_TILES.t;
-  if (!D)       return watered ? TILLED_TILES.b+TILLED_WET_OFFSET : TILLED_TILES.b;
-  if (!L)       return watered ? TILLED_TILES.l+TILLED_WET_OFFSET : TILLED_TILES.l;
-  if (!R)       return watered ? TILLED_TILES.r+TILLED_WET_OFFSET : TILLED_TILES.r;
-  return watered ? TILLED_TILES.c+TILLED_WET_OFFSET : TILLED_TILES.c;  // 四面都有
+  if (!U && !L) return TILLED_TILES.tl;
+  if (!U && !R) return TILLED_TILES.tr;
+  if (!D && !L) return TILLED_TILES.bl;
+  if (!D && !R) return TILLED_TILES.br;
+  if (!U)       return TILLED_TILES.t;
+  if (!D)       return TILLED_TILES.b;
+  if (!L)       return TILLED_TILES.l;
+  if (!R)       return TILLED_TILES.r;
+  return TILLED_TILES.c;  // 四面都有
 }
 
 // ============================================================
@@ -506,8 +540,8 @@ function drawTile(r, c) {
   // 游戏逻辑叠加
   // 锄地/作物：用 Tilled_Soil tileset 显示
   if (type===T.TILLED || type===T.CROP) {
-    const watered = !!(cropMap[r][c] && cropMap[r][c].watered);
-    const tnum = getTilledTileNum(r, c, watered);
+    // 锄地底层（干土）
+    const tnum = getTilledTileNum(r, c);
     const tp = tilledPos(tnum);
     const tEntry = getImg('assets/images/map/tiles/map_tiles_' + TILLED_SRC);
     if (tEntry.loaded) {
@@ -516,6 +550,20 @@ function drawTile(r, c) {
       ctx.drawImage(tEntry.img, tp.x, tp.y, TS_SIZE, TS_SIZE,
         x - TILE/2, y - TILE/2, TILE, TILE);
       ctx.restore();
+    }
+    // 浇水叠加层（湿土覆盖在干土上）
+    const isWatered = (tileMap[r][c] === T.TILLED || tileMap[r][c] === T.CROP)
+      && cropMap[r][c] && cropMap[r][c].watered;
+    if (isWatered) {
+      const wnum = getWetTileNum(r, c);
+      const wp = tilledPos(wnum);
+      if (tEntry.loaded) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tEntry.img, wp.x, wp.y, TS_SIZE, TS_SIZE,
+          x - TILE/2, y - TILE/2, TILE, TILE);
+        ctx.restore();
+      }
     }
   }
 
@@ -763,10 +811,11 @@ function doAction(){
     showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}`);
   }
   else if(currentTool==='water'){
-    const crop=cropMap[r][c];
-    if(!crop){ showToast('这里没有作物'); return; }
+    if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
+    if(!cropMap[r][c]) cropMap[r][c] = { type: null, daysGrown: 0, watered: false, ready: false };
+    const crop = cropMap[r][c];
     if(crop.watered){ showToast('今天已经浇过水啦 💧'); return; }
-    crop.watered=true; showToast('浇水完成 💧');
+    crop.watered = true; showToast('浇水完成 💧');
   }
   else if(currentTool==='harvest'){
     const crop=cropMap[r][c];
