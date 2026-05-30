@@ -547,7 +547,7 @@ function render() {
   drawPlayer(x, y);
 
   // ===== 调试：画出碰撞脚点和范围 =====
-  if (window.DEBUG_COLLISION) {
+  if (true) { // DEBUG_COLLISION
     const fx = player.wx;
     const fy = player.wy + FOOT_OFFSET_Y;
     const {x: fdx, y: fdy} = worldToScreen(fx, fy);
