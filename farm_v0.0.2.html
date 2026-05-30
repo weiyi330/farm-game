@@ -805,15 +805,17 @@ function showToast(msg){
 const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
 
 function applyCSSLandscape() {
+  // 无条件旋转90度，不判断当前方向
   const W = window.innerWidth;
   const H = window.innerHeight;
-  if (W >= H) return;
+  const short = Math.min(W, H);
+  const long  = Math.max(W, H);
   const gameWrap = document.getElementById('game-wrap');
   gameWrap.style.position = 'fixed';
-  gameWrap.style.width  = H + 'px';
-  gameWrap.style.height = W + 'px';
-  const offsetX = (W - H) / 2;
-  const offsetY = (H - W) / 2;
+  gameWrap.style.width  = long  + 'px';
+  gameWrap.style.height = short + 'px';
+  const offsetX = (W - long)  / 2;
+  const offsetY = (H - short) / 2;
   gameWrap.style.left = offsetX + 'px';
   gameWrap.style.top  = offsetY + 'px';
   gameWrap.style.transformOrigin = 'center center';
