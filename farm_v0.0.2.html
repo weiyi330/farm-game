@@ -436,14 +436,6 @@ function drawTile(r, c) {
       ctx.stroke();
     }
   }
-  // 水面波纹
-  if (type===T.WATER) {
-    ctx.strokeStyle=`rgba(255,255,255,${0.2+Math.sin(Date.now()*0.003+c)*0.15})`;
-    ctx.lineWidth=1;
-    ctx.beginPath();
-    ctx.moveTo(x-12, y-2); ctx.lineTo(x+12, y-2);
-    ctx.stroke();
-  }
 
   // 装饰层（decor = 层2）
   drawCell(mapLayers[2][r][c], x, y, false);
