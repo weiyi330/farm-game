@@ -625,8 +625,8 @@ const BLOCKED_TYPES = [T.WATER];
 // footY = y + SP_FRAME_H * SP_SCALE * 0.3 = 32*2.5*0.3 = 24px
 // 按TILE=48px: 24/48 = 0.5格
 const FOOT_OFFSET_Y = 0.5;  // 脚点在中心点下方多少格
-const FOOT_HALF_X = 0.35;   // 脚部左右碰撞半宽
-const FOOT_HALF_Y = 0.1;    // 脚部前后碰撞半宽
+const FOOT_HALF_X = 0.3;    // 脚部左右碰撞半宽
+const FOOT_HALF_Y = 0.15;   // 脚部前后碰撞半宽
 
 function canWalk(wx, wy) {
   // 脚点坐标
@@ -654,8 +654,9 @@ function loop(ts){
 
   if(joyActive && (Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08)){
     const sp=SPEED*dt;
-    const nx = player.wx + (joyDX + joyDY)*sp;
-    const ny = player.wy + (joyDY - joyDX)*sp;
+    // 正交俯视角：摇杆直接映射到wx/wy
+    const nx = player.wx + joyDX * sp;
+    const ny = player.wy + joyDY * sp;
 
     if (canWalk(nx, ny)) {
       player.wx = nx; player.wy = ny;
