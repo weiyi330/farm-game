@@ -2444,7 +2444,6 @@ const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
 
 // ── CSS 强制横屏(微信 WebView 无法真正全屏时使用)──
 function applyCSSLandscape() {
-  // 无条件旋转90度，不判断当前方向
   const W = window.innerWidth;
   const H = window.innerHeight;
   const short = Math.min(W, H);
@@ -2458,7 +2457,9 @@ function applyCSSLandscape() {
   wrap.style.left = offsetX + 'px';
   wrap.style.top  = offsetY + 'px';
   wrap.style.transformOrigin = 'center center';
-  wrap.style.transform = 'rotate(90deg)';
+  // 竖屏才旋转，已横屏只调整尺寸
+  if (W < H) wrap.style.transform = 'rotate(90deg)';
+  else wrap.style.transform = 'none';
   wrap.style.overflow = 'hidden';
   window._cssLandscape = true;
   setTimeout(() => window.dispatchEvent(new Event('resize')), 50);

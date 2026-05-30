@@ -805,7 +805,6 @@ function showToast(msg){
 const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
 
 function applyCSSLandscape() {
-  // 无条件旋转90度，不判断当前方向
   const W = window.innerWidth;
   const H = window.innerHeight;
   const short = Math.min(W, H);
@@ -819,7 +818,9 @@ function applyCSSLandscape() {
   gameWrap.style.left = offsetX + 'px';
   gameWrap.style.top  = offsetY + 'px';
   gameWrap.style.transformOrigin = 'center center';
-  gameWrap.style.transform = 'rotate(90deg)';
+  // 竖屏才旋转，已横屏只调整尺寸
+  if (W < H) gameWrap.style.transform = 'rotate(90deg)';
+  else gameWrap.style.transform = 'none';
   gameWrap.style.overflow = 'hidden';
   window._cssLandscape = true;
   setTimeout(() => { resize(); window.dispatchEvent(new Event('resize')); }, 50);
