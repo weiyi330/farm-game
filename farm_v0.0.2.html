@@ -332,24 +332,26 @@ function tilledPos(n) {  // 编号→{x,y}，编号从1开始
 }
 // 形状编号映射
 const TILLED_TILES = {
-  single:    73,  // 单格
-  h_left:    74,  // 横向左端
-  h_mid:     75,  // 横向中间
-  h_right:   76,  // 横向右端
-  v_top:      1,  // 竖向上端
-  v_mid:     25,  // 竖向中间
-  v_bottom:  49,  // 竖向下端
-  // 多行多列
-  tl:  2,  // 左上角
-  t:   3,  // 上边
-  tr:  4,  // 右上角
-  l:  26,  // 左边
-  c:  27,  // 中心
-  r:  28,  // 右边
-  bl: 50,  // 左下角
-  b:  51,  // 下边
-  br: 52,  // 右下角
+  single:   73,  // 单格
+  h_left:   74,  // 横向左端
+  h_mid:    75,  // 横向中间
+  h_right:  76,  // 横向右端
+  v_top:     1,  // 竖向上端
+  v_mid:    25,  // 竖向中间
+  v_bottom: 49,  // 竖向下端
+  // 多行多列（老危确认编号）
+  tl:  9,  // 左上角
+  t:  11,  // 上边
+  tr: 12,  // 右上角
+  l:  33,  // 左边
+  c:  58,  // 中心
+  r:  60,  // 右边
+  bl: 81,  // 左下角
+  b:  82,  // 下边
+  br: 84,  // 右下角
 };
+// 湿土偏移：编号+12
+const TILLED_WET_OFFSET = 12;
 
 // 根据四周邻居判断该格的tilled tile编号（watered=true时返回湿土编号）
 function getTilledTileNum(row, col, watered=false) {
@@ -361,29 +363,29 @@ function getTilledTileNum(row, col, watered=false) {
   const L = isTilled(row, col-1);
   const R = isTilled(row, col+1);
 
-  if (!U && !D && !L && !R) return watered ? TILLED_TILES.single+96 : TILLED_TILES.single;
+  if (!U && !D && !L && !R) return watered ? TILLED_TILES.single+TILLED_WET_OFFSET : TILLED_TILES.single;
   // 纯横向
   if (!U && !D) {
-    if (L && R)  return watered ? TILLED_TILES.h_mid+96 : TILLED_TILES.h_mid;
-    if (L && !R) return watered ? TILLED_TILES.h_right+96 : TILLED_TILES.h_right;
-    if (!L && R) return watered ? TILLED_TILES.h_left+96 : TILLED_TILES.h_left;
+    if (L && R)  return watered ? TILLED_TILES.h_mid+TILLED_WET_OFFSET : TILLED_TILES.h_mid;
+    if (L && !R) return watered ? TILLED_TILES.h_right+TILLED_WET_OFFSET : TILLED_TILES.h_right;
+    if (!L && R) return watered ? TILLED_TILES.h_left+TILLED_WET_OFFSET : TILLED_TILES.h_left;
   }
   // 纯竖向
   if (!L && !R) {
-    if (U && D)  return watered ? TILLED_TILES.v_mid+96 : TILLED_TILES.v_mid;
-    if (U && !D) return watered ? TILLED_TILES.v_bottom+96 : TILLED_TILES.v_bottom;
-    if (!U && D) return watered ? TILLED_TILES.v_top+96 : TILLED_TILES.v_top;
+    if (U && D)  return watered ? TILLED_TILES.v_mid+TILLED_WET_OFFSET : TILLED_TILES.v_mid;
+    if (U && !D) return watered ? TILLED_TILES.v_bottom+TILLED_WET_OFFSET : TILLED_TILES.v_bottom;
+    if (!U && D) return watered ? TILLED_TILES.v_top+TILLED_WET_OFFSET : TILLED_TILES.v_top;
   }
   // 多行多列（有上下也有左右）
-  if (!U && !L) return watered ? TILLED_TILES.tl+96 : TILLED_TILES.tl;
-  if (!U && !R) return watered ? TILLED_TILES.tr+96 : TILLED_TILES.tr;
-  if (!D && !L) return watered ? TILLED_TILES.bl+96 : TILLED_TILES.bl;
-  if (!D && !R) return watered ? TILLED_TILES.br+96 : TILLED_TILES.br;
-  if (!U)       return watered ? TILLED_TILES.t+96 : TILLED_TILES.t;
-  if (!D)       return watered ? TILLED_TILES.b+96 : TILLED_TILES.b;
-  if (!L)       return watered ? TILLED_TILES.l+96 : TILLED_TILES.l;
-  if (!R)       return watered ? TILLED_TILES.r+96 : TILLED_TILES.r;
-  return watered ? TILLED_TILES.c+96 : TILLED_TILES.c;  // 四面都有
+  if (!U && !L) return watered ? TILLED_TILES.tl+TILLED_WET_OFFSET : TILLED_TILES.tl;
+  if (!U && !R) return watered ? TILLED_TILES.tr+TILLED_WET_OFFSET : TILLED_TILES.tr;
+  if (!D && !L) return watered ? TILLED_TILES.bl+TILLED_WET_OFFSET : TILLED_TILES.bl;
+  if (!D && !R) return watered ? TILLED_TILES.br+TILLED_WET_OFFSET : TILLED_TILES.br;
+  if (!U)       return watered ? TILLED_TILES.t+TILLED_WET_OFFSET : TILLED_TILES.t;
+  if (!D)       return watered ? TILLED_TILES.b+TILLED_WET_OFFSET : TILLED_TILES.b;
+  if (!L)       return watered ? TILLED_TILES.l+TILLED_WET_OFFSET : TILLED_TILES.l;
+  if (!R)       return watered ? TILLED_TILES.r+TILLED_WET_OFFSET : TILLED_TILES.r;
+  return watered ? TILLED_TILES.c+TILLED_WET_OFFSET : TILLED_TILES.c;  // 四面都有
 }
 
 // ============================================================
@@ -488,6 +490,18 @@ function drawTile(r, c) {
   drawCell(mapLayers[0][r][c], x, y, false);
   // 层1：地面上层（边缘过渡等）
   drawCell(mapLayers[1][r][c], x, y, false);
+
+  // 操作目标格黄框高亮
+  if (currentTool === 'hoe' || currentTool === 'water' || currentTool === 'seed' || currentTool === 'harvest') {
+    const tr = Math.round(player.wy), tc = Math.round(player.wx);
+    if (r === tr && c === tc) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 220, 40, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
+      ctx.restore();
+    }
+  }
 
   // 游戏逻辑叠加
   // 锄地/作物：用 Tilled_Soil tileset 显示
