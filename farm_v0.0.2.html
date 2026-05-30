@@ -547,6 +547,26 @@ function render() {
   drawPlayer(x, y);
 
   // ===== 调试：画出碰撞脚点和范围 =====
+  // ===== 调试：画格子网格线（角色周围5格范围）=====
+  {
+    const pr = Math.round(player.wy), pc = Math.round(player.wx);
+    ctx.strokeStyle = 'rgba(255,255,0,0.4)'; ctx.lineWidth = 1;
+    for (let dr = -3; dr <= 3; dr++) {
+      for (let dc = -3; dc <= 3; dc++) {
+        const rr = pr + dr, cc = pc + dc;
+        if (rr < 0 || rr >= MAP_ROWS || cc < 0 || cc >= MAP_COLS) continue;
+        const {x: gx, y: gy} = worldToScreen(cc, rr);
+        // 格子左上角
+        ctx.strokeRect(gx - TILE/2, gy - TILE/2, TILE, TILE);
+        // 如果是水格子，填红色半透明
+        if (tileMap[rr][cc] === T.WATER) {
+          ctx.fillStyle = 'rgba(255,0,0,0.25)';
+          ctx.fillRect(gx - TILE/2, gy - TILE/2, TILE, TILE);
+        }
+      }
+    }
+  }
+
   if (true) { // DEBUG_COLLISION
     const fx = player.wx;
     const fy = player.wy + FOOT_OFFSET_Y;
