@@ -1167,7 +1167,7 @@ function drawNinePatch(canvas, w, h) {
 function layoutSplash() {
   const SW = window.innerWidth, SH = window.innerHeight;
 
-  // 背景图 cover 铺满屏幕
+  // 背景图 cover 铺满
   let bgW, bgH;
   if (SW / SH > BG_RATIO) { bgW = SW; bgH = SW / BG_RATIO; }
   else                     { bgH = SH; bgW = SH * BG_RATIO; }
@@ -1175,25 +1175,31 @@ function layoutSplash() {
   splashBg.style.height    = bgH + 'px';
   splashBg.style.transform = 'translate(-50%,-50%)';
 
-  // 标题：左半区水平居中，垂直居中偏上
-  const titleW = Math.round(SW * 0.38);
-  splashTitle.style.width     = titleW + 'px';
-  splashTitle.style.left      = Math.round(SW * 0.25) + 'px'; // 左1/4处为中心
-  splashTitle.style.top       = '50%';
-  splashTitle.style.transform = 'translate(-50%, -60%)';
+  // ── 参数直接从竖屏旋转版转换而来（bgVisualW=SW）──
+  const titleW    = Math.round(SW * 0.42 * 0.95);
+  const btnW      = Math.round(SW * 0.28 * 0.9 * 0.7);
+  // 竖屏版 titleShift 是纵向偏移（旋转后=横向），对应横屏 X 轴左移
+  const titleShiftX = Math.min(250, SW * 0.20);
+  // 竖屏版 btnShift 是横向偏移（旋转后=纵向），对应横屏 Y 轴下移
+  const btnShiftY   = Math.min(50,  SW * 0.04);
 
-  // 按钮组：右半区垂直居中
-  const btnW = Math.round(SW * 0.18);
+  // 标题：屏幕中心偏左
+  splashTitle.style.width     = titleW + 'px';
+  splashTitle.style.left      = '50%';
+  splashTitle.style.top       = '50%';
+  splashTitle.style.transform = `translate(calc(-50% - ${titleShiftX}px), -50%)`;
+
+  // 按钮组：屏幕中心偏右
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
-    btn.style.width = btnW + 'px';
+    btn.style.width  = btnW + 'px';
     btn.style.height = '80px';
     const cv = btn.querySelector('canvas.btn-bg');
     if (cv) drawNinePatch(cv, btnW, 80);
   });
-  splashBtn.style.fontSize = Math.round(btnW * 0.18) + 'px';
-  splashInner.style.left      = Math.round(SW * 0.75) + 'px'; // 右1/4处为中心
+  splashBtn.style.fontSize    = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80 * 0.95) + 'px';
+  splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
-  splashInner.style.transform = 'translate(-50%, -50%)';
+  splashInner.style.transform = `translate(-50%, calc(-50% + ${btnShiftY}px))`;
 }
 
 layoutSplash();
