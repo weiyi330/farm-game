@@ -272,8 +272,8 @@ canvas { display:block; }
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
     <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
-    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-38px;"><canvas class="btn-bg"></canvas></div>
-    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-38px;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-28px;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-28px;"><canvas class="btn-bg"></canvas></div>
   </div>
 </div>
 
@@ -1196,7 +1196,7 @@ function layoutSplash() {
   const btnBgW  = Math.round(171 * 1.4 * 1.1 * 1.1 * 1.1 * 1.15); // 再+15%拉伸
   const btnBgH  = 80;  // 高度保持原图80px不变
   const scaleV  = 0.405; // 再缩小10%
-  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.5); // 字号放大50%（跟随scaleV）
+  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.35); // 字号放大50%再-10%
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width       = btnBgW + 'px';
     btn.style.height      = btnBgH + 'px';
