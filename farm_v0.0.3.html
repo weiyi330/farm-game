@@ -1191,13 +1191,14 @@ function layoutSplash() {
   splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
 
   // 按钮底板：原图71×80，先横向拉伸+100px → 171×80，再用CSS scale(0.5)整体缩小
-  const btnBgW  = 171; // 71+100
+  const btnBgW  = Math.round(171 * 1.4); // 在171基础上再+40%宽度拉伸
   const btnBgH  = 80;  // 高度保持原图80px不变
-  const fontSize = Math.round(btnBgW * 0.5 * 0.22); // 字号按缩放后视觉大小
+  const scaleV  = 0.45; // 0.5再缩小10%
+  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.5); // 字号放大50%
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width       = btnBgW + 'px';
     btn.style.height      = btnBgH + 'px';
-    btn.style.transform   = 'scale(0.5)';
+    btn.style.transform   = `scale(${scaleV})`;
     btn.style.transformOrigin = 'center center';
     const cv = btn.querySelector('canvas.btn-bg');
     if (cv) drawNinePatch(cv, btnBgW, btnBgH);
