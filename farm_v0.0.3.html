@@ -437,8 +437,8 @@ loadCropImg('potato', 'assets/images/Crops/Spring/Crops_Spring_Potato.png');
 
 const CROPS = {
   potato:  {icon:'🥔',name:'土豆',days:5,cost:8, sell:25,
-            spritesheet:'potato', frameW:16, frameH:16, totalFrames:8,
-            harvestFrame:6},
+            spritesheet:'potato', frameW:16, frameH:16, totalFrames:8},
+  // 通用规则: 倒数第3帧=收获等待帧, 倒数第2帧=空帧(忽略), 最后帧=弹出动画帧
   carrot:  {icon:'🥕',name:'萝卜',days:4,cost:8, sell:18, stages:['🌱','🌿','🥕','🥕']},
   cabbage: {icon:'🥬',name:'白菜',days:5,cost:12,sell:30, stages:['🌱','🌿','🥬','🥬','🥬']},
   peach:   {icon:'🍑',name:'桃子',days:7,cost:30,sell:80, stages:['🌱','🌿','🌲','🌳','🌳','🌳','🍑']},
@@ -448,6 +448,8 @@ const CROPS = {
 // 游戏状态
 // ============================================================
 let coins=80, day=1, seasonIdx=0;
+// 弹出动画表: key='r_c', {startMs, r, c, type}
+const harvestAnims = {};
 let currentTool='hoe', selectedSeed='potato';
 let seedBag={potato:5,carrot:1}, harvestBag={};
 const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
@@ -579,10 +581,9 @@ function drawTile(r, c) {
     if (cfg.spritesheet && CROP_IMGS[cfg.spritesheet] && CROP_IMGS[cfg.spritesheet].complete) {
       // 使用 spritesheet 渲染
       const img = CROP_IMGS[cfg.spritesheet];
-      // 成熟状态用 harvestFrame（收获帧），未成熟按天数推进（最多到 days-1 帧）
-      const frameIdx = crop.ready
-        ? (cfg.harvestFrame !== undefined ? cfg.harvestFrame : cfg.totalFrames - 1)
-        : Math.min(crop.daysGrown, cfg.days - 1);
+      // 倒数第3帧=收获等待帧, 倒数第2帧=空帧, 最后帧=弹出帧
+      const readyFrame = cfg.totalFrames - 3;
+      const frameIdx = crop.ready ? readyFrame : Math.min(crop.daysGrown, cfg.days - 1);
       const sx = frameIdx * cfg.frameW;
       const drawSize = TILE * 0.8;
       const drawX = x - drawSize/2;
@@ -695,6 +696,33 @@ function render() {
   for(let r=0;r<MAP_ROWS;r++)
     for(let c=0;c<MAP_COLS;c++)
       drawAbove(r,c);
+
+  // 弹出动画层（最顶层，遗挡层之后）
+  const now = performance.now();
+  const ANIM_MS = 400;
+  for (const key in harvestAnims) {
+    const anim = harvestAnims[key];
+    const elapsed = now - anim.startMs;
+    if (elapsed > ANIM_MS) continue;
+    const t = elapsed / ANIM_MS; // 0→1
+    const cfg = CROP_IMGS[CROPS[anim.type].spritesheet];
+    const cropCfg = CROPS[anim.type];
+    const {x, y} = worldToScreen(anim.c, anim.r);
+    if (!cfg || !cfg.complete) continue;
+    // 弹出帧 = totalFrames-1
+    const popFrame = cropCfg.totalFrames - 1;
+    const sx = popFrame * cropCfg.frameW;
+    const drawSize = TILE * 0.8;
+    // 向上弹出 + 淡出
+    const offsetY = -t * TILE * 1.2;
+    const alpha = 1 - t;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(cfg, sx, 0, cropCfg.frameW, cropCfg.frameH,
+      x - drawSize/2, y - drawSize/2 + offsetY, drawSize, drawSize);
+    ctx.restore();
+  }
 
   // 提示文字
   ctx.fillStyle='rgba(245,215,142,0.75)';
@@ -854,10 +882,16 @@ function doAction(){
     if(!crop){ showToast('这里没有作物'); return; }
     if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
     const cfg=CROPS[crop.type];
+    // 触发弹出动画，400ms后清除地块
+    const key = r+'_'+c;
+    harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
     coins+=cfg.sell; harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
     showToast(`收获${cfg.icon}${cfg.name}！+${cfg.sell}枚铜钱 🎉`);
     updateHUD();
-    tileMap[r][c]=T.TILLED; cropMap[r][c]=null;
+    setTimeout(() => {
+      delete harvestAnims[key];
+      tileMap[r][c]=T.TILLED; cropMap[r][c]=null;
+    }, 400);
   }
 }
 
