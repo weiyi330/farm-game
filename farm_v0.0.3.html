@@ -1190,11 +1190,11 @@ function layoutSplash() {
   splashTitle.style.width     = titleW + 'px';
   splashTitle.style.left      = '50%';
   splashTitle.style.top       = '50%';
-  splashTitle.style.transform = 'translate(-50%, calc(-50% - 150px))';
+  splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
 
   // 按钮组：中心偏右
-  const btnH    = Math.round(btnW * 80 / 71); // 保持原图 71×80 比例
-  const fontSize = Math.round(btnH * 0.38);    // 字号适配按钮高度
+  const btnH    = 50; // 固定高度50px
+  const fontSize = Math.round(btnH * 0.42);
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width  = btnW + 'px';
     btn.style.height = btnH + 'px';
