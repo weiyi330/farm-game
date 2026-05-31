@@ -1196,7 +1196,7 @@ function layoutSplash() {
   const btnBgW  = Math.round(171 * 1.4 * 1.1 * 1.1 * 1.1 * 1.15); // 再+15%拉伸
   const btnBgH  = 80;  // 高度保持原图80px不变
   const scaleV  = 0.405; // 再缩小10%
-  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.5); // 字号放大50%（跟随scaleV）
+  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.275); // 字号放大50%再-15%
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width       = btnBgW + 'px';
     btn.style.height      = btnBgH + 'px';
@@ -1208,7 +1208,7 @@ function layoutSplash() {
   splashBtn.style.fontSize = fontSize + 'px';
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
-  splashInner.style.transform = `translate(-50%, calc(-50% + ${btnShiftY}px - 75px + 50px))`;
+  splashInner.style.transform = `translate(-50%, calc(-50% + ${btnShiftY}px - 75px + 65px))`;
 }
 
 // layoutSplash 在引导页点击后调用，不在初始化时执行
