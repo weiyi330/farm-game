@@ -699,7 +699,7 @@ function render() {
 
   // 弹出动画层（最顶层，遗挡层之后）
   const now = performance.now();
-  const ANIM_MS = 400;
+  const ANIM_MS = 600;
   for (const key in harvestAnims) {
     const anim = harvestAnims[key];
     const elapsed = now - anim.startMs;
@@ -713,14 +713,18 @@ function render() {
     const popFrame = cropCfg.totalFrames - 1;
     const sx = popFrame * cropCfg.frameW;
     const drawSize = TILE * 0.8;
-    // 向上弹出 + 淡出
-    const offsetY = -t * TILE * 1.2;
-    const alpha = 1 - t;
+    // 抛物线：先向上弹起再落地
+    // t: 0→1, 先升(0→0.4)再落(0.4→1)，落地后淡出
+    const PEAK = -TILE * 1.5;       // 最高点偏移
+    const LAND = TILE * 0.6;        // 落点（地面偏下）
+    const offsetX = (t - 0.5) * TILE * 1.2; // 轻微横向漂移
+    const offsetY = PEAK * Math.sin(t * Math.PI) + LAND * t * t;
+    const alpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1; // 最后30%淡出
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(cfg, sx, 0, cropCfg.frameW, cropCfg.frameH,
-      x - drawSize/2, y - drawSize/2 + offsetY, drawSize, drawSize);
+      x - drawSize/2 + offsetX, y - drawSize/2 + offsetY, drawSize, drawSize);
     ctx.restore();
   }
 
@@ -882,16 +886,14 @@ function doAction(){
     if(!crop){ showToast('这里没有作物'); return; }
     if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
     const cfg=CROPS[crop.type];
-    // 触发弹出动画，400ms后清除地块
+    // 触发弹出动画，600ms后清除地块，作物进入背包
     const key = r+'_'+c;
     harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
-    coins+=cfg.sell; harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
-    showToast(`收获${cfg.icon}${cfg.name}！+${cfg.sell}枚铜钱 🎉`);
-    updateHUD();
+    harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
     setTimeout(() => {
       delete harvestAnims[key];
       tileMap[r][c]=T.TILLED; cropMap[r][c]=null;
-    }, 400);
+    }, 600);
   }
 }
 
@@ -927,10 +929,12 @@ function nextDay(){
   day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
   for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
     const crop=cropMap[r][c];
-    if(crop&&!crop.ready){
-      if(crop.watered) crop.daysGrown++;  // 有浇水才生长
-      crop.watered=false;                 // 天数刷新→浇水重置
-      if(crop.daysGrown>=CROPS[crop.type].days) crop.ready=true;
+    if(crop){
+      if(!crop.ready){
+        if(crop.watered) crop.daysGrown++;  // 有浇水才生长
+        if(crop.daysGrown>=CROPS[crop.type].days) crop.ready=true;
+      }
+      crop.watered=false; // 天数刷新→所有作物格浇水重置（含ready格）
     }
     // 无作物格的独立浇水状态也重置
     if(wateredMap[r]) wateredMap[r][c]=false;
