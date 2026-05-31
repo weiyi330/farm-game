@@ -715,9 +715,9 @@ function render() {
     const drawSize = TILE * 0.8;
     // 抛物线：先向上弹起再落地
     // t: 0→1, 先升(0→0.4)再落(0.4→1)，落地后淡出
-    const PEAK = -TILE * 1.5;       // 最高点偏移
-    const LAND = TILE * 0.6;        // 落点（地面偏下）
-    const offsetX = (t - 0.5) * TILE * 1.2; // 轻微横向漂移
+    const PEAK = -TILE * 0.6;       // 最高点偏移（自然弹起）
+    const LAND = TILE * 0.3;        // 落点（地面偏下）
+    const offsetX = (t - 0.5) * TILE * 0.4; // 轻微横向漂移
     const offsetY = PEAK * Math.sin(t * Math.PI) + LAND * t * t;
     const alpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1; // 最后30%淡出
     ctx.save();
