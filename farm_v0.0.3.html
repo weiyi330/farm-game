@@ -828,8 +828,10 @@ function doAction(){
     if(!(seedBag[selectedSeed]>0)){ showToast(`没有${CROPS[selectedSeed].name}种子了！`); return; }
     seedBag[selectedSeed]--;
     tileMap[r][c]=T.CROP;
-    cropMap[r][c]={type:selectedSeed,daysGrown:0,watered:false,ready:false};
-    showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}`);
+    // 播种时检查是否已浇过水（先浇水后播种的情况）
+    const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
+    cropMap[r][c]={type:selectedSeed,daysGrown:0,watered:alreadyWatered,ready:false};
+    showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}${alreadyWatered?' （已浇水 💧）':''}`);
   }
   else if(currentTool==='water'){
     if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
@@ -845,9 +847,8 @@ function doAction(){
   }
   else if(currentTool==='harvest'){
     const crop=cropMap[r][c];
-    if(!crop||!crop.ready){
-      showToast(crop?'还没成熟，再等等～':'这里没有作物'); return;
-    }
+    if(!crop){ showToast('这里没有作物'); return; }
+    if(!crop.ready){ showToast(`还没成熟，再等等～（已生长${crop.daysGrown}/${CROPS[crop.type].days}天）`); return; }
     const cfg=CROPS[crop.type];
     coins+=cfg.sell; harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
     showToast(`收获${cfg.icon}${cfg.name}！+${cfg.sell}枚铜钱 🎉`);
