@@ -86,7 +86,7 @@ canvas { display:block; }
 #splash-version {
   position:fixed;
   left:0; bottom:0; right:0;
-  height:30px;
+  height:50px;
   background:rgba(0,0,0,0.6);
   display:flex; align-items:center; justify-content:center;
   color:#ffffff;
@@ -1178,25 +1178,26 @@ function layoutSplash() {
   splashBg.style.height    = bgH + 'px';
   splashBg.style.transform = 'translate(-50%,-50%)';
 
-  const titleW      = Math.round(SW * 0.40);       // 标题宽
-  const titleShiftX = Math.min(250, SW * 0.20);    // 标题左偏量
-  const btnW        = Math.round(SW * 0.18);        // 按钮宽
-  const btnShiftY   = Math.min(50,  SW * 0.04);    // 按钮组下偏量
+  const titleW    = Math.round(SW * 0.40 * 0.90); // 标题宽，整体-10%
+  const btnW      = Math.round(SW * 0.18);          // 按钮宽
+  const btnShiftY = Math.min(50, SW * 0.04);        // 按钮组下偏量
 
-  // 标题：中心偏左
+  // 标题：左右居中，上移100px
   splashTitle.style.width     = titleW + 'px';
   splashTitle.style.left      = '50%';
   splashTitle.style.top       = '50%';
-  splashTitle.style.transform = `translate(calc(-50% - ${titleShiftX}px), -50%)`;
+  splashTitle.style.transform = 'translate(-50%, calc(-50% - 100px))';
 
   // 按钮组：中心偏右
+  const fontSize = Math.round(btnW * 0.14);
+  const btnH = fontSize + 20; // 高度 = 字号 + 20px
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width  = btnW + 'px';
-    btn.style.height = '80px';
+    btn.style.height = btnH + 'px';
     const cv = btn.querySelector('canvas.btn-bg');
-    if (cv) drawNinePatch(cv, btnW, 80);
+    if (cv) drawNinePatch(cv, btnW, btnH);
   });
-  splashBtn.style.fontSize    = Math.round(btnW * 0.14) + 'px'; // 约14%按钮宽
+  splashBtn.style.fontSize = fontSize + 'px';
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
   splashInner.style.transform = `translate(-50%, calc(-50% + ${btnShiftY}px))`;
