@@ -1249,9 +1249,20 @@ document.getElementById('splash-btn').addEventListener('click', () => {
   }, 400);
 });
 
-// 退出按钮：回引导页
+// 退出按钮：回引导页（不reload，保持横屏全屏状态）
 document.getElementById('quit-btn').addEventListener('click', () => {
-  window.location.reload();
+  splashScreen.style.transition = 'opacity 0.3s';
+  splashScreen.style.opacity = '0';
+  setTimeout(() => {
+    splashScreen.style.display = 'none';
+    document.getElementById('splash-version').style.display = 'flex';
+    guideScreen.style.opacity = '0';
+    guideScreen.style.display = 'flex';
+    requestAnimationFrame(() => {
+      guideScreen.style.transition = 'opacity 0.3s';
+      guideScreen.style.opacity = '1';
+    });
+  }, 300);
 });
 
 // ============================================================
