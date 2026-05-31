@@ -21,11 +21,51 @@ html, body {
 canvas { display:block; }
 
 /* ── 启动页 ── */
+/* 竖屏引导页 */
+#guide-screen {
+  position:fixed; inset:0; z-index:1000;
+  background:#0d1f0a;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:28px;
+  font-family:'Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
+  cursor:pointer;
+  user-select:none;
+}
+#guide-title {
+  color:#f0d080;
+  font-size:36px;
+  font-weight:bold;
+  letter-spacing:8px;
+  text-shadow:0 2px 12px rgba(240,180,60,0.5);
+}
+#guide-welcome {
+  color:#d4b87a;
+  font-size:20px;
+  letter-spacing:4px;
+}
+#guide-hint {
+  color:rgba(255,255,255,0.55);
+  font-size:14px;
+  letter-spacing:2px;
+  margin-top:12px;
+}
+#guide-tap {
+  color:rgba(255,255,255,0.4);
+  font-size:13px;
+  letter-spacing:1px;
+  animation: guidePulse 1.6s ease-in-out infinite;
+}
+@keyframes guidePulse {
+  0%,100%{ opacity:0.4; } 50%{ opacity:1; }
+}
+
 #splash-screen {
   position:fixed; inset:0; z-index:999;
   background:#0d1f0a;
   display:flex; align-items:center; justify-content:center;
   overflow:visible;
+  display:none;
 }
 #splash-bg {
   position:absolute; left:50%; top:50%;
@@ -41,7 +81,7 @@ canvas { display:block; }
   display:flex; flex-direction:column; align-items:center; gap:20px;
 }
 #splash-version {
-  position:absolute;
+  position:fixed;
   left:0; bottom:0; right:0;
   height:30px;
   background:rgba(0,0,0,0.6);
@@ -52,7 +92,7 @@ canvas { display:block; }
   font-weight:normal;
   letter-spacing:1px;
   pointer-events:none;
-  z-index:10;
+  z-index:1001;
 }
 .splash-menu-btn {
   position: relative;
@@ -211,7 +251,15 @@ canvas { display:block; }
 </head>
 <body>
 
-<!-- ── 启动页 ── -->
+<!-- ── 竖屏引导页 ── -->
+<div id="guide-screen">
+  <div id="guide-title">桃源拾光</div>
+  <div id="guide-welcome">欢迎试玩</div>
+  <div id="guide-hint">提示：游戏为横屏模式</div>
+  <div id="guide-tap">▶ 点击进入游戏</div>
+</div>
+
+<!-- ── 登录页 ── -->
 <div id="splash-screen">
   <img id="splash-bg" src="assets/images/ui/home/ui_home_bj.webp" alt="">
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
@@ -220,8 +268,10 @@ canvas { display:block; }
     <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
     <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
   </div>
-  <div id="splash-version">版本号：v0.0.3</div>
 </div>
+
+<!-- ── 版本号条（始终显示）── -->
+<div id="splash-version">版本号：v0.0.3</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1164,48 +1214,38 @@ function layoutSplash() {
     ? `translate(-50%,calc(-50% + ${btnShift}px))`
     : `translate(calc(-50% - ${btnShift}px),-50%) rotate(90deg)`;
 
-  // 版本号条：跟随视觉横屏底部
-  const VER_H = 30;
-  if (isLandscape) {
-    // 横屏：直接贴物理底部
-    splashVersion.style.cssText = `
-      position:absolute; left:0; bottom:0; right:0;
-      width:${SW}px; height:${VER_H}px;
-      transform:none; transform-origin:unset;
-    `;
-  } else {
-    // 竖屏：背景图旋转了90度，版本号条需要出现在视觉横屏底部
-    // 视觉横屏底部 = 物理屏幕右侧边缘
-    // 做法：宽度=物理高度SH（视觉宽），贴物理右侧，旋转-90度
-    splashVersion.style.cssText = `
-      position:fixed;
-      width:${SH}px; height:${VER_H}px;
-      right:0; bottom:0;
-      transform-origin:bottom right;
-      transform:rotate(-90deg);
-    `;
-  }
+  // 版本号条由CSS position:fixed固定底部，无需JS控制
 }
 
 layoutSplash();
 window.addEventListener('resize', layoutSplash);
 
-splashScreen.addEventListener('click', async () => {
-  // 登录后：只全屏，不应用 CSS 旋转（游戏区域本身不旋转）
+// 引导页：点击 → 全屏+锁横屏 → 显示登录页
+const guideScreen = document.getElementById('guide-screen');
+guideScreen.addEventListener('click', async () => {
   try {
     const el = document.documentElement;
     if (el.requestFullscreen) await el.requestFullscreen();
     else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
   } catch(e) {}
-  // 尝试锁定横屏
   try {
-    if (screen.orientation && screen.orientation.lock) {
+    if (screen.orientation && screen.orientation.lock)
       await screen.orientation.lock('landscape-primary');
-    }
   } catch(e) {
-    try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); }
-    catch(e2) {}
+    try { if (screen.orientation && screen.orientation.lock)
+      await screen.orientation.lock('landscape'); } catch(e2) {}
   }
+  guideScreen.style.transition = 'opacity 0.3s';
+  guideScreen.style.opacity = '0';
+  setTimeout(() => {
+    guideScreen.style.display = 'none';
+    splashScreen.style.display = 'flex';
+    layoutSplash();
+  }, 300);
+});
+
+// 登录页点击：直接淡出进游戏
+splashScreen.addEventListener('click', () => {
   splashScreen.style.transition = 'opacity 0.4s';
   splashScreen.style.opacity = '0';
   setTimeout(() => {
