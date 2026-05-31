@@ -1249,10 +1249,9 @@ document.getElementById('splash-btn').addEventListener('click', () => {
   }, 400);
 });
 
-// 退出按钮：解锁横屏后再reload，引导页回竖屏居中
-document.getElementById('quit-btn').addEventListener('click', async () => {
-  try { await screen.orientation.unlock(); } catch(e) {}
-  setTimeout(() => window.location.reload(), 300);
+// 退出按钮：回引导页
+document.getElementById('quit-btn').addEventListener('click', () => {
+  window.location.reload();
 });
 
 // ============================================================
