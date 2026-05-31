@@ -1103,9 +1103,9 @@ function layoutSplash() {
     ? `translate(calc(-50% - ${titleShift}px),-50%)`
     : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
 
-  splashBtn.style.width = btnW + 'px';
-  // 高度由 border-image 的 40px上下定死（80px原图），这里只设内容区为0
-  splashBtn.style.height = '80px';
+  splashBtn.style.width = Math.round(btnW * 1.05) + 'px';
+  // 高度由 border-image 的 40px上下定死（80px原图），底板单独放大5%
+  splashBtn.style.height = Math.round(80 * 1.05) + 'px';
   splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95) + 'px'; // 额外再-5%
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
