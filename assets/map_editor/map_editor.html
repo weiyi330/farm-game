@@ -2740,6 +2740,7 @@ function layoutSplash() {
     if (cv) drawNinePatch(cv, btnBgW, btnBgH);
   });
   splashBtn.style.fontSize = fontSize + 'px';
+  document.getElementById('quit-btn').style.fontSize = fontSize + 'px';
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
   splashInner.style.transform = 'translate(-50%, calc(-50% + 10px))';
@@ -2764,7 +2765,7 @@ guideScreen.addEventListener('click', async () => {
   }, 300);
 });
 
-// 登录按钮：淡出进游戏
+// 登录按钮：淡出进编辑器
 document.getElementById('splash-btn').addEventListener('click', () => {
   splashScreen.style.transition = 'opacity 0.4s';
   splashScreen.style.opacity = '0';
@@ -2772,6 +2773,11 @@ document.getElementById('splash-btn').addEventListener('click', () => {
     splashScreen.style.display = 'none';
     document.getElementById('splash-version').style.display = 'none';
   }, 400);
+});
+
+// 退出按钮：回引导页
+document.getElementById('quit-btn').addEventListener('click', () => {
+  window.location.reload();
 });
 
 
