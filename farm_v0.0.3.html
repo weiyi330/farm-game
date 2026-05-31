@@ -30,6 +30,7 @@ canvas { display:block; }
   background:#0d1f0a;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
+  text-align:center;
   gap:28px;
   font-family:'Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
   cursor:pointer;
@@ -1207,26 +1208,18 @@ function layoutSplash() {
   document.getElementById('quit-btn').style.fontSize = fontSize + 'px';
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
-  splashInner.style.transform = 'translate(-50%, calc(-50% + 7px))';
+  splashInner.style.transform = 'translate(-50%, calc(-50% + 10px))';
 }
 
-// layoutSplash 在引导页点击后调用，不在初始化时执行
 window.addEventListener('resize', layoutSplash);
 
-// 引导页：点击 → 全屏+锁横屏 → 显示登录页
+// 引导页点击：全屏+锁横屏 → 淡出 → 显示登录页
 const guideScreen = document.getElementById('guide-screen');
 guideScreen.addEventListener('click', async () => {
-  try {
-    const el = document.documentElement;
-    if (el.requestFullscreen) await el.requestFullscreen();
-    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-  } catch(e) {}
-  try {
-    if (screen.orientation && screen.orientation.lock)
-      await screen.orientation.lock('landscape-primary');
-  } catch(e) {
-    try { if (screen.orientation && screen.orientation.lock)
-      await screen.orientation.lock('landscape'); } catch(e2) {}
+  const el = document.documentElement;
+  try { await (el.requestFullscreen || el.webkitRequestFullscreen).call(el); } catch(e) {}
+  try { await screen.orientation.lock('landscape-primary'); } catch(e) {
+    try { await screen.orientation.lock('landscape'); } catch(e2) {}
   }
   guideScreen.style.transition = 'opacity 0.3s';
   guideScreen.style.opacity = '0';
@@ -1248,7 +1241,7 @@ document.getElementById('splash-btn').addEventListener('click', () => {
   }, 400);
 });
 
-// 退出按钮：跳回引导页（重新加载）
+// 退出按钮：回引导页
 document.getElementById('quit-btn').addEventListener('click', () => {
   window.location.reload();
 });
