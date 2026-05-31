@@ -1190,9 +1190,9 @@ function layoutSplash() {
   splashTitle.style.top       = '50%';
   splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
 
-  // 按钮组：中心偏右
-  const btnH    = 40; // 高度同步缩小50%（原80px）
-  const fontSize = Math.round(btnH * 0.42);
+  // 按钮组：中心偏右，高度固定80px（原图高度），宽度缩放
+  const btnH     = 80;
+  const fontSize = Math.round(btnW * 0.22); // 字号跟宽度走
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width  = btnW + 'px';
     btn.style.height = btnH + 'px';
