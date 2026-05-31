@@ -40,30 +40,48 @@ canvas { display:block; }
 }
 #splash-inner {
   position:absolute;
-  display:flex; flex-direction:column; align-items:center; gap:8px;
+  display:flex; flex-direction:column; align-items:center; gap:12px;
 }
-#splash-btn {
+#splash-version {
+  position:absolute;
+  bottom:0; left:0; right:0;
+  height:25px;
+  background:rgba(0,0,0,0.3);
+  display:flex; align-items:center; justify-content:center;
+  color:#ffffff;
+  font-family:'Noto Sans SC','思源黑体',sans-serif;
+  font-size:12px;
+  letter-spacing:1px;
+  pointer-events:none;
+  z-index:10;
+}
+/* 九宫格按钮通用样式 */
+.splash-menu-btn {
   display:flex;
   align-items:center; justify-content:center;
   cursor:pointer;
-  /* 九宫格只横向拉伸：上下slice=40固定原图高度，左右slice=30横向拉伸 */
-  border-image: url('assets/images/ui/home/ui_home_button.png') 40 30 40 30 fill stretch;
-  border-style: solid;
-  border-color: transparent;
-  border-width: 40px 30px; /* 上下40px锁定高度，左右30px留出固定区 */
-  box-sizing: border-box;
+  position: relative;
+  height: 80px;
   filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
   transform: scale(1.05);
   transition:transform 0.12s;
   white-space: nowrap;
   font-family:'Noto Sans SC','思源黑体',sans-serif;
-  color: #3b1a00;
   font-weight: bold;
   text-shadow: 0 1px 2px rgba(255,220,100,0.6);
   letter-spacing: 4px;
   user-select:none;
+  /* 用border-image横向拉伸，round避免缝隙 */
+  border-image: url('assets/images/ui/home/ui_home_button.png') 40 30 40 30 fill round;
+  border-style: solid;
+  border-color: transparent;
+  border-width: 40px 30px;
+  box-sizing: border-box;
 }
-#splash-btn:active { transform:scale(0.98); }
+.splash-menu-btn:active { transform:scale(0.98); }
+#splash-btn {
+  color: #c8a060;
+}
 
 /* ── game-wrap：横屏后充满屏幕 ── */
 #game-wrap { width:100%; height:100%; position:relative; }
@@ -199,8 +217,11 @@ canvas { display:block; }
   <img id="splash-bg" src="assets/images/ui/home/ui_home_bj.webp" alt="">
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
-    <div id="splash-btn">登录游戏</div>
+    <div id="splash-btn" class="splash-menu-btn">登录游戏</div>
+    <div class="splash-menu-btn" style="opacity:0.6;pointer-events:none;"></div>
+    <div class="splash-menu-btn" style="opacity:0.6;pointer-events:none;"></div>
   </div>
+  <div id="splash-version">版本号：v0.0.3</div>
 </div>
 
 <!-- ── 游戏主体 ── -->
@@ -1104,10 +1125,12 @@ function layoutSplash() {
     ? `translate(calc(-50% - ${titleShift}px),-50%)`
     : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
 
-  splashBtn.style.width = btnW + 'px';
-  // 高度由 border-image 的 40px上下定死（80px原图），这里只设内容区为0
-  splashBtn.style.height = '80px';
-  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95) + 'px'; // 额外再-5%
+  // 所有菜单按钮同宽
+  document.querySelectorAll('.splash-menu-btn').forEach(btn => {
+    btn.style.width = btnW + 'px';
+    btn.style.height = '80px';
+  });
+  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90) + 'px'; // 再-10%
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
