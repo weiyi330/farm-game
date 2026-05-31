@@ -272,8 +272,8 @@ canvas { display:block; }
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
     <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
-    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-34px;"><canvas class="btn-bg"></canvas></div>
-    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-34px;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-38px;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-38px;"><canvas class="btn-bg"></canvas></div>
   </div>
 </div>
 
@@ -1193,10 +1193,10 @@ function layoutSplash() {
   splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
 
   // 按钮底板：原图71×80，先横向拉伸+100px → 171×80，再用CSS scale(0.5)整体缩小
-  const btnBgW  = Math.round(171 * 1.4 * 1.1 * 1.1 * 1.1); // 再+10%（回调-10%拉伸）
+  const btnBgW  = Math.round(171 * 1.4 * 1.1 * 1.1 * 1.1 * 1.15); // 再+15%拉伸
   const btnBgH  = 80;  // 高度保持原图80px不变
-  const scaleV  = 0.45; // 0.5再缩小10%
-  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.5); // 字号放大50%
+  const scaleV  = 0.405; // 再缩小10%
+  const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.5); // 字号放大50%（跟随scaleV）
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width       = btnBgW + 'px';
     btn.style.height      = btnBgH + 'px';
