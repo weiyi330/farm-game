@@ -1157,7 +1157,7 @@ function layoutSplash() {
     const cv = btn.querySelector('canvas.btn-bg');
     if (cv) drawNinePatch(cv, btnW, 80);
   });
-  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80) + 'px'; // 再-20%
+  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80 * 0.95) + 'px'; // 再-5%
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
@@ -1167,23 +1167,24 @@ function layoutSplash() {
   // 版本号条：始终在视觉横屏的底部
   const VER_H = 30;
   if (isLandscape) {
-    // 横屏：底部水平条
-    splashVersion.style.width  = SW + 'px';
-    splashVersion.style.height = VER_H + 'px';
-    splashVersion.style.left   = '0';
-    splashVersion.style.bottom = '0';
-    splashVersion.style.top    = 'auto';
-    splashVersion.style.transform = 'none';
+    splashVersion.style.width           = SW + 'px';
+    splashVersion.style.height          = VER_H + 'px';
+    splashVersion.style.left            = '0';
+    splashVersion.style.bottom          = '0';
+    splashVersion.style.top             = 'auto';
+    splashVersion.style.right           = 'auto';
+    splashVersion.style.transformOrigin = 'unset';
+    splashVersion.style.transform       = 'none';
   } else {
-    // 竖屏：条宽=SH，贴屏幕右边缘，以右下角为原点旋转90°→视觉底部
+    // 竖屏：以左下角旋转90°，贴视觉横屏底部
     splashVersion.style.width           = SH + 'px';
     splashVersion.style.height          = VER_H + 'px';
-    splashVersion.style.left            = 'auto';
-    splashVersion.style.right           = '0';
-    splashVersion.style.top             = 'auto';
+    splashVersion.style.left            = (-SH + VER_H) + 'px';
     splashVersion.style.bottom          = '0';
-    splashVersion.style.transformOrigin = 'bottom right';
-    splashVersion.style.transform       = 'rotate(-90deg)';
+    splashVersion.style.top             = 'auto';
+    splashVersion.style.right           = 'auto';
+    splashVersion.style.transformOrigin = 'bottom left';
+    splashVersion.style.transform       = 'rotate(90deg)';
   }
 }
 
