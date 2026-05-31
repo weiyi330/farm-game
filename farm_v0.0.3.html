@@ -536,18 +536,6 @@ function drawTile(r, c) {
   // 层1：地面上层（边缘过渡等）
   drawCell(mapLayers[1][r][c], x, y, false);
 
-  // 操作目标格黄框高亮
-  if (currentTool === 'hoe' || currentTool === 'water' || currentTool === 'seed' || currentTool === 'harvest') {
-    const tr = Math.round(player.wy), tc = Math.round(player.wx);
-    if (r === tr && c === tc) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255, 220, 40, 0.9)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
-      ctx.restore();
-    }
-  }
-
   // 游戏逻辑叠加
   // 锄地/作物：用 Tilled_Soil tileset 显示
   if (type===T.TILLED || type===T.CROP) {
@@ -612,7 +600,17 @@ function drawTile(r, c) {
     }
   }
 
-
+  // 操作目标格黄框高亮（在锄地/作物之后，角色之前）
+  if (currentTool === 'hoe' || currentTool === 'water' || currentTool === 'seed' || currentTool === 'harvest') {
+    const tr = Math.round(player.wy), tc = Math.round(player.wx);
+    if (r === tr && c === tc) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 220, 40, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
+      ctx.restore();
+    }
+  }
 
   // 遮挡层（above = 层4，渲染在角色上面，放后面处理）
 }
@@ -890,8 +888,13 @@ function nextDay(){
   day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
   for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
     const crop=cropMap[r][c];
-    if(crop&&!crop.ready){ if(crop.watered) crop.daysGrown++; crop.watered=false;
-      if(crop.daysGrown>=CROPS[crop.type].days) crop.ready=true; }
+    if(crop&&!crop.ready){
+      if(crop.watered) crop.daysGrown++;  // 有浇水才生长
+      crop.watered=false;                 // 天数刷新→浇水重置
+      if(crop.daysGrown>=CROPS[crop.type].days) crop.ready=true;
+    }
+    // 无作物格的独立浇水状态也重置
+    if(wateredMap[r]) wateredMap[r][c]=false;
   }
   updateHUD(); showToast(`🌙 第${day}天开始了`);
 }
