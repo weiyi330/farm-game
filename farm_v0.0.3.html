@@ -40,7 +40,7 @@ canvas { display:block; }
 }
 #splash-inner {
   position:absolute;
-  display:flex; flex-direction:column; align-items:center; gap:12px;
+  display:flex; flex-direction:column; align-items:center; gap:20px;
 }
 #splash-version {
   position:absolute;
@@ -61,7 +61,7 @@ canvas { display:block; }
   justify-content: center;
   cursor: pointer;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-  transform: scale(1.05);
+  transform: scale(1.0);
   transition: transform 0.12s;
   user-select: none;
 }
@@ -1175,15 +1175,15 @@ function layoutSplash() {
     splashVersion.style.top    = 'auto';
     splashVersion.style.transform = 'none';
   } else {
-    // 竖屏：需旋轣90度，显示在视觉横屏的底部（即屏幕右侧）
-    splashVersion.style.width  = SH + 'px';
-    splashVersion.style.height = VER_H + 'px';
-    // 底部居中：旋轣90deg后 x轴变y轴
-    splashVersion.style.left   = (SW / 2 - SH / 2) + 'px';
-    splashVersion.style.bottom = 'auto';
-    splashVersion.style.top    = (SH - VER_H) / 2 + (SH / 2) + 'px';
-    splashVersion.style.transformOrigin = 'center center';
-    splashVersion.style.transform = `translateX(${(SH - SW) / 2}px) rotate(90deg)`;
+    // 竖屏：条宽=SH，贴屏幕右边缘，以右下角为原点旋转90°→视觉底部
+    splashVersion.style.width           = SH + 'px';
+    splashVersion.style.height          = VER_H + 'px';
+    splashVersion.style.left            = 'auto';
+    splashVersion.style.right           = '0';
+    splashVersion.style.top             = 'auto';
+    splashVersion.style.bottom          = '0';
+    splashVersion.style.transformOrigin = 'bottom right';
+    splashVersion.style.transform       = 'rotate(-90deg)';
   }
 }
 
