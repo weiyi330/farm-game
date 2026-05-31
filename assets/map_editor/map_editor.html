@@ -425,39 +425,119 @@ select.topbar-select {
 /* 竖屏提示条 */
 
 /* ===== 启动页 ===== */
+/* 竖屏引导页 */
+#guide-screen {
+  position:fixed; inset:0; z-index:1000;
+  background:#0d1f0a;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center;
+  gap:28px;
+  font-family:'Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
+  cursor:pointer;
+  user-select:none;
+}
+#guide-title {
+  width:100%;
+  text-align:center;
+  color:#f0d080;
+  font-size:54px;
+  font-weight:bold;
+  letter-spacing:8px;
+  text-shadow:0 2px 12px rgba(240,180,60,0.5);
+}
+#guide-welcome {
+  width:100%;
+  text-align:center;
+  color:#d4b87a;
+  font-size:30px;
+  letter-spacing:4px;
+}
+#guide-hint {
+  width:100%;
+  text-align:center;
+  color:rgba(255,255,255,0.55);
+  font-size:21px;
+  letter-spacing:2px;
+  margin-top:12px;
+}
+#guide-tap {
+  width:100%;
+  text-align:center;
+  color:rgba(255,255,255,0.4);
+  font-size:19px;
+  letter-spacing:1px;
+  animation: guidePulse 1.6s ease-in-out infinite;
+}
+@keyframes guidePulse {
+  0%,100%{ opacity:0.4; } 50%{ opacity:1; }
+}
+
 #splash-screen {
-  position: fixed;
-  inset: 0;
-  background: #0d1a0d;
-  z-index: 99999;
-  overflow: hidden;
-  cursor: pointer;
+  position:fixed; inset:0; z-index:999;
+  background:#0d1f0a;
+  display:none; /* 引导页点击后才显示 */
+  align-items:center; justify-content:center;
+  overflow:visible;
 }
 #splash-bg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  object-fit: cover;
-  transform-origin: center center;
-}
-/* splash-inner 用绝对定位,由JS精确放置 */
-#splash-inner {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform-origin: center center;
-  z-index: 1;
+  position:absolute; left:50%; top:50%;
+  object-fit:cover;
 }
 #splash-title {
-  position: absolute;
-  z-index: 1;
-  transform-origin: center center;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  position:absolute;
+  object-fit:contain;
+  pointer-events:none;
 }
-#splash-btn {
-  filter: drop-shadow(0 0 12px rgba(76,175,80,0.6));
+#splash-inner {
+  position:absolute;
+  display:flex; flex-direction:column; align-items:center; gap:0;
 }
+#splash-version {
+  position:fixed;
+  left:0; bottom:0; right:0;
+  height:20px;
+  background:linear-gradient(to right,
+    rgba(0,0,0,0.15) 0%,
+    rgba(0,0,0,0.50) 30%,
+    rgba(0,0,0,0.50) 70%,
+    rgba(0,0,0,0.15) 100%);
+  display:flex; align-items:center; justify-content:center;
+  color:#ffffff;
+  font-family:'Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
+  font-size:11px;
+  font-weight:normal;
+  letter-spacing:1px;
+  pointer-events:none;
+  z-index:1001;
+}
+.splash-menu-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  transform: scale(1.0);
+  transition: transform 0.12s;
+  user-select: none;
+}
+.splash-menu-btn:active { transform: scale(0.98); }
+.splash-menu-btn canvas.btn-bg {
+  position: absolute; top:0; left:0;
+  width:100%; height:100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.splash-menu-btn .btn-label {
+  position: relative; z-index:1;
+  white-space: nowrap;
+  font-family:'Noto Sans SC','Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
+  font-weight: bold;
+  letter-spacing: 4px;
+  user-select: none;
+}
+.splash-menu-btn .btn-label { color: #7a4500; text-shadow: 0 1px 2px rgba(255,210,80,0.5); }
 
 /* editor-wrap: 正常状态占满全屏 */
 #editor-wrap {
@@ -489,14 +569,27 @@ select.topbar-select {
 </style>
 </head>
 <body>
-<!-- 启动页 -->
+<!-- ── 竖屏引导页 ── -->
+<div id="guide-screen">
+  <div id="guide-title">桃源拾光</div>
+  <div id="guide-welcome">欢迎试玩</div>
+  <div id="guide-hint">提示：游戏为横屏模式</div>
+  <div id="guide-tap">▶ 点击进入游戏</div>
+</div>
+
+<!-- ── 登录页 ── -->
 <div id="splash-screen">
   <img id="splash-bg" src="../images/ui/home/ui_home_bj.webp" alt="">
   <img id="splash-title" src="../images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
-    <img id="splash-btn" src="../images/ui/home/ui_home_denglu_button.png" alt="登录">
+    <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-33px;"><canvas class="btn-bg"></canvas></div>
+    <div id="quit-btn" class="splash-menu-btn" style="margin-top:-33px;"><canvas class="btn-bg"></canvas><span class="btn-label">退出游戏</span></div>
   </div>
 </div>
+
+<!-- ── 版本号条 ── -->
+<div id="splash-version">地图编辑器 · v0.0.3</div>
 
 <!-- 编辑器主体(微信竖屏时整体旋转)-->
 <div id="editor-wrap">
@@ -2580,86 +2673,105 @@ function showConfirm(msg, onOk) {
   cancelBtn.onclick = cleanup;
 }
 
+// 启动页布局
+const BG_RATIO = 2732 / 1261; // 新背景图尺寸
 const splashScreen = document.getElementById('splash-screen');
-const splashBg = document.getElementById('splash-bg');
-const splashInner = document.getElementById('splash-inner');
-const splashTitle = document.getElementById('splash-title');
-const splashBtn = document.getElementById('splash-btn');
+const splashBg     = document.getElementById('splash-bg');
+const splashInner  = document.getElementById('splash-inner');
+const splashTitle  = document.getElementById('splash-title');
+const splashBtn    = document.getElementById('splash-btn');
+const splashVersion = document.getElementById('splash-version');
 
-// 背景图原始宽高比
-const BG_RATIO = 2732 / 1534;
-
-function layoutSplash() {
-  const SW = window.innerWidth;
-  const SH = window.innerHeight;
-  const isLandscape = SW > SH;
-
-  // 计算背景图实际渲染尺寸(cover逻辑:填满屏幕,保持比例)
-  // 竖屏时背景图旋转90度,视觉宽=SH,视觉高=SW
-  let bgVisualW, bgVisualH, bgRotate;
-  if (isLandscape) {
-    bgRotate = 0;
-    // cover: 以屏幕为容器
-    if (SW / SH > BG_RATIO) {
-      bgVisualW = SW; bgVisualH = SW / BG_RATIO;
-    } else {
-      bgVisualH = SH; bgVisualW = SH * BG_RATIO;
-    }
-    splashBg.style.width = bgVisualW + 'px';
-    splashBg.style.height = bgVisualH + 'px';
-    splashBg.style.transform = 'translate(-50%, -50%)';
-  } else {
-    bgRotate = 90;
-    // 竖屏旋转后,视觉容器宽=SH,高=SW
-    if (SH / SW > BG_RATIO) {
-      bgVisualW = SH; bgVisualH = SH / BG_RATIO;
-    } else {
-      bgVisualH = SW; bgVisualW = SW * BG_RATIO;
-    }
-    // 旋转前图片尺寸(width=视觉宽,height=视觉高,旋转90后宽高互换显示)
-    splashBg.style.width = bgVisualW + 'px';
-    splashBg.style.height = bgVisualH + 'px';
-    splashBg.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+// 九宫格Canvas绘制：原图71×80，左右各30px固定，中间11px拉伸
+const _btnImg = new Image();
+_btnImg.src = '../images/ui/home/ui_home_button.png';
+function drawNinePatch(canvas, w, h) {
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  if (!_btnImg.complete || !_btnImg.naturalWidth) {
+    _btnImg.onload = () => drawNinePatch(canvas, w, h);
+    return;
   }
-
-  // 标题和按钮宽度以背景图视觉宽为基准
-  const titleW = Math.round(bgVisualW * 0.42);
-  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
-
-  // 偏移量动态计算，避免超出可视区
-  // 竖屏时：视觉宽=SH，视觉高=SW；偏移量不超过视觉高的26%
-  const titleShift = isLandscape
-    ? Math.min(250, bgVisualW * 0.20)
-    : Math.min(SH * 0.26, bgVisualH * 0.26);
-  const btnShift = isLandscape
-    ? Math.min(50, bgVisualW * 0.04)
-    : Math.min(SW * 0.06, bgVisualH * 0.06);
-
-  // 标题：居中 + 偏移
-  splashTitle.style.width = titleW + 'px';
-  splashTitle.style.left = '50%';
-  splashTitle.style.top  = '50%';
-  splashTitle.style.transform = isLandscape
-    ? `translate(calc(-50% - ${titleShift}px), -50%)`
-    : `translate(calc(-50% + ${titleShift}px), -50%) rotate(90deg)`;
-
-  // 按钮：居中 + 偏移
-  splashBtn.style.width = btnW + 'px';
-  splashInner.style.left = '50%';
-  splashInner.style.top  = '50%';
-  splashInner.style.transform = isLandscape
-    ? `translate(-50%, calc(-50% + ${btnShift}px))`
-    : `translate(calc(-50% - ${btnShift}px), -50%) rotate(90deg)`;
+  const SL = 30, SR = 30; // 原图左右固定px
+  const SW = 71, SH = 80; // 原图尺寸
+  const SM = SW - SL - SR; // 原图中间宽 = 11
+  const DM = w - SL - SR;  // 目标中间宽
+  ctx.imageSmoothingEnabled = false;
+  // 左固定
+  ctx.drawImage(_btnImg, 0, 0, SL, SH, 0, 0, SL, h);
+  // 中间拉伸
+  ctx.drawImage(_btnImg, SL, 0, SM, SH, SL, 0, DM, h);
+  // 右固定
+  ctx.drawImage(_btnImg, SL + SM, 0, SR, SH, w - SR, 0, SR, h);
 }
 
-layoutSplash();
+function layoutSplash() {
+  const SW = window.innerWidth, SH = window.innerHeight;
+
+  // 背景图 cover 铺满
+  let bgW, bgH;
+  if (SW / SH > BG_RATIO) { bgW = SW; bgH = SW / BG_RATIO; }
+  else                     { bgH = SH; bgW = SH * BG_RATIO; }
+  splashBg.style.width     = bgW + 'px';
+  splashBg.style.height    = bgH + 'px';
+  splashBg.style.transform = 'translate(-50%,-50%)';
+
+  const titleW   = Math.round(SW * 0.324);  // 标题宽（SW*0.4*0.9*0.9）
+  const btnBgW   = 368;                     // 按钮底板宽（171*1.4*1.1^3*1.15）
+  const btnBgH   = 80;                      // 按钮底板高（原图固定）
+  const btnScale = 0.405;                   // 按钮整体缩放
+  const fontSize = Math.round(btnBgW * btnScale * 0.28); // 字号
+
+  // 标题：左右居中，偏上
+  splashTitle.style.width     = titleW + 'px';
+  splashTitle.style.left      = '50%';
+  splashTitle.style.top       = '50%';
+  splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
+
+  // 按钮组：居中，整体下移
+  document.querySelectorAll('.splash-menu-btn').forEach(btn => {
+    btn.style.width          = btnBgW + 'px';
+    btn.style.height         = btnBgH + 'px';
+    btn.style.transform      = `scale(${btnScale})`;
+    btn.style.transformOrigin = 'center center';
+    const cv = btn.querySelector('canvas.btn-bg');
+    if (cv) drawNinePatch(cv, btnBgW, btnBgH);
+  });
+  splashBtn.style.fontSize = fontSize + 'px';
+  splashInner.style.left      = '50%';
+  splashInner.style.top       = '50%';
+  splashInner.style.transform = 'translate(-50%, calc(-50% + 10px))';
+}
+
 window.addEventListener('resize', layoutSplash);
 
-splashScreen.addEventListener('click', async () => {
-  await enterFullscreen();
+// 引导页点击：全屏+锁横屏 → 淡出 → 显示登录页
+const guideScreen = document.getElementById('guide-screen');
+guideScreen.addEventListener('click', async () => {
+  const el = document.documentElement;
+  try { await (el.requestFullscreen || el.webkitRequestFullscreen).call(el); } catch(e) {}
+  try { await screen.orientation.lock('landscape-primary'); } catch(e) {
+    try { await screen.orientation.lock('landscape'); } catch(e2) {}
+  }
+  guideScreen.style.transition = 'opacity 0.3s';
+  guideScreen.style.opacity = '0';
+  setTimeout(() => {
+    guideScreen.style.display = 'none';
+    splashScreen.style.display = 'flex';
+    layoutSplash();
+  }, 300);
+});
+
+// 登录按钮：淡出进游戏
+document.getElementById('splash-btn').addEventListener('click', () => {
   splashScreen.style.transition = 'opacity 0.4s';
   splashScreen.style.opacity = '0';
-  setTimeout(() => splashScreen.style.display = 'none', 400);
+  setTimeout(() => {
+    splashScreen.style.display = 'none';
+    document.getElementById('splash-version').style.display = 'none';
+  }, 400);
 });
 
 
