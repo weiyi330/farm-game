@@ -1166,55 +1166,36 @@ function drawNinePatch(canvas, w, h) {
 
 function layoutSplash() {
   const SW = window.innerWidth, SH = window.innerHeight;
-  const isLandscape = SW > SH;
+  // 引导页点击后已锁横屏，这里只处理横屏布局
   let bgVisualW, bgVisualH;
+  if (SW / SH > BG_RATIO) { bgVisualW=SW; bgVisualH=SW/BG_RATIO; }
+  else { bgVisualH=SH; bgVisualW=SH*BG_RATIO; }
 
-  if (isLandscape) {
-    if (SW / SH > BG_RATIO) { bgVisualW=SW; bgVisualH=SW/BG_RATIO; }
-    else { bgVisualH=SH; bgVisualW=SH*BG_RATIO; }
-    splashBg.style.width  = bgVisualW + 'px';
-    splashBg.style.height = bgVisualH + 'px';
-    splashBg.style.transform = 'translate(-50%,-50%)';
-  } else {
-    // 登录前竖屏：背景底图旋轣90度模拟横屏视觉
-    if (SH / SW > BG_RATIO) { bgVisualW=SH; bgVisualH=SH/BG_RATIO; }
-    else { bgVisualH=SW; bgVisualW=SW*BG_RATIO; }
-    splashBg.style.width  = bgVisualW + 'px';
-    splashBg.style.height = bgVisualH + 'px';
-    splashBg.style.transform = 'translate(-50%,-50%) rotate(90deg)';
-  }
+  splashBg.style.width  = bgVisualW + 'px';
+  splashBg.style.height = bgVisualH + 'px';
+  splashBg.style.transform = 'translate(-50%,-50%)';
 
+  // 标题：左半区居中
   const titleW = Math.round(bgVisualW * 0.42 * 0.95);
-  const btnW   = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
-  const titleShift = isLandscape
-    ? Math.min(250, bgVisualW * 0.20)
-    : Math.min(SH * 0.26, bgVisualH * 0.26);
-  const btnShift = isLandscape
-    ? Math.min(50, bgVisualW * 0.04)
-    : Math.min(SW * 0.06, bgVisualH * 0.06);
-
+  const titleShift = Math.min(250, bgVisualW * 0.20);
   splashTitle.style.width = titleW + 'px';
   splashTitle.style.left  = '50%';
   splashTitle.style.top   = '50%';
-  splashTitle.style.transform = isLandscape
-    ? `translate(calc(-50% - ${titleShift}px),-50%)`
-    : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
+  splashTitle.style.transform = `translate(calc(-50% - ${titleShift}px),-50%)`;
 
-  // 所有菜单按钮同宽，canvas九宫格绘制
+  // 按钮组：右半区居中
+  const btnW = Math.round(bgVisualW * 0.28 * 0.9 * 0.7);
+  const btnShift = Math.min(50, bgVisualW * 0.04);
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width = btnW + 'px';
     btn.style.height = '80px';
     const cv = btn.querySelector('canvas.btn-bg');
     if (cv) drawNinePatch(cv, btnW, 80);
   });
-  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80 * 0.95) + 'px'; // 再-5%
+  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80 * 0.95) + 'px';
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
-  splashInner.style.transform = isLandscape
-    ? `translate(-50%,calc(-50% + ${btnShift}px))`
-    : `translate(calc(-50% - ${btnShift}px),-50%) rotate(90deg)`;
-
-  // 版本号条由CSS position:fixed固定底部，无需JS控制
+  splashInner.style.transform = `translate(-50%,calc(-50% + ${btnShift}px))`;
 }
 
 layoutSplash();
@@ -1250,6 +1231,7 @@ splashScreen.addEventListener('click', () => {
   splashScreen.style.opacity = '0';
   setTimeout(() => {
     splashScreen.style.display = 'none';
+    document.getElementById('splash-version').style.display = 'none';
     resize();
   }, 400);
 });
