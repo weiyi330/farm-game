@@ -1207,7 +1207,7 @@ function layoutSplash() {
   document.getElementById('quit-btn').style.fontSize = fontSize + 'px';
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
-  splashInner.style.transform = 'translate(-50%, calc(-50% - 3px))';
+  splashInner.style.transform = 'translate(-50%, calc(-50% + 7px))';
 }
 
 // layoutSplash 在引导页点击后调用，不在初始化时执行
@@ -1248,12 +1248,9 @@ document.getElementById('splash-btn').addEventListener('click', () => {
   }, 400);
 });
 
-// 退出按钮：尝试关闭窗口，不支持时跳回空白页
+// 退出按钮：跳回引导页（重新加载）
 document.getElementById('quit-btn').addEventListener('click', () => {
-  if (!window.close()) {
-    window.location.href = 'about:blank';
-  }
-  setTimeout(() => { window.location.href = 'about:blank'; }, 200);
+  window.location.reload();
 });
 
 // ============================================================
