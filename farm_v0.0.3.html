@@ -46,11 +46,11 @@ canvas { display:block; }
   display:flex;
   align-items:center; justify-content:center;
   cursor:pointer;
-  /* 九宫格只横向拉伸：只切左/右各10px，上下不拉伸 */
-  border-image: url('assets/images/ui/home/ui_home_button.png') 0 30 0 30 fill stretch;
+  /* 九宫格只横向拉伸：上下slice=40固定原图高度，左右slice=30横向拉伸 */
+  border-image: url('assets/images/ui/home/ui_home_button.png') 40 30 40 30 fill stretch;
   border-style: solid;
   border-color: transparent;
-  border-width: 0 30px; /* 上下0，左右30px留出固定区 */
+  border-width: 40px 30px; /* 上下40px锁定高度，左右30px留出固定区 */
   box-sizing: border-box;
   filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
   transition:transform 0.12s;
@@ -1104,9 +1104,9 @@ function layoutSplash() {
     : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
 
   splashBtn.style.width = btnW + 'px';
-  // 高度固定，整体缩分0.95
-  splashBtn.style.height = Math.round(btnW * 0.6 * 0.95) + 'px';
-  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95) + 'px';
+  // 高度由 border-image 的 40px上下定死（80px原图），这里只设内容区为0
+  splashBtn.style.height = '80px';
+  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95) + 'px'; // 额外再-5%
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
