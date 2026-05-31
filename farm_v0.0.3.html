@@ -17,7 +17,7 @@
 html, body {
   width:100%; height:100%;
   background:#1a3320;
-  font-family:'STKaiti','KaiTi','楷体',serif;
+  font-family:'Noto Sans SC','思源黑体','STKaiti','KaiTi',sans-serif;
   overflow:hidden; touch-action:none; user-select:none;
 }
 canvas { display:block; }
@@ -50,6 +50,7 @@ canvas { display:block; }
   border-image: url('assets/images/ui/home/ui_home_button.png') 0 30 0 30 fill stretch;
   border-style: solid;
   border-color: transparent;
+  border-width: 0 30px; /* 上下0，左右30px留出固定区 */
   box-sizing: border-box;
   filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
   transition:transform 0.12s;
@@ -1103,9 +1104,9 @@ function layoutSplash() {
     : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
 
   splashBtn.style.width = btnW + 'px';
-  // 高度固定（原图高80px，按按钮宽度比例缩放）
-  splashBtn.style.height = Math.round(btnW * 0.6) + 'px';
-  splashBtn.style.fontSize = Math.round(btnW * 0.22) + 'px';
+  // 高度固定，整体缩分0.95
+  splashBtn.style.height = Math.round(btnW * 0.6 * 0.95) + 'px';
+  splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95) + 'px';
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
   splashInner.style.transform = isLandscape
