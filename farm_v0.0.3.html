@@ -55,33 +55,33 @@ canvas { display:block; }
   pointer-events:none;
   z-index:10;
 }
-/* 九宫格按钮通用样式 */
 .splash-menu-btn {
-  display:flex;
-  align-items:center; justify-content:center;
-  cursor:pointer;
   position: relative;
-  height: 80px;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
   transform: scale(1.05);
-  transition:transform 0.12s;
+  transition: transform 0.12s;
+  user-select: none;
+}
+.splash-menu-btn:active { transform: scale(0.98); }
+.splash-menu-btn canvas.btn-bg {
+  position: absolute; top:0; left:0;
+  width:100%; height:100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.splash-menu-btn .btn-label {
+  position: relative; z-index:1;
   white-space: nowrap;
   font-family:'Noto Sans SC','思源黑体',sans-serif;
   font-weight: bold;
-  text-shadow: 0 1px 2px rgba(255,220,100,0.6);
   letter-spacing: 4px;
-  user-select:none;
-  /* 用border-image横向拉伸，round避免缝隙 */
-  border-image: url('assets/images/ui/home/ui_home_button.png') 40 30 40 30 fill round;
-  border-style: solid;
-  border-color: transparent;
-  border-width: 40px 30px;
-  box-sizing: border-box;
+  user-select: none;
 }
-.splash-menu-btn:active { transform:scale(0.98); }
-#splash-btn {
-  color: #3b1a00;
-}
+#splash-btn .btn-label { color: #3b1a00; text-shadow: 0 1px 2px rgba(255,220,100,0.6); }
 
 /* ── game-wrap：横屏后充满屏幕 ── */
 #game-wrap { width:100%; height:100%; position:relative; }
@@ -217,9 +217,9 @@ canvas { display:block; }
   <img id="splash-bg" src="assets/images/ui/home/ui_home_bj.webp" alt="">
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
-    <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;">登录游戏</div>
-    <div class="splash-menu-btn" style="pointer-events:none;"></div>
-    <div class="splash-menu-btn" style="pointer-events:none;"></div>
+    <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
+    <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
   </div>
   <div id="splash-version">版本号：v0.0.3</div>
 </div>
@@ -1089,6 +1089,31 @@ const splashInner  = document.getElementById('splash-inner');
 const splashTitle  = document.getElementById('splash-title');
 const splashBtn    = document.getElementById('splash-btn');
 
+// 九宫格Canvas绘制：原图71×80，左右各30px固定，中间11px拉伸
+const _btnImg = new Image();
+_btnImg.src = 'assets/images/ui/home/ui_home_button.png';
+function drawNinePatch(canvas, w, h) {
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, w, h);
+  if (!_btnImg.complete || !_btnImg.naturalWidth) {
+    _btnImg.onload = () => drawNinePatch(canvas, w, h);
+    return;
+  }
+  const SL = 30, SR = 30; // 原图左右固定px
+  const SW = 71, SH = 80; // 原图尺寸
+  const SM = SW - SL - SR; // 原图中间宽 = 11
+  const DM = w - SL - SR;  // 目标中间宽
+  ctx.imageSmoothingEnabled = false;
+  // 左固定
+  ctx.drawImage(_btnImg, 0, 0, SL, SH, 0, 0, SL, h);
+  // 中间拉伸
+  ctx.drawImage(_btnImg, SL, 0, SM, SH, SL, 0, DM, h);
+  // 右固定
+  ctx.drawImage(_btnImg, SL + SM, 0, SR, SH, w - SR, 0, SR, h);
+}
+
 function layoutSplash() {
   const SW = window.innerWidth, SH = window.innerHeight;
   const isLandscape = SW > SH;
@@ -1125,10 +1150,12 @@ function layoutSplash() {
     ? `translate(calc(-50% - ${titleShift}px),-50%)`
     : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
 
-  // 所有菜单按钮同宽
+  // 所有菜单按钮同宽，canvas九宫格绘制
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width = btnW + 'px';
     btn.style.height = '80px';
+    const cv = btn.querySelector('canvas.btn-bg');
+    if (cv) drawNinePatch(cv, btnW, 80);
   });
   splashBtn.style.fontSize = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80) + 'px'; // 再-20%
   splashInner.style.left = '50%';
