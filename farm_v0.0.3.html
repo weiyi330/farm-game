@@ -43,9 +43,8 @@ canvas { display:block; }
   display:flex;
   align-items:center; justify-content:center;
   cursor:pointer;
-  /* 九宫格拉伸：切割左/右/上/下各10px */
-  border-image: url('assets/images/ui/home/ui_home_button.png') 10 10 10 10 fill stretch;
-  border-width: 10px;
+  /* 九宫格只横向拉伸：只切左/右各10px，上下不拉伸 */
+  border-image: url('assets/images/ui/home/ui_home_button.png') 0 10 0 10 fill stretch;
   border-style: solid;
   border-color: transparent;
   box-sizing: border-box;
@@ -1101,8 +1100,8 @@ function layoutSplash() {
     : `translate(calc(-50% + ${titleShift}px),-50%) rotate(90deg)`;
 
   splashBtn.style.width = btnW + 'px';
-  // 九宫格按原图比例设高度（71×80）
-  splashBtn.style.height = Math.round(btnW * 80/71) + 'px';
+  // 高度固定（原图高80px，按按钮宽度比例缩放）
+  splashBtn.style.height = Math.round(btnW * 0.6) + 'px';
   splashBtn.style.fontSize = Math.round(btnW * 0.22) + 'px';
   splashInner.style.left = '50%';
   splashInner.style.top  = '50%';
