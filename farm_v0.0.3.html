@@ -436,8 +436,9 @@ function loadCropImg(key, src) {
 loadCropImg('potato', 'assets/images/Crops/Spring/Crops_Spring_Potato.png');
 
 const CROPS = {
-  potato:  {icon:'🥔',name:'土豆',days:8,cost:8, sell:25,
-            spritesheet:'potato', frameW:16, frameH:16, totalFrames:8},
+  potato:  {icon:'🥔',name:'土豆',days:5,cost:8, sell:25,
+            spritesheet:'potato', frameW:16, frameH:16, totalFrames:8,
+            harvestFrame:7},
   carrot:  {icon:'🥕',name:'萝卜',days:4,cost:8, sell:18, stages:['🌱','🌿','🥕','🥕']},
   cabbage: {icon:'🥬',name:'白菜',days:5,cost:12,sell:30, stages:['🌱','🌿','🥬','🥬','🥬']},
   peach:   {icon:'🍑',name:'桃子',days:7,cost:30,sell:80, stages:['🌱','🌿','🌲','🌳','🌳','🌳','🍑']},
@@ -578,7 +579,10 @@ function drawTile(r, c) {
     if (cfg.spritesheet && CROP_IMGS[cfg.spritesheet] && CROP_IMGS[cfg.spritesheet].complete) {
       // 使用 spritesheet 渲染
       const img = CROP_IMGS[cfg.spritesheet];
-      const frameIdx = crop.ready ? cfg.totalFrames-1 : Math.min(crop.daysGrown, cfg.totalFrames-1);
+      // 成熟状态用 harvestFrame（收获帧），未成熟按天数推进（最多到 days-1 帧）
+      const frameIdx = crop.ready
+        ? (cfg.harvestFrame !== undefined ? cfg.harvestFrame : cfg.totalFrames - 1)
+        : Math.min(crop.daysGrown, cfg.days - 1);
       const sx = frameIdx * cfg.frameW;
       const drawSize = TILE * 0.8;
       const drawX = x - drawSize/2;
@@ -831,7 +835,7 @@ function doAction(){
     // 播种时检查是否已浇过水（先浇水后播种的情况）
     const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
     cropMap[r][c]={type:selectedSeed,daysGrown:0,watered:alreadyWatered,ready:false};
-    showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}${alreadyWatered?' （已浇水 💧）':''}`);
+    showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}`);
   }
   else if(currentTool==='water'){
     if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
@@ -848,7 +852,7 @@ function doAction(){
   else if(currentTool==='harvest'){
     const crop=cropMap[r][c];
     if(!crop){ showToast('这里没有作物'); return; }
-    if(!crop.ready){ showToast(`还没成熟，再等等～（已生长${crop.daysGrown}/${CROPS[crop.type].days}天）`); return; }
+    if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
     const cfg=CROPS[crop.type];
     coins+=cfg.sell; harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
     showToast(`收获${cfg.icon}${cfg.name}！+${cfg.sell}枚铜钱 🎉`);
@@ -1016,6 +1020,7 @@ function layoutSplash() {
     splashBg.style.height = bgVisualH + 'px';
     splashBg.style.transform = 'translate(-50%,-50%)';
   } else {
+    // 登录前竖屏：背景底图旋轣90度模拟横屏视觉
     if (SH / SW > BG_RATIO) { bgVisualW=SH; bgVisualH=SH/BG_RATIO; }
     else { bgVisualH=SW; bgVisualW=SW*BG_RATIO; }
     splashBg.style.width  = bgVisualW + 'px';
@@ -1051,7 +1056,21 @@ layoutSplash();
 window.addEventListener('resize', layoutSplash);
 
 splashScreen.addEventListener('click', async () => {
-  await enterFullscreen();
+  // 登录后：只全屏，不应用 CSS 旋转（游戏区域本身不旋转）
+  try {
+    const el = document.documentElement;
+    if (el.requestFullscreen) await el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+  } catch(e) {}
+  // 尝试锁定横屏
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      await screen.orientation.lock('landscape-primary');
+    }
+  } catch(e) {
+    try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); }
+    catch(e2) {}
+  }
   splashScreen.style.transition = 'opacity 0.4s';
   splashScreen.style.opacity = '0';
   setTimeout(() => {
