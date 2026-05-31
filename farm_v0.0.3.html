@@ -715,16 +715,21 @@ function render() {
     const drawSize = TILE * 0.8;
     // 抛物线：先向上弹起再落地
     // t: 0→1, 先升(0→0.4)再落(0.4→1)，落地后淡出
-    const PEAK = -TILE * 0.6;       // 最高点偏移（自然弹起）
+    const PEAK = -TILE * 0.8;       // 最高点偏移（自然弹起）
     const LAND = TILE * 0.3;        // 落点（地面偏下）
     const offsetX = (t - 0.5) * TILE * 0.4; // 轻微横向漂移
+    // 尺寸：出现时小，峰値时80%，落地时100%
+    const scale = t < 0.4
+      ? 0.2 + t / 0.4 * 0.6          // 0→0.4: 20%→0.8
+      : 0.8 + (t - 0.4) / 0.6 * 0.2; // 0.4→1.0: 80%→100%
+    const scaledSize = drawSize * scale;
     const offsetY = PEAK * Math.sin(t * Math.PI) + LAND * t * t;
     const alpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1; // 最后30%淡出
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(cfg, sx, 0, cropCfg.frameW, cropCfg.frameH,
-      x - drawSize/2 + offsetX, y - drawSize/2 + offsetY, drawSize, drawSize);
+      x - scaledSize/2 + offsetX, y - scaledSize/2 + offsetY, scaledSize, scaledSize);
     ctx.restore();
   }
 
