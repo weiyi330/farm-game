@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="screen-orientation" content="landscape">
-<!-- 思源黑体：优先系统字体，避免外网请求拖慢加载 -->
+<!-- 预加载登录页资源 -->
+<link rel="preload" href="assets/images/ui/home/ui_home_bj.webp" as="image">
+<link rel="preload" href="assets/images/ui/home/ui_home_title.webp" as="image">
+<link rel="preload" href="assets/images/ui/home/ui_home_button.png" as="image">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="icon" type="image/webp" href="assets/images/ui/home/ui_home_app_icon.webp">
@@ -1131,7 +1134,7 @@ async function enterFullscreen() {
 }
 
 // 启动页布局
-const BG_RATIO = 2732 / 1534;
+const BG_RATIO = 2732 / 1261; // 新背景图尺寸
 const splashScreen = document.getElementById('splash-screen');
 const splashBg     = document.getElementById('splash-bg');
 const splashInner  = document.getElementById('splash-inner');
@@ -1175,28 +1178,25 @@ function layoutSplash() {
   splashBg.style.height    = bgH + 'px';
   splashBg.style.transform = 'translate(-50%,-50%)';
 
-  // ── 参数直接从竖屏旋转版转换而来（bgVisualW=SW）──
-  const titleW    = Math.round(SW * 0.42 * 0.95);
-  const btnW      = Math.round(SW * 0.28 * 0.9 * 0.7);
-  // 竖屏版 titleShift 是纵向偏移（旋转后=横向），对应横屏 X 轴左移
-  const titleShiftX = Math.min(250, SW * 0.20);
-  // 竖屏版 btnShift 是横向偏移（旋转后=纵向），对应横屏 Y 轴下移
-  const btnShiftY   = Math.min(50,  SW * 0.04);
+  const titleW      = Math.round(SW * 0.40);       // 标题宽
+  const titleShiftX = Math.min(250, SW * 0.20);    // 标题左偏量
+  const btnW        = Math.round(SW * 0.18);        // 按钮宽
+  const btnShiftY   = Math.min(50,  SW * 0.04);    // 按钮组下偏量
 
-  // 标题：屏幕中心偏左
+  // 标题：中心偏左
   splashTitle.style.width     = titleW + 'px';
   splashTitle.style.left      = '50%';
   splashTitle.style.top       = '50%';
   splashTitle.style.transform = `translate(calc(-50% - ${titleShiftX}px), -50%)`;
 
-  // 按钮组：屏幕中心偏右
+  // 按钮组：中心偏右
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
     btn.style.width  = btnW + 'px';
     btn.style.height = '80px';
     const cv = btn.querySelector('canvas.btn-bg');
     if (cv) drawNinePatch(cv, btnW, 80);
   });
-  splashBtn.style.fontSize    = Math.round(btnW * 0.22 * 0.95 * 0.95 * 0.90 * 0.80 * 0.95) + 'px';
+  splashBtn.style.fontSize    = Math.round(btnW * 0.14) + 'px'; // 约14%按钮宽
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
   splashInner.style.transform = `translate(-50%, calc(-50% + ${btnShiftY}px))`;
