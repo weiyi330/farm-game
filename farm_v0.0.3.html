@@ -81,7 +81,7 @@ canvas { display:block; }
 }
 #splash-inner {
   position:absolute;
-  display:flex; flex-direction:column; align-items:center; gap:20px;
+  display:flex; flex-direction:column; align-items:center; gap:0;
 }
 #splash-version {
   position:fixed;
@@ -272,8 +272,8 @@ canvas { display:block; }
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
     <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
-    <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
-    <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-14px;"><canvas class="btn-bg"></canvas></div>
+    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-14px;"><canvas class="btn-bg"></canvas></div>
   </div>
 </div>
 
@@ -1193,7 +1193,7 @@ function layoutSplash() {
   splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
 
   // 按钮底板：原图71×80，先横向拉伸+100px → 171×80，再用CSS scale(0.5)整体缩小
-  const btnBgW  = Math.round(171 * 1.4 * 1.1 * 1.1); // 在171基础上再+40%再+10%再+10%
+  const btnBgW  = Math.round(171 * 1.4 * 1.1 * 1.1 * 1.2); // 再+20%
   const btnBgH  = 80;  // 高度保持原图80px不变
   const scaleV  = 0.45; // 0.5再缩小10%
   const fontSize = Math.round(btnBgW * scaleV * 0.22 * 1.5); // 字号放大50%
