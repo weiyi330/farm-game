@@ -25,7 +25,7 @@ canvas { display:block; }
   position:fixed; inset:0; z-index:999;
   background:#0d1f0a;
   display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
+  overflow:visible;
 }
 #splash-bg {
   position:absolute; left:50%; top:50%;
@@ -41,9 +41,9 @@ canvas { display:block; }
   display:flex; flex-direction:column; align-items:center; gap:20px;
 }
 #splash-version {
-  position:fixed;
+  position:absolute;
   left:0; bottom:0; right:0;
-  height:100px;
+  height:30px;
   background:rgba(0,0,0,0.6);
   display:flex; align-items:center; justify-content:center;
   color:#ffffff;
@@ -52,7 +52,7 @@ canvas { display:block; }
   font-weight:normal;
   letter-spacing:1px;
   pointer-events:none;
-  z-index:1000;
+  z-index:10;
 }
 .splash-menu-btn {
   position: relative;
@@ -1164,7 +1164,27 @@ function layoutSplash() {
     ? `translate(-50%,calc(-50% + ${btnShift}px))`
     : `translate(calc(-50% - ${btnShift}px),-50%) rotate(90deg)`;
 
-  // 版本号条由CSS固定在底部，无需JS控制
+  // 版本号条：跟随视觉横屏底部
+  const VER_H = 30;
+  if (isLandscape) {
+    // 横屏：直接贴物理底部
+    splashVersion.style.cssText = `
+      position:absolute; left:0; bottom:0; right:0;
+      width:${SW}px; height:${VER_H}px;
+      transform:none; transform-origin:unset;
+    `;
+  } else {
+    // 竖屏：背景图旋转了90度，版本号条需要出现在视觉横屏底部
+    // 视觉横屏底部 = 物理屏幕右侧边缘
+    // 做法：宽度=物理高度SH（视觉宽），贴物理右侧，旋转-90度
+    splashVersion.style.cssText = `
+      position:fixed;
+      width:${SH}px; height:${VER_H}px;
+      right:0; bottom:0;
+      transform-origin:bottom right;
+      transform:rotate(-90deg);
+    `;
+  }
 }
 
 layoutSplash();
