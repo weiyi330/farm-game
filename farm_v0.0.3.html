@@ -1190,13 +1190,15 @@ function layoutSplash() {
   splashTitle.style.top       = '50%';
   splashTitle.style.transform = 'translate(-50%, calc(-50% - 125px))';
 
-  // 按钮底板：原图71×80，先横向拉伸+100px → 171×80，再整体×0.5
-  const btnBgW  = Math.round((71 + 100) * 0.5); // 85px
-  const btnBgH  = Math.round(80 * 0.5);          // 40px
-  const fontSize = Math.round(btnBgW * 0.22);
+  // 按钮底板：原图71×80，先横向拉伸+100px → 171×80，再用CSS scale(0.5)整体缩小
+  const btnBgW  = 171; // 71+100
+  const btnBgH  = 80;  // 高度保持原图80px不变
+  const fontSize = Math.round(btnBgW * 0.5 * 0.22); // 字号按缩放后视觉大小
   document.querySelectorAll('.splash-menu-btn').forEach(btn => {
-    btn.style.width  = btnBgW + 'px';
-    btn.style.height = btnBgH + 'px';
+    btn.style.width       = btnBgW + 'px';
+    btn.style.height      = btnBgH + 'px';
+    btn.style.transform   = 'scale(0.5)';
+    btn.style.transformOrigin = 'center center';
     const cv = btn.querySelector('canvas.btn-bg');
     if (cv) drawNinePatch(cv, btnBgW, btnBgH);
   });
