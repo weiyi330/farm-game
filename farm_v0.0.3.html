@@ -42,10 +42,12 @@ canvas { display:block; }
 }
 #splash-version {
   position:fixed;
+  left:0; bottom:0; right:0;
+  height:30px;
   background:rgba(0,0,0,0.6);
   display:flex; align-items:center; justify-content:center;
   color:#ffffff;
-  font-family:'Noto Sans SC','Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
+  font-family:'Source Han Sans CN','思源黑体','PingFang SC','Microsoft YaHei',sans-serif;
   font-size:12px;
   font-weight:normal;
   letter-spacing:1px;
@@ -1162,28 +1164,7 @@ function layoutSplash() {
     ? `translate(-50%,calc(-50% + ${btnShift}px))`
     : `translate(calc(-50% - ${btnShift}px),-50%) rotate(90deg)`;
 
-  // 版本号条：始终在视觉横屏的底部
-  const VER_H = 30;
-  if (isLandscape) {
-    splashVersion.style.width           = SW + 'px';
-    splashVersion.style.height          = VER_H + 'px';
-    splashVersion.style.left            = '0';
-    splashVersion.style.bottom          = '0';
-    splashVersion.style.top             = 'auto';
-    splashVersion.style.right           = 'auto';
-    splashVersion.style.transformOrigin = 'unset';
-    splashVersion.style.transform       = 'none';
-  } else {
-    // 竖屏：以左下角旋转90°，贴视觉横屏底部
-    splashVersion.style.width           = SH + 'px';
-    splashVersion.style.height          = VER_H + 'px';
-    splashVersion.style.left            = (-SH + VER_H) + 'px';
-    splashVersion.style.bottom          = '0';
-    splashVersion.style.top             = 'auto';
-    splashVersion.style.right           = 'auto';
-    splashVersion.style.transformOrigin = 'bottom left';
-    splashVersion.style.transform       = 'rotate(90deg)';
-  }
+  // 版本号条由CSS固定在底部，无需JS控制
 }
 
 layoutSplash();
