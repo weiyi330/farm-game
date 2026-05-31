@@ -63,9 +63,9 @@ canvas { display:block; }
 #splash-screen {
   position:fixed; inset:0; z-index:999;
   background:#0d1f0a;
-  display:flex; align-items:center; justify-content:center;
+  display:none; /* 引导页点击后才显示 */
+  align-items:center; justify-content:center;
   overflow:visible;
-  display:none;
 }
 #splash-bg {
   position:absolute; left:50%; top:50%;
@@ -1202,7 +1202,7 @@ function layoutSplash() {
   splashInner.style.transform = `translate(-50%, calc(-50% + ${btnShiftY}px))`;
 }
 
-layoutSplash();
+// layoutSplash 在引导页点击后调用，不在初始化时执行
 window.addEventListener('resize', layoutSplash);
 
 // 引导页：点击 → 全屏+锁横屏 → 显示登录页
