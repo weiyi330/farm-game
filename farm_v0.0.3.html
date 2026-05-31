@@ -272,8 +272,6 @@ canvas { display:block; }
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
     <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
-    <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
-    <div class="splash-menu-btn" style="pointer-events:none;"><canvas class="btn-bg"></canvas></div>
   </div>
 </div>
 
@@ -1183,7 +1181,7 @@ function layoutSplash() {
   splashBg.style.transform = 'translate(-50%,-50%)';
 
   const titleW    = Math.round(SW * 0.40 * 0.90 * 0.90); // 标题宽，-10%-10%
-  const btnW      = Math.round(SW * 0.18 * 0.40);   // 按钮宽，整体-60%
+  const btnW      = Math.round(SW * 0.22);           // 按钮宽
   const btnShiftY = Math.min(50, SW * 0.04);        // 按钮组下偏量
 
   // 标题：左右居中，上移100px
