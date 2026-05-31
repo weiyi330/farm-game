@@ -44,13 +44,12 @@ canvas { display:block; }
 }
 #splash-version {
   position:absolute;
-  bottom:0; left:0; right:0;
-  height:25px;
   background:rgba(0,0,0,0.6);
   display:flex; align-items:center; justify-content:center;
   color:#ffffff;
   font-family:'Noto Sans SC','思源黑体',sans-serif;
   font-size:12px;
+  font-weight:normal;
   letter-spacing:1px;
   pointer-events:none;
   z-index:10;
@@ -1088,6 +1087,7 @@ const splashBg     = document.getElementById('splash-bg');
 const splashInner  = document.getElementById('splash-inner');
 const splashTitle  = document.getElementById('splash-title');
 const splashBtn    = document.getElementById('splash-btn');
+const splashVersion = document.getElementById('splash-version');
 
 // 九宫格Canvas绘制：原图71×80，左右各30px固定，中间11px拉伸
 const _btnImg = new Image();
@@ -1163,6 +1163,28 @@ function layoutSplash() {
   splashInner.style.transform = isLandscape
     ? `translate(-50%,calc(-50% + ${btnShift}px))`
     : `translate(calc(-50% - ${btnShift}px),-50%) rotate(90deg)`;
+
+  // 版本号条：始终在视觉横屏的底部
+  const VER_H = 30;
+  if (isLandscape) {
+    // 横屏：底部水平条
+    splashVersion.style.width  = SW + 'px';
+    splashVersion.style.height = VER_H + 'px';
+    splashVersion.style.left   = '0';
+    splashVersion.style.bottom = '0';
+    splashVersion.style.top    = 'auto';
+    splashVersion.style.transform = 'none';
+  } else {
+    // 竖屏：需旋轣90度，显示在视觉横屏的底部（即屏幕右侧）
+    splashVersion.style.width  = SH + 'px';
+    splashVersion.style.height = VER_H + 'px';
+    // 底部居中：旋轣90deg后 x轴变y轴
+    splashVersion.style.left   = (SW / 2 - SH / 2) + 'px';
+    splashVersion.style.bottom = 'auto';
+    splashVersion.style.top    = (SH - VER_H) / 2 + (SH / 2) + 'px';
+    splashVersion.style.transformOrigin = 'center center';
+    splashVersion.style.transform = `translateX(${(SH - SW) / 2}px) rotate(90deg)`;
+  }
 }
 
 layoutSplash();
