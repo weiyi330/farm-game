@@ -210,7 +210,7 @@ canvas { display:block; }
   padding:6px;
   position:absolute;
   top:50%; left:50%;
-  transform:translate(-50%, calc(-50% - 10px));
+  transform:translate(-50%, -50%);
   z-index:1;
 }
 /* 单个工具格 */
@@ -318,7 +318,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.25</div>
+<div id="splash-version">版本号：v0.0.3.26</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -845,7 +845,7 @@ function drawToolbarBg() {
     const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
     const slotGroupW = (12 * 41 + 11 * 4) * dpr; // 格子组总宽
     const startX = (cv.width - slotGroupW) / 2; // 水平居中
-    const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
+    const startY = (cv.height - slotDisplayH) / 2 - 10 * dpr; // 垂直居中后上移10px
     for (let i = 0; i < 12; i++) {
       const sx = startX + i * (slotDisplayW + 4 * dpr);
       // 左
