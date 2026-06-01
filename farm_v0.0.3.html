@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.41</div>
+<div id="splash-version">版本号：v0.0.3.42</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -917,18 +917,22 @@ window.addEventListener('resize', drawToolbarBg);
 
 
 // 动画状态枚举
-const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run', ANIM_WATER = 'water';
+const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run', ANIM_WATER = 'water', ANIM_HOE = 'hoe', ANIM_HARVEST = 'harvest';
 
 // 各状态图集配置
 const SPRITE_CFG = {
   idle:  { src: 'assets/images/player/1. Idle/Skins/1.png',      frames: 4, frameMs: 200 },
   walk:  { src: 'assets/images/player/2. Walk/Skins/1.png',      frames: 6, frameMs: 140 },
   run:   { src: 'assets/images/player/3. Run/Skins/1.png',       frames: 8, frameMs: 100 },
-  water: { src: 'assets/images/player/5. Watering/Skins/1.png',  frames: 8, frameMs: 120 },
+  water:   { src: 'assets/images/player/5. Watering/Skins/1.png',                                   frames: 8, frameMs: 120 },
+  hoe:     { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Skins/1.png',       frames: 6, frameMs: 110 },
+  harvest: { src: 'assets/images/player/8. Axe and Sickle/Skins/1.png',                          frames: 6, frameMs: 110 },
 };
 // 浇水武器图集（与角色动画叠加）
 const WEAPON_CFG = {
-  water: { src: 'assets/images/player/5. Watering/Weapons/Watering/1.png', frames: 8, frameMs: 120 },
+  water:   { src: 'assets/images/player/5. Watering/Weapons/Watering/1.png',                           frames: 8, frameMs: 120 },
+  hoe:     { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Weapons/Hoe/1.png',   frames: 6, frameMs: 110 },
+  harvest: { src: 'assets/images/player/8. Axe and Sickle/Weapons/Sickle/1.png',                   frames: 6, frameMs: 110 },
 };
 
 // 预加载角色图集
@@ -957,10 +961,13 @@ let spAnim = ANIM_IDLE;   // 当前播放状态
 let spFrame = 0;
 let spFrameTimer = 0;
 
-// 浇水动作状态
-let wateringTimer = 0;        // 浇水动画剩余时间(ms)
-const WATERING_DURATION = 8 * 120; // 8帧×120ms=960ms
-let pendingWaterTile = null;  // 待浇水的地块 {r,c}，动画播完后执行
+// 动作动画状态（浇水/锄地/收获统一管理）
+let actionAnimTimer = 0;
+let pendingActionTile = null; // { r, c, action: 'water'|'hoe'|'harvest' }
+// 向后兼容
+let wateringTimer = 0;
+let pendingWaterTile = null;
+const WATERING_DURATION = 8 * 120;
 
 // 跑步触发：摇杆顶到边界持续 > RUN_HOLD_MS 毫秒后切跑
 const RUN_HOLD_MS = 200;
@@ -995,9 +1002,10 @@ function drawPlayer(x, y) {
     y - SP_FRAME_H * SP_SCALE / 2,
     SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
   );
-  // 浇水武器叠加层
-  if (spAnim === ANIM_WATER) {
-    const wKey = 'water';
+  // 动作武器叠加层（浇水/锄地/收获）
+  const ACTION_WEAPON_MAP = { [ANIM_WATER]:'water', [ANIM_HOE]:'hoe', [ANIM_HARVEST]:'harvest' };
+  if (ACTION_WEAPON_MAP[spAnim]) {
+    const wKey = ACTION_WEAPON_MAP[spAnim];
     const wImg = weaponSprites[wKey];
     if (wImg && wImg.complete && wImg.naturalWidth) {
       ctx.drawImage(
@@ -1200,40 +1208,64 @@ function loop(ts){
   }
 
   // ---------- 动画状态切换 ----------
-  // 浇水动画：位移立即打断
-  if (spAnim === ANIM_WATER) {
+  const ACTION_ANIMS = [ANIM_WATER, ANIM_HOE, ANIM_HARVEST];
+  if (ACTION_ANIMS.includes(spAnim)) {
     if (player.moving) {
-      // 位移打断，丢弃浇水
+      // 位移打断
+      const actionName = { water:'浇水', hoe:'锄地', harvest:'收获' }[spAnim] || '操作';
+      showToast(`${actionName}被打断`);
+      pendingActionTile = null;
       spAnim = ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
-      wateringTimer = 0; pendingWaterTile = null;
-      showToast('浇水被打断');
     } else {
-      // 帧推进（不循环，到最后一帧停住）
+      // 帧推进（不循环，播完执行操作）
       spFrameTimer += dt * 1000;
-      const cfg = SPRITE_CFG[ANIM_WATER];
+      const cfg = SPRITE_CFG[spAnim];
       if (spFrameTimer >= cfg.frameMs) {
         spFrameTimer = 0;
         if (spFrame < cfg.frames - 1) {
           spFrame++;
         } else {
-          // 动画播完 → 执行浇水
-          if (pendingWaterTile) {
-            const {r, c} = pendingWaterTile;
-            if (!wateredMap[r]) wateredMap[r] = {};
-            if (cropMap[r][c]) cropMap[r][c].watered = true;
-            else wateredMap[r][c] = true;
-            showToast('浇水完成 💧');
-            pendingWaterTile = null;
+          // 动画播完 → 执行对应操作
+          if (pendingActionTile) {
+            const {r, c, action} = pendingActionTile;
+            if (action === 'water') {
+              if (!wateredMap[r]) wateredMap[r] = {};
+              if (cropMap[r][c]) cropMap[r][c].watered = true;
+              else wateredMap[r][c] = true;
+              showToast('浇水完成 💧');
+            } else if (action === 'hoe') {
+              tileMap[r][c] = T.TILLED;
+              showToast('翻土完成 🌱');
+            } else if (action === 'harvest') {
+              const crop = cropMap[r] && cropMap[r][c];
+              if (crop && crop.ready) {
+                const key = r+'_'+c;
+                harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
+                harvestBag[crop.type] = (harvestBag[crop.type]||0) + 1;
+                if (crop.type === 'potato') {
+                  const existIdx = hotbar.indexOf('potato');
+                  if (existIdx < 0) {
+                    const emptyIdx = hotbar.indexOf(null);
+                    if (emptyIdx >= 0) hotbar[emptyIdx] = 'potato';
+                  }
+                  renderHotbar();
+                }
+                setTimeout(() => {
+                  delete harvestAnims[key];
+                  tileMap[r][c] = T.TILLED; cropMap[r][c] = null;
+                }, 600);
+                showToast(`收获了 ${CROPS[crop.type]?.icon||''}${CROPS[crop.type]?.name||crop.type}！`);
+              }
+            }
+            pendingActionTile = null;
           }
           spAnim = ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
-          wateringTimer = 0;
         }
       }
     }
   } else {
     const newAnim = !player.moving ? ANIM_IDLE : (isRunning ? ANIM_RUN : ANIM_WALK);
     if (newAnim !== spAnim) { spAnim = newAnim; spFrame = 0; spFrameTimer = 0; }
-    // 帧推进（循环播放）
     spFrameTimer += dt * 1000;
     const cfg = SPRITE_CFG[spAnim] || SPRITE_CFG[ANIM_IDLE];
     if (spFrameTimer >= cfg.frameMs) {
@@ -1259,14 +1291,17 @@ function loop(ts){
 // ============================================================
 // 行动按钮
 // ============================================================
-// 启动浇水动画，记录目标地块，动画播完才浇水
-function startWateringAnim(r, c) {
-  spAnim = ANIM_WATER;
+// 通用动作动画启动：animKey='water'|'hoe'|'harvest'
+function startActionAnim(animKey, r, c) {
+  const cfg = SPRITE_CFG[animKey];
+  if (!cfg) return;
+  spAnim = animKey;
   spFrame = 0;
   spFrameTimer = 0;
-  wateringTimer = WATERING_DURATION;
-  pendingWaterTile = { r, c };
+  pendingActionTile = { r, c, action: animKey };
 }
+// 向后兼容
+function startWateringAnim(r, c) { startActionAnim(ANIM_WATER, r, c); }
 
 function doAction(){
   const r=Math.round(player.wy), c=Math.round(player.wx);
@@ -1284,7 +1319,7 @@ function doAction(){
 
   if(itemId==='hoe'){
     if(type===T.GRASS||type===T.PATH||type===T.SOIL){
-      tileMap[r][c]=T.TILLED; showToast('翻土完成 ⛏️');
+      startActionAnim(ANIM_HOE, r, c); // 播完再锄地
     } else if(type===T.TILLED){ showToast('已翻过土啦～'); }
     else showToast('这里不能翻土');
   }
@@ -1320,26 +1355,8 @@ function doAction(){
     const crop=cropMap[r][c];
     if(!crop){ showToast('这里没有作物'); return; }
     if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
-    const key = r+'_'+c;
-    harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
-    harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
-    // 收获土豆：放入hotbar
-    if (crop.type === 'potato') {
-      const itemId = 'potato';
-      const def = ITEM_DEF[itemId];
-      const existIdx = hotbar.indexOf(itemId);
-      if (existIdx >= 0 && (harvestBag['potato'] % (def.stackMax||20)) > 0) {
-        // 已有堆叠槽，不新增
-      } else if (existIdx < 0) {
-        const emptyIdx = hotbar.indexOf(null);
-        if (emptyIdx >= 0) hotbar[emptyIdx] = itemId;
-      }
-      renderHotbar();
-    }
-    setTimeout(() => {
-      delete harvestAnims[key];
-      tileMap[r][c]=T.TILLED; cropMap[r][c]=null;
-    }, 600);
+    startActionAnim(ANIM_HARVEST, r, c);
+    return; // 动画播完后在主循环里执行收获
   }
 }
 
