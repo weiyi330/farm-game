@@ -317,7 +317,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.34</div>
+<div id="splash-version">版本号：v0.0.3.35</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -587,7 +587,7 @@ const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
 // use: 'tile' = 需对准地块使用, 'direct' = 选中点确认键直接使用
 // 图片图标辅助：返回 <img> 或 emoji span
 function itemIcon(src, alt) {
-  return `<span style="display:inline-block;width:28px;height:28px;overflow:hidden;
+  return `<span style="display:inline-block;width:32px;height:32px;overflow:hidden;
     background:url('${src}') no-repeat center/contain;
     image-rendering:pixelated;"></span>`;
 }
@@ -595,10 +595,10 @@ function itemIcon(src, alt) {
 const CROPS_SHEET = 'assets/images/Crops/Crops_All Crops.png';
 // 用 CSS background-position 从图集裁切
 function cropsIcon(col, row) {
-  // 用背景图居中裁切，放大1.75倍显示在28×28容器里
+  // 用背景图居中裁切，放大2倍显示在32×32容器里
   const px = col * 16, py = row * 16;
-  const scale = 1.75;
-  return `<span style="display:inline-block;width:28px;height:28px;overflow:hidden;
+  const scale = 2;
+  return `<span style="display:inline-block;width:32px;height:32px;overflow:hidden;
     background:url('${CROPS_SHEET}') no-repeat;
     background-position:-${px*scale}px -${py*scale}px;
     background-size:${416*scale}px ${288*scale}px;
