@@ -227,9 +227,8 @@ canvas { display:block; }
   filter: brightness(1.25) drop-shadow(0 0 4px rgba(255,200,80,0.7));
 }
 .tool-btn:active { transform:scale(0.92); }
-.tool-icon { font-size:18px; }
-.tool-name { font-size:8px; color:#7a4a10; letter-spacing:0.5px; }
-.tool-btn.active .tool-name { color:#c06000; }
+.tool-icon { font-size:22px; line-height:1; }
+.tool-icon img { width:28px; height:28px; image-rendering:pixelated; }
 .tool-count {
   position:absolute; bottom:2px; right:4px;
   font-size:9px; color:#7a3a00; font-weight:bold; line-height:1;
@@ -318,7 +317,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.28</div>
+<div id="splash-version">版本号：v0.0.3.29</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -586,17 +585,33 @@ const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
 // 道具系统
 // ============================================================
 // use: 'tile' = 需对准地块使用, 'direct' = 选中点确认键直接使用
+// 图片图标辅助：返回 <img> 或 emoji span
+function itemIcon(src, alt) {
+  return `<img src="${src}" alt="${alt}" draggable="false">`;
+}
+// Crops图集裁切参数（16×16每格，第5排=row4）
+const CROPS_SHEET = 'assets/images/Crops/Crops_All Crops.png';
+// 用 CSS background-position 从图集裁切
+function cropsIcon(col, row) {
+  return `<span style="display:inline-block;width:28px;height:28px;
+    background:url('${CROPS_SHEET}') -${col*16}px -${row*16}px/auto;
+    image-rendering:pixelated;transform:scale(1.75);transform-origin:top left;
+    overflow:hidden;width:16px;height:16px;"></span>`;
+}
+
 const ITEM_DEF = {
-  hoe:     { icon:'⛏️', name:'锄头',   use:'tile' },
-  water:   { icon:'💧', name:'浇水壶', use:'tile' },
+  hoe:     { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Hoe.png","锄头"),        name:'锄头',   use:'tile' },
+  water:   { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Watering can.png","水壶"), name:'浇水壶', use:'tile' },
   harvest: { icon:'🧺', name:'收获篮', use:'tile' },
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
-  seed_potato:  { icon:'🥔', name:'土豆种子',  use:'tile',   seedType:'potato'  },
-  seed_carrot:  { icon:'🥕', name:'萝卜种子',  use:'tile',   seedType:'carrot'  },
-  seed_cabbage: { icon:'🥬', name:'白菜种子',  use:'tile',   seedType:'cabbage' },
-  seed_peach:   { icon:'🍑', name:'桃子种子',  use:'tile',   seedType:'peach'   },
+  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20 },
+  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot'  },
+  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage' },
+  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach'   },
+  // 收获物品
+  potato:       { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:20 },
 };
 
 // 工具栏：12格，存 itemId 或 null
@@ -1215,6 +1230,19 @@ function doAction(){
     const key = r+'_'+c;
     harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
     harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
+    // 收获土豆：放入hotbar
+    if (crop.type === 'potato') {
+      const itemId = 'potato';
+      const def = ITEM_DEF[itemId];
+      const existIdx = hotbar.indexOf(itemId);
+      if (existIdx >= 0 && (harvestBag['potato'] % (def.stackMax||20)) > 0) {
+        // 已有堆叠槽，不新增
+      } else if (existIdx < 0) {
+        const emptyIdx = hotbar.indexOf(null);
+        if (emptyIdx >= 0) hotbar[emptyIdx] = itemId;
+      }
+      renderHotbar();
+    }
     setTimeout(() => {
       delete harvestAnims[key];
       tileMap[r][c]=T.TILLED; cropMap[r][c]=null;
@@ -1235,9 +1263,15 @@ function renderHotbar() {
     slot.dataset.idx = idx;
     if (item) {
       // 显示数量（种子类）
-      const cnt = (item.seedType && seedCount[item.seedType] > 0)
-        ? `<span class="tool-count">${seedCount[item.seedType]}</span>` : '';
-      slot.innerHTML = `<span class="tool-icon">${item.icon}</span><span class="tool-name">${item.name}</span>${cnt}`;
+
+      // 数量显示：种子 or 可堆叠道具
+      let stackCount = null;
+      if (item.seedType) stackCount = seedCount[item.seedType] || 0;
+      else if (item.stackMax) stackCount = harvestBag[itemId] || 0;
+      const cntHtml = stackCount !== null && stackCount > 0
+        ? `<span class="tool-count">${stackCount}</span>` : '';
+      const iconEl = item.iconEl ? item.iconEl() : `<span class="tool-icon">${item.icon||'?'}</span>`;
+      slot.innerHTML = iconEl + cntHtml;
     }
     // 点击选中
     slot.addEventListener('pointerdown', e => onSlotPointerDown(e, idx));
