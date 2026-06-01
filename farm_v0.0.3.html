@@ -206,6 +206,7 @@ canvas { display:block; }
   display:flex; gap:4px; align-items:center;
   pointer-events:all;
   padding:6px;
+  width:365px;
   position:relative; z-index:1;
 }
 /* 单个工具格 */
@@ -309,7 +310,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.6</div>
+<div id="splash-version">版本号：v0.0.3.7</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -763,7 +764,7 @@ _tbImg.src = 'assets/images/ui/toolbar/toolbar_bottom_02.png';
 // 原图: 25×27，左固定3px，右固定3px，中闳19px可拉伸
 const TB_SL = 3, TB_SR = 3;
 const TB_SW = 25, TB_SH = 27;
-const TB_SCALE = 2.2; // 高度放大倍率（原图27px × 2.2 = 59px）
+const TB_SCALE = 65 / 27; // 高度固定65px（原图27px）
 
 function drawToolbarBg() {
   const toolbar = document.getElementById('toolbar');
