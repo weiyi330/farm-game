@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.12</div>
+<div id="splash-version">版本号：v0.0.3.13</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -765,7 +765,7 @@ function drawTile(r, c) {
   }
 
   // 操作目标格黄框高亮（在锄地/作物之后，角色之前）
-  if (currentTool === 'hoe' || currentTool === 'water' || currentTool === 'seed' || currentTool === 'harvest') {
+  if (currentItem() && currentItem().use === 'tile') {
     const tr = Math.round(player.wy), tc = Math.round(player.wx);
     if (r === tr && c === tc) {
       ctx.save();
@@ -1218,25 +1218,29 @@ function onSlotPointerDown(e, idx) {
   if (!hotbar[idx]) { selectSlot(idx); return; }
   e.preventDefault();
   const startX = e.clientX, startY = e.clientY;
+  let dragging = false;
   let pressTimer = setTimeout(() => {
-    // 开始拖动
+    dragging = true;
     startDrag(idx, startX, startY);
   }, LONG_PRESS_MS);
 
-  const onUp = () => {
+  const onMove = (ev) => {
+    const dx = ev.clientX - startX, dy = ev.clientY - startY;
+    if (Math.sqrt(dx*dx+dy*dy) > 8) clearTimeout(pressTimer);
+    if (dragState) moveDrag(ev.clientX, ev.clientY);
+  };
+  const onUp = (ev) => {
     clearTimeout(pressTimer);
-    if (!dragState) selectSlot(idx);
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', onUp);
-  };
-  const onMove = (e) => {
-    const dx = e.clientX - startX, dy = e.clientY - startY;
-    if (Math.sqrt(dx*dx+dy*dy) > 8) clearTimeout(pressTimer);
-    if (dragState) moveDrag(e.clientX, e.clientY);
+    if (dragState) {
+      endDrag(ev);
+    } else {
+      selectSlot(idx);
+    }
   };
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', onUp);
-  window.addEventListener('pointerup', endDrag, { once: true });
 }
 
 function selectSlot(idx) {
@@ -1277,7 +1281,11 @@ function endDrag(e) {
 
   const x = e.clientX, y = e.clientY;
   const W = window.innerWidth, H = window.innerHeight;
-  const outOfScreen = x < 0 || x > W || y < 0 || y > H;
+  // 拖到屏幕边缘30px内，或拖到工具栏以外区域
+  const tbWrap = document.getElementById('toolbar-wrap');
+  const tbRect = tbWrap ? tbWrap.getBoundingClientRect() : null;
+  const onToolbar = tbRect && x>=tbRect.left-20 && x<=tbRect.right+20 && y>=tbRect.top-20 && y<=tbRect.bottom+20;
+  const outOfScreen = x < 30 || x > W-30 || y < 30 || y > H-30 || !onToolbar;
 
   if (outOfScreen) {
     // 抓到屏幕外 → 丢到地上
