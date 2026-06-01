@@ -731,19 +731,40 @@ function drawAbove(r, c) {
 }
 
 // ============================================================
-// 角色 Sprite
+// 角色 Sprite（三态：idle / walk / run）
 // ============================================================
-const characterSprite = new Image();
-characterSprite.src = 'assets/images/player/2. Walk/Skins/1.png';
-let spriteLoaded = false;
-characterSprite.onload = () => { spriteLoaded = true; };
+// 动画状态枚举
+const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run';
+
+// 各状态图集配置
+const SPRITE_CFG = {
+  idle: { src: 'assets/images/player/1. Idle/Skins/1.png', frames: 4, frameMs: 160 },
+  walk: { src: 'assets/images/player/2. Walk/Skins/1.png', frames: 6, frameMs: 130 },
+  run:  { src: 'assets/images/player/3. Run/Skins/1.png',  frames: 8, frameMs: 80  },
+};
+
+// 预加载三套图集
+const sprites = {};
+let spritesReady = 0;
+Object.entries(SPRITE_CFG).forEach(([key, cfg]) => {
+  const img = new Image();
+  img.onload = () => { spritesReady++; };
+  img.src = cfg.src;
+  sprites[key] = img;
+});
 
 const SP_FRAME_W = 32, SP_FRAME_H = 32;
-const SP_FRAMES = 6;
 const SP_DIRS = { down:0, up:1, right:2, left:3 };
 const SP_SCALE = 2.5;
-const SP_FRAME_MS = 130;
-let spFrame = 0, spFrameTimer = 0;
+
+// 动画状态
+let spAnim = ANIM_IDLE;   // 当前播放状态
+let spFrame = 0;
+let spFrameTimer = 0;
+
+// 跑步触发：摇杆顶到边界持续 > RUN_HOLD_MS 毫秒后切跑
+const RUN_HOLD_MS = 200;
+let runHoldTimer = 0;
 
 function drawPlayer(x, y) {
   const footY = y + SP_FRAME_H * SP_SCALE * 0.3;
@@ -755,18 +776,21 @@ function drawPlayer(x, y) {
   ctx.fill();
   ctx.restore();
 
-  if (!spriteLoaded) {
+  if (spritesReady === 0) {
     ctx.fillStyle = '#f0a040';
     ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI*2); ctx.fill();
     return;
   }
-  const dirIdx = SP_DIRS[player.dir] ?? 0;
-  const frameIdx = player.moving ? spFrame : 0;
-  const sx = (dirIdx * SP_FRAMES + frameIdx) * SP_FRAME_W;
+  const cfg  = SPRITE_CFG[spAnim];
+  const img  = sprites[spAnim];
+  if (!img.complete || !img.naturalWidth) return;
+  const dirIdx   = SP_DIRS[player.dir] ?? 0;
+  const frameIdx = (spAnim === ANIM_IDLE) ? spFrame : spFrame;
+  const sx = (dirIdx * cfg.frames + frameIdx) * SP_FRAME_W;
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(
-    characterSprite, sx, 0, SP_FRAME_W, SP_FRAME_H,
+    img, sx, 0, SP_FRAME_W, SP_FRAME_H,
     x - SP_FRAME_W * SP_SCALE / 2,
     y - SP_FRAME_H * SP_SCALE / 2,
     SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
@@ -855,6 +879,7 @@ const joyWrap=document.getElementById('joystick-wrap');
 const joyStick=document.getElementById('joy-stick');
 const JR=50, JSR=21;
 let joyActive=false, joyDX=0, joyDY=0, joyTid=null;
+let joyAtEdge=false; // 摇杆是否顶到边界
 
 joyWrap.addEventListener('touchstart',e=>{
   e.preventDefault();
@@ -876,6 +901,8 @@ function updateJoy(touch){
   let dx=touch.clientX-cx, dy=touch.clientY-cy;
   const dist=Math.sqrt(dx*dx+dy*dy);
   const maxD=JR-JSR;
+  // 记录是否顶到边界（超出范围仍在拖 = 用力推）
+  joyAtEdge = dist > maxD;
   if(dist>maxD){dx=dx/dist*maxD; dy=dy/dist*maxD;}
   joyDX=dx/maxD; joyDY=dy/maxD;
   joyStick.style.transform=`translate(${dx}px,${dy}px)`;
@@ -918,12 +945,23 @@ function canWalk(wx, wy) {
 function loop(ts){
   const dt=Math.min((ts-lastT)/1000,0.05); lastT=ts;
 
-  if(joyActive && (Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08)){
-    const sp=SPEED*dt;
-    // 正交俯视角：摇杆直接映射到wx/wy
+  const moving = joyActive && (Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08);
+
+  // ---------- 跑步判定 ----------
+  // 摇杆顶到边界并持续超过 RUN_HOLD_MS → 跑；松开或缩回 → 走
+  if (moving && joyAtEdge) {
+    runHoldTimer += dt * 1000;
+  } else {
+    runHoldTimer = 0;
+  }
+  const isRunning = moving && runHoldTimer >= RUN_HOLD_MS;
+
+  // ---------- 移动 ----------
+  const RUN_SPEED = SPEED * 1.9;  // 跑步速度倍率
+  if (moving) {
+    const sp = (isRunning ? RUN_SPEED : SPEED) * dt;
     const nx = player.wx + joyDX * sp;
     const ny = player.wy + joyDY * sp;
-
     if (canWalk(nx, ny)) {
       player.wx = nx; player.wy = ny;
     } else if (canWalk(nx, player.wy)) {
@@ -933,13 +971,36 @@ function loop(ts){
     }
     if(Math.abs(joyDX)>Math.abs(joyDY)) player.dir=joyDX>0?'right':'left';
     else player.dir=joyDY>0?'down':'up';
-    player.moving=true;
-  } else { player.moving=false; }
+    player.moving = true;
+  } else {
+    player.moving = false;
+  }
 
+  // ---------- 动画状态切换 ----------
+  const newAnim = !player.moving ? ANIM_IDLE : (isRunning ? ANIM_RUN : ANIM_WALK);
+  if (newAnim !== spAnim) {
+    spAnim = newAnim;
+    spFrame = 0;
+    spFrameTimer = 0;
+  }
+
+  // ---------- 帧推进 ----------
   if (player.moving) {
     spFrameTimer += dt * 1000;
-    if (spFrameTimer >= SP_FRAME_MS) { spFrameTimer=0; spFrame=(spFrame+1)%SP_FRAMES; }
-  } else { spFrame=0; spFrameTimer=0; }
+    const cfg = SPRITE_CFG[spAnim];
+    if (spFrameTimer >= cfg.frameMs) {
+      spFrameTimer = 0;
+      spFrame = (spFrame + 1) % cfg.frames;
+    }
+  } else {
+    // idle 也要播放动画
+    spFrameTimer += dt * 1000;
+    const cfg = SPRITE_CFG[ANIM_IDLE];
+    if (spFrameTimer >= cfg.frameMs) {
+      spFrameTimer = 0;
+      spFrame = (spFrame + 1) % cfg.frames;
+    }
+  }
 
   // 相机跟随
   const targetX = player.wx * TILE - canvas.width/2;
