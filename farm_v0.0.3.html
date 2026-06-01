@@ -199,7 +199,7 @@ canvas { display:block; }
 /* 工具栏整体底板 */
 #toolbar-wrap {
   position:relative;
-  width:558px; height:64px;
+  width:558px; height:69px;
   pointer-events:all;
   flex-shrink:0;
   margin-bottom:-20px;
@@ -210,7 +210,7 @@ canvas { display:block; }
   padding:6px;
   position:absolute;
   top:50%; left:50%;
-  transform:translate(-50%, -50%);
+  transform:translate(-50%, calc(-50% - 10px));
   z-index:1;
 }
 /* 单个工具格 */
@@ -318,7 +318,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.26</div>
+<div id="splash-version">版本号：v0.0.3.27</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
