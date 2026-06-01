@@ -310,7 +310,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.8</div>
+<div id="splash-version">版本号：v0.0.3.9</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -331,7 +331,7 @@ canvas { display:block; }
       <div id="joy-stick"></div>
     </div>
     <div id="toolbar-wrap">
-      <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></canvas>
+      <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(calc(-50% - 5px),-50%);pointer-events:none;"></canvas>
       <div id="toolbar">
       <div class="tool-btn active" data-tool="hoe" onclick="setTool(this,'hoe')"><span class="tool-icon">⛏️</span><span class="tool-name">锄地</span></div>
       <div class="tool-btn" data-tool="seed" onclick="setTool(this,'seed')"><span class="tool-icon">🌱</span><span class="tool-name">播种</span></div>
