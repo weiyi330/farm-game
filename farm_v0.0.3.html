@@ -174,17 +174,18 @@ canvas { display:block; }
 #joystick-wrap {
   width:100px; height:100px; position:relative;
   pointer-events:all; flex-shrink:0;
+  margin-bottom:50px; margin-left:50px;
 }
 #joy-base {
   width:100px; height:100px; border-radius:50%;
-  background:rgba(40,25,8,0.4); border:2px solid rgba(200,160,60,0.35);
+  background:rgba(30,30,30,0.55); border:2px solid rgba(180,180,180,0.35);
   position:absolute;
 }
 #joy-stick {
   width:42px; height:42px; border-radius:50%;
-  background:radial-gradient(circle at 35% 35%, rgba(255,200,80,0.9), rgba(180,120,30,0.7));
-  border:2px solid rgba(240,180,60,0.7);
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  background:radial-gradient(circle at 35% 35%, rgba(220,220,220,0.95), rgba(100,100,100,0.8));
+  border:2px solid rgba(200,200,200,0.7);
+  box-shadow:0 2px 8px rgba(0,0,0,0.4);
   position:absolute; top:29px; left:29px;
   pointer-events:none;
 }
@@ -212,12 +213,13 @@ canvas { display:block; }
 /* 行动按钮 */
 #action-btn {
   width:70px; height:70px; border-radius:50%;
-  background:radial-gradient(circle at 35% 35%, rgba(120,200,80,0.9), rgba(60,130,30,0.7));
-  border:2px solid rgba(140,220,80,0.7);
-  box-shadow:0 3px 12px rgba(0,0,0,0.3);
+  background:radial-gradient(circle at 35% 35%, rgba(220,220,220,0.95), rgba(100,100,100,0.8));
+  border:2px solid rgba(200,200,200,0.7);
+  box-shadow:0 3px 12px rgba(0,0,0,0.4);
   display:flex; align-items:center; justify-content:center;
   font-size:28px; cursor:pointer; pointer-events:all;
   flex-shrink:0;
+  margin-bottom:50px; margin-right:50px;
 }
 #action-btn:active { transform:scale(0.9); }
 
@@ -738,9 +740,9 @@ const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run';
 
 // 各状态图集配置
 const SPRITE_CFG = {
-  idle: { src: 'assets/images/player/1. Idle/Skins/1.png', frames: 4, frameMs: 160 },
-  walk: { src: 'assets/images/player/2. Walk/Skins/1.png', frames: 6, frameMs: 130 },
-  run:  { src: 'assets/images/player/3. Run/Skins/1.png',  frames: 8, frameMs: 80  },
+  idle: { src: 'assets/images/player/1. Idle/Skins/1.png', frames: 4, frameMs: 200 },
+  walk: { src: 'assets/images/player/2. Walk/Skins/1.png', frames: 6, frameMs: 140 },
+  run:  { src: 'assets/images/player/3. Run/Skins/1.png',  frames: 8, frameMs: 100 },
 };
 
 // 预加载三套图集
