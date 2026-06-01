@@ -170,11 +170,15 @@ canvas { display:block; }
   pointer-events:none; z-index:10;
 }
 
-/* 摇杆 */
+/* 摇杆
+   外圈: 120×120px
+   内圈: 46×46px，居中偏移 = (120-46)/2 = 37px
+   位置: 距左45px，距底40px
+*/
 #joystick-wrap {
   width:120px; height:120px; position:relative;
   pointer-events:all; flex-shrink:0;
-  margin-bottom:50px; margin-left:50px;
+  margin-bottom:40px; margin-left:45px;
 }
 #joy-base {
   width:120px; height:120px; border-radius:50%;
@@ -211,7 +215,11 @@ canvas { display:block; }
 .tool-name { font-size:9px; color:#b08040; letter-spacing:1px; }
 .tool-btn.active .tool-name { color:#f5d78e; }
 
-/* 行动按钮 */
+/* 确认按钮
+   大小: 70×70px
+   圆心与摇杆(120px)对齐: margin-bottom = 摇杆margin-bottom + (120-70)/2 = 40+25 = 65px
+   位置: 距右45px，距底65px
+*/
 #action-btn {
   width:70px; height:70px; border-radius:50%;
   background:rgba(255,255,255,0.55);
@@ -220,9 +228,7 @@ canvas { display:block; }
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; pointer-events:all;
   flex-shrink:0;
-  /* 圆心对齐：摇杆120px中心=60px，按钮70px中心=35px
-     两者底边距离一致，margin-bottom = 50 + (120-70)/2 = 75px */
-  margin-bottom:75px; margin-right:50px;
+  margin-bottom:65px; margin-right:45px;
 }
 #action-btn:active { transform:scale(0.9); }
 
