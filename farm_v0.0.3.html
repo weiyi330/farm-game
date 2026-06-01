@@ -317,7 +317,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.29</div>
+<div id="splash-version">版本号：v0.0.3.30</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -593,15 +593,19 @@ function itemIcon(src, alt) {
 const CROPS_SHEET = 'assets/images/Crops/Crops_All Crops.png';
 // 用 CSS background-position 从图集裁切
 function cropsIcon(col, row) {
-  return `<span style="display:inline-block;width:28px;height:28px;
-    background:url('${CROPS_SHEET}') -${col*16}px -${row*16}px/auto;
-    image-rendering:pixelated;transform:scale(1.75);transform-origin:top left;
-    overflow:hidden;width:16px;height:16px;"></span>`;
+  // 用背景图居中裁切，放大1.75倍显示在28×28容器里
+  const px = col * 16, py = row * 16;
+  const scale = 1.75;
+  return `<span style="display:inline-block;width:28px;height:28px;overflow:hidden;
+    background:url('${CROPS_SHEET}') no-repeat;
+    background-position:-${px*scale}px -${py*scale}px;
+    background-size:${416*scale}px ${288*scale}px;
+    image-rendering:pixelated;"></span>`;
 }
 
 const ITEM_DEF = {
-  hoe:     { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Hoe.png","锄头"),        name:'锄头',   use:'tile' },
-  water:   { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Watering can.png","水壶"), name:'浇水壶', use:'tile' },
+  hoe:     { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Hoe_single.png","锄头"),        name:'锄头',   use:'tile' },
+  water:   { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Watering_can_single.png","水壶"), name:'浇水壶', use:'tile' },
   harvest: { icon:'🧺', name:'收获篮', use:'tile' },
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
