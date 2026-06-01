@@ -199,15 +199,19 @@ canvas { display:block; }
 /* 工具栏整体底板 */
 #toolbar-wrap {
   position:relative;
-  display:flex; align-items:center; justify-content:center;
+  width:558px; height:64px;
   pointer-events:all;
+  flex-shrink:0;
+  margin-bottom:-10px;
 }
 #toolbar {
   display:flex; gap:4px; align-items:center;
   pointer-events:all;
   padding:6px;
-  width:548px;
-  position:relative; z-index:1;
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%, -50%);
+  z-index:1;
 }
 /* 单个工具格 */
 .tool-btn {
@@ -314,7 +318,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.22</div>
+<div id="splash-version">版本号：v0.0.3.23</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -335,7 +339,7 @@ canvas { display:block; }
       <div id="joy-stick"></div>
     </div>
     <div id="toolbar-wrap">
-      <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></canvas>
+      <canvas id="toolbar-bg-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
       <div id="toolbar"></div>
     </div><!-- /toolbar-wrap -->
     <div id="action-btn" onclick="doAction()"></div>
@@ -804,8 +808,8 @@ function drawToolbarBg() {
   const cv = document.getElementById('toolbar-bg-canvas');
   if (!toolbar || !cv) return;
   const dpr = window.devicePixelRatio || 1;
-  const w = 608; // 底框宽度：548×1.2-50=608px
-  const h = 64;  // 外框高度：53×1.2≈64px
+  const w = toolbar.closest('#toolbar-wrap').clientWidth || 608;
+  const h = toolbar.closest('#toolbar-wrap').clientHeight || 64;
   // 按 dpr 设置 canvas 真实像素，CSS 尺寸保持显示大小不变
   cv.width  = Math.round(w * dpr);
   cv.height = Math.round(h * dpr);
@@ -839,7 +843,8 @@ function drawToolbarBg() {
     const slotDisplayW = 41 * dpr; // 显示宽41px
     const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
     const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
-    const startX = 6 * dpr; // padding 6px
+    const slotGroupW = (12 * 41 + 11 * 4) * dpr; // 格子组总宽
+    const startX = (cv.width - slotGroupW) / 2; // 水平居中
     const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
     for (let i = 0; i < 12; i++) {
       const sx = startX + i * (slotDisplayW + 4 * dpr);
