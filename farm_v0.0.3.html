@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.39</div>
+<div id="splash-version">版本号：v0.0.3.40</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -851,13 +851,14 @@ function drawToolbarBg() {
   const scale = TB_SCALE * dpr;
   const totalW = w * dpr;
   const SM = TB_SW - TB_SL - TB_SR;
-  const DM = totalW - TB_SL * scale - TB_SR * scale;
-  // 左固定
-  c.drawImage(_tbImg, 0, 0, TB_SL, TB_SH, 0, 0, TB_SL * scale, cv.height);
-  // 中闳拉伸
-  c.drawImage(_tbImg, TB_SL, 0, SM, TB_SH, TB_SL * scale, 0, DM, cv.height);
-  // 右固定
-  c.drawImage(_tbImg, TB_SL + SM, 0, TB_SR, TB_SH, totalW - TB_SR * scale, 0, TB_SR * scale, cv.height);
+  const edgeW = TB_SL * scale * TB_EDGE_SCALE; // 左右边缘显示宽度
+  const DM = totalW - edgeW * 2;
+  // 左固定（放大TB_EDGE_SCALE倍）
+  c.drawImage(_tbImg, 0, 0, TB_SL, TB_SH, 0, 0, edgeW, cv.height);
+  // 中间拉伸
+  c.drawImage(_tbImg, TB_SL, 0, SM, TB_SH, edgeW, 0, DM, cv.height);
+  // 右固定（放大TB_EDGE_SCALE倍）
+  c.drawImage(_tbImg, TB_SL + SM, 0, TB_SR, TB_SH, totalW - edgeW, 0, edgeW, cv.height);
 
   // 在外框canvas上叠画格子（12个）
   if (_slotImg.complete && _slotImg.naturalWidth) {
@@ -874,12 +875,13 @@ function drawToolbarBg() {
     const startY = (cv.height - slotDisplayH) / 2 - 10 * dpr; // 垂直居中后上移10px
     for (let i = 0; i < 12; i++) {
       const sx = startX + i * (slotDisplayW + 4 * dpr);
-      // 左
-      c.drawImage(_slotImg, 0, 0, SLOT_SL, SLOT_H, sx, startY, SLOT_SL * slotScale, slotDisplayH);
+      // 左（放大SLOT_EDGE）
+      c.drawImage(_slotImg, 0, 0, SLOT_SL, SLOT_H, sx, startY, SLOT_EDGE, slotDisplayH);
       // 中拉伸
-      c.drawImage(_slotImg, SLOT_SL, 0, SLOT_SM, SLOT_H, sx + SLOT_SL * slotScale, startY, slotDM, slotDisplayH);
+      c.drawImage(_slotImg, SLOT_SL, 0, SLOT_SM, SLOT_H, sx + SLOT_EDGE, startY, slotDisplayW - SLOT_EDGE * 2, slotDisplayH);
       // 右
-      c.drawImage(_slotImg, SLOT_SL + SLOT_SM, 0, SLOT_SR, SLOT_H, sx + slotDisplayW - SLOT_SR * slotScale, startY, SLOT_SR * slotScale, slotDisplayH);
+      // 右（放大SLOT_EDGE）
+      c.drawImage(_slotImg, SLOT_SL + SLOT_SM, 0, SLOT_SR, SLOT_H, sx + slotDisplayW - SLOT_EDGE, startY, SLOT_EDGE, slotDisplayH);
     }
   }
 }
