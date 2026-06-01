@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.37</div>
+<div id="splash-version">版本号：v0.0.3.38</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -825,6 +825,7 @@ _slotImg.onload = drawToolbarBg;
 // 原图: 48×64，左固定4px，右固定4px，中间40px可拉伸，高度64px
 const TB_SL = 4, TB_SR = 4;
 const TB_SW = 48, TB_SH = 64;
+const TB_EDGE_SCALE = 2; // 边缘放大倍率（让边缘线更粗）
 const TB_SCALE = 1; // 高度1:1
 
 function drawToolbarBg() {
@@ -864,6 +865,7 @@ function drawToolbarBg() {
     const SLOT_SL = 1, SLOT_SR = 1; // 格子左右固定1px
     const SLOT_SM = SLOT_W - SLOT_SL - SLOT_SR; // 中间14px
     const slotScale = dpr;
+    const SLOT_EDGE = 2 * dpr; // 格子边缘放大2倍显示
     const slotDisplayW = 41 * dpr; // 显示宽41px
     const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
     const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
@@ -888,16 +890,21 @@ window.addEventListener('resize', drawToolbarBg);
 
 
 // 动画状态枚举
-const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run';
+const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run', ANIM_WATER = 'water';
 
 // 各状态图集配置
 const SPRITE_CFG = {
-  idle: { src: 'assets/images/player/1. Idle/Skins/1.png', frames: 4, frameMs: 200 },
-  walk: { src: 'assets/images/player/2. Walk/Skins/1.png', frames: 6, frameMs: 140 },
-  run:  { src: 'assets/images/player/3. Run/Skins/1.png',  frames: 8, frameMs: 100 },
+  idle:  { src: 'assets/images/player/1. Idle/Skins/1.png',      frames: 4, frameMs: 200 },
+  walk:  { src: 'assets/images/player/2. Walk/Skins/1.png',      frames: 6, frameMs: 140 },
+  run:   { src: 'assets/images/player/3. Run/Skins/1.png',       frames: 8, frameMs: 100 },
+  water: { src: 'assets/images/player/5. Watering/Skins/1.png',  frames: 8, frameMs: 120 },
+};
+// 浇水武器图集（与角色动画叠加）
+const WEAPON_CFG = {
+  water: { src: 'assets/images/player/5. Watering/Weapons/Watering/1.png', frames: 8, frameMs: 120 },
 };
 
-// 预加载三套图集
+// 预加载角色图集
 const sprites = {};
 let spritesReady = 0;
 Object.entries(SPRITE_CFG).forEach(([key, cfg]) => {
@@ -905,6 +912,13 @@ Object.entries(SPRITE_CFG).forEach(([key, cfg]) => {
   img.onload = () => { spritesReady++; };
   img.src = cfg.src;
   sprites[key] = img;
+});
+// 预加载武器图集
+const weaponSprites = {};
+Object.entries(WEAPON_CFG).forEach(([key, cfg]) => {
+  const img = new Image();
+  img.src = cfg.src;
+  weaponSprites[key] = img;
 });
 
 const SP_FRAME_W = 32, SP_FRAME_H = 32;
@@ -915,6 +929,10 @@ const SP_SCALE = 2.5;
 let spAnim = ANIM_IDLE;   // 当前播放状态
 let spFrame = 0;
 let spFrameTimer = 0;
+
+// 浇水动作状态
+let wateringTimer = 0;        // 浇水动画剩余时间(ms)
+const WATERING_DURATION = 8 * 120; // 8帧×120ms=960ms
 
 // 跑步触发：摇杆顶到边界持续 > RUN_HOLD_MS 毫秒后切跑
 const RUN_HOLD_MS = 200;
@@ -949,6 +967,19 @@ function drawPlayer(x, y) {
     y - SP_FRAME_H * SP_SCALE / 2,
     SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
   );
+  // 浇水武器叠加层
+  if (spAnim === ANIM_WATER) {
+    const wKey = 'water';
+    const wImg = weaponSprites[wKey];
+    if (wImg && wImg.complete && wImg.naturalWidth) {
+      ctx.drawImage(
+        wImg, sx, 0, SP_FRAME_W, SP_FRAME_H,
+        x - SP_FRAME_W * SP_SCALE / 2,
+        y - SP_FRAME_H * SP_SCALE / 2,
+        SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
+      );
+    }
+  }
   ctx.restore();
 }
 
@@ -1141,7 +1172,15 @@ function loop(ts){
   }
 
   // ---------- 动画状态切换 ----------
-  const newAnim = !player.moving ? ANIM_IDLE : (isRunning ? ANIM_RUN : ANIM_WALK);
+  // 浇水动画优先（浇水期间锁定方向，不被移动覆盖）
+  if (wateringTimer > 0) {
+    wateringTimer -= dt;
+    if (wateringTimer <= 0) {
+      wateringTimer = 0;
+      spAnim = ANIM_IDLE;
+    }
+  }
+  const newAnim = wateringTimer > 0 ? ANIM_WATER : (!player.moving ? ANIM_IDLE : (isRunning ? ANIM_RUN : ANIM_WALK));
   if (newAnim !== spAnim) {
     spAnim = newAnim;
     spFrame = 0;
@@ -1183,6 +1222,14 @@ function loop(ts){
 // ============================================================
 // 行动按钮
 // ============================================================
+// 启动浇水动画
+function startWateringAnim() {
+  spAnim = ANIM_WATER;
+  spFrame = 0;
+  spFrameTimer = 0;
+  wateringTimer = WATERING_DURATION;
+}
+
 function doAction(){
   const r=Math.round(player.wy), c=Math.round(player.wx);
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
@@ -1231,6 +1278,8 @@ function doAction(){
       wateredMap[r][c] = true;
     }
     showToast('浇水完成 💧');
+    // 触发浇水动画
+    startWateringAnim();
   }
   else if(itemId==='harvest'){
     const crop=cropMap[r][c];
