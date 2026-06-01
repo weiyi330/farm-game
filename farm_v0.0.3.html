@@ -197,12 +197,16 @@ canvas { display:block; }
 
 /* 工具栏 */
 /* 工具栏整体底板 */
+#toolbar-wrap {
+  position:relative;
+  display:flex; align-items:center;
+  pointer-events:all;
+}
 #toolbar {
   display:flex; gap:4px; align-items:center;
   pointer-events:all;
-  background: url('assets/images/ui/toolbar/toolbar_bottom_02.png') no-repeat center/100% 100%;
   padding:6px;
-  border-radius:6px;
+  position:relative; z-index:1;
 }
 /* 单个工具格 */
 .tool-btn {
@@ -214,7 +218,6 @@ canvas { display:block; }
   transition:all 0.15s;
 }
 .tool-btn.active {
-  background: url('assets/images/ui/toolbar/toolbar_bottom_01.png') no-repeat center/100% 100%;
   filter: brightness(1.25) drop-shadow(0 0 4px rgba(255,200,80,0.7));
 }
 .tool-btn:active { transform:scale(0.92); }
@@ -305,7 +308,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.2</div>
+<div id="splash-version">版本号：v0.0.3.3</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -325,7 +328,9 @@ canvas { display:block; }
       <div id="joy-base"></div>
       <div id="joy-stick"></div>
     </div>
-    <div id="toolbar">
+    <div id="toolbar-wrap">
+      <canvas id="toolbar-bg-canvas" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+      <div id="toolbar">
       <div class="tool-btn active" data-tool="hoe" onclick="setTool(this,'hoe')"><span class="tool-icon">⛏️</span><span class="tool-name">锄地</span></div>
       <div class="tool-btn" data-tool="seed" onclick="setTool(this,'seed')"><span class="tool-icon">🌱</span><span class="tool-name">播种</span></div>
       <div class="tool-btn" id="seed-switch-btn" onclick="switchSeed()" title="切换种子"><span class="tool-icon" id="seed-switch-icon">🥔</span><span class="tool-name" id="seed-switch-name">土豆</span></div>
@@ -334,6 +339,7 @@ canvas { display:block; }
       <div class="tool-btn" data-tool="shop" onclick="openShop()"><span class="tool-icon">🏪</span><span class="tool-name">商店</span></div>
       <div class="tool-btn" data-tool="sleep" onclick="nextDay()"><span class="tool-icon">🌙</span><span class="tool-name">入睡</span></div>
     </div>
+    </div><!-- /toolbar-wrap -->
     <div id="action-btn" onclick="doAction()"></div>
   </div>
 
@@ -749,8 +755,48 @@ function drawAbove(r, c) {
 }
 
 // ============================================================
-// 角色 Sprite（三态：idle / walk / run）
+// 工具栏底板九宫格（只左右拉伸，高度固定）
 // ============================================================
+const _tbImg = new Image();
+_tbImg.src = 'assets/images/ui/toolbar/toolbar_bottom_02.png';
+// 原图: 25×27，左固定3px，右固定3px，中闳19px可拉伸
+const TB_SL = 3, TB_SR = 3;
+const TB_SW = 25, TB_SH = 27;
+const TB_SCALE = 2.2; // 高度放大倍率
+
+function drawToolbarBg() {
+  const toolbar = document.getElementById('toolbar');
+  const cv = document.getElementById('toolbar-bg-canvas');
+  if (!toolbar || !cv) return;
+  const w = toolbar.offsetWidth;
+  const h = Math.round(TB_SH * TB_SCALE);
+  cv.width  = w;
+  cv.height = h;
+  cv.style.width  = w + 'px';
+  cv.style.height = h + 'px';
+  cv.style.top = Math.round((toolbar.offsetHeight - h) / 2) + 'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, w, h);
+  if (!_tbImg.complete || !_tbImg.naturalWidth) {
+    _tbImg.onload = drawToolbarBg;
+    return;
+  }
+  const SM = TB_SW - TB_SL - TB_SR;
+  const DM = w - TB_SL * TB_SCALE - TB_SR * TB_SCALE;
+  c.imageSmoothingEnabled = false;
+  // 左固定
+  c.drawImage(_tbImg, 0, 0, TB_SL, TB_SH, 0, 0, TB_SL * TB_SCALE, h);
+  // 中闳拉伸
+  c.drawImage(_tbImg, TB_SL, 0, SM, TB_SH, TB_SL * TB_SCALE, 0, DM, h);
+  // 右固定
+  c.drawImage(_tbImg, TB_SL + SM, 0, TB_SR, TB_SH, w - TB_SR * TB_SCALE, 0, TB_SR * TB_SCALE, h);
+}
+
+// 布局完成后调用
+window.addEventListener('load', () => { setTimeout(drawToolbarBg, 100); });
+window.addEventListener('resize', drawToolbarBg);
+
+
 // 动画状态枚举
 const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run';
 
