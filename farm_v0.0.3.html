@@ -206,14 +206,14 @@ canvas { display:block; }
   display:flex; gap:4px; align-items:center;
   pointer-events:all;
   padding:6px;
-  width:508px;
+  width:608px;
   position:relative; z-index:1;
 }
 /* 单个工具格 */
 .tool-btn {
   display:flex; flex-direction:column; align-items:center; gap:2px;
   width:46px; height:46px; justify-content:center;
-  background: url('assets/images/ui/toolbar/toolbar_bottom_01.png') no-repeat center/100% 100%;
+  background: url('assets/images/ui/toolbar/toolbar_slot.png') no-repeat center/100% 100%;
   image-rendering: pixelated;
   border:none; border-radius:0;
   cursor:pointer; position:relative;
@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.14</div>
+<div id="splash-version">版本号：v0.0.3.15</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -790,18 +790,18 @@ function drawAbove(r, c) {
 // 工具栏底板九宫格（只左右拉伸，高度固定）
 // ============================================================
 const _tbImg = new Image();
-_tbImg.src = 'assets/images/ui/toolbar/toolbar_bottom_02.png';
-// 原图: 25×27，左固定3px，右固定3px，中闳19px可拉伸
-const TB_SL = 3, TB_SR = 3;
-const TB_SW = 25, TB_SH = 27;
-const TB_SCALE = 65 / 27; // 高度固定65px（原图27px）
+_tbImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
+// 原图: 48×64，左固定1px，右固定1px，中间46px可拉伸，高度固定64px
+const TB_SL = 1, TB_SR = 1;
+const TB_SW = 48, TB_SH = 64;
+const TB_SCALE = 1; // 高度固定64px（原图64px，1:1）
 
 function drawToolbarBg() {
   const toolbar = document.getElementById('toolbar');
   const cv = document.getElementById('toolbar-bg-canvas');
   if (!toolbar || !cv) return;
   const dpr = window.devicePixelRatio || 1;
-  const w = 508; // 底框宽度，10个格子×46px + 9间距×4px + 内边距12px
+  const w = 608; // 底框宽度，12个格子×46px + 11间距×4px + 内边距12px
   const h = Math.round(TB_SH * TB_SCALE);
   // 按 dpr 设置 canvas 真实像素，CSS 尺寸保持显示大小不变
   cv.width  = Math.round(w * dpr);
