@@ -196,24 +196,31 @@ canvas { display:block; }
 }
 
 /* 工具栏 */
+/* 工具栏整体底板 */
 #toolbar {
-  display:flex; gap:6px; align-items:flex-end;
+  display:flex; gap:4px; align-items:center;
   pointer-events:all;
+  background: url('assets/images/ui/toolbar/toolbar_bottom_02.png') no-repeat center/100% 100%;
+  padding:6px;
+  border-radius:6px;
 }
+/* 单个工具格 */
 .tool-btn {
   display:flex; flex-direction:column; align-items:center; gap:2px;
-  background:rgba(40,25,8,0.7); border:1.5px solid #6a4a20;
-  border-radius:12px; padding:7px 10px; cursor:pointer;
+  width:46px; height:46px; justify-content:center;
+  background: url('assets/images/ui/toolbar/toolbar_bottom_01.png') no-repeat center/100% 100%;
+  border:none; border-radius:0;
+  cursor:pointer;
   transition:all 0.15s;
 }
 .tool-btn.active {
-  background:rgba(160,110,20,0.5); border-color:#e8b84a;
-  box-shadow:0 0 10px rgba(232,184,74,0.4);
+  background: url('assets/images/ui/toolbar/toolbar_bottom_01.png') no-repeat center/100% 100%;
+  filter: brightness(1.25) drop-shadow(0 0 4px rgba(255,200,80,0.7));
 }
 .tool-btn:active { transform:scale(0.92); }
-.tool-icon { font-size:20px; }
-.tool-name { font-size:9px; color:#b08040; letter-spacing:1px; }
-.tool-btn.active .tool-name { color:#f5d78e; }
+.tool-icon { font-size:18px; }
+.tool-name { font-size:8px; color:#7a4a10; letter-spacing:0.5px; }
+.tool-btn.active .tool-name { color:#c06000; }
 
 /* 确认按钮
    大小: 70×70px
@@ -298,7 +305,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.1</div>
+<div id="splash-version">版本号：v0.0.3.2</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
