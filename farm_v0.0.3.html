@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.21</div>
+<div id="splash-version">版本号：v0.0.3.22</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -335,7 +335,7 @@ canvas { display:block; }
       <div id="joy-stick"></div>
     </div>
     <div id="toolbar-wrap">
-      <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(calc(-50% - 5px),-50%);pointer-events:none;"></canvas>
+      <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></canvas>
       <div id="toolbar"></div>
     </div><!-- /toolbar-wrap -->
     <div id="action-btn" onclick="doAction()"></div>
@@ -804,8 +804,8 @@ function drawToolbarBg() {
   const cv = document.getElementById('toolbar-bg-canvas');
   if (!toolbar || !cv) return;
   const dpr = window.devicePixelRatio || 1;
-  const w = 582; // 底框宽度：548×1.1-20=582px
-  const h = 58;  // 外框高度：53×1.1≈58px
+  const w = 608; // 底框宽度：548×1.2-50=608px
+  const h = 64;  // 外框高度：53×1.2≈64px
   // 按 dpr 设置 canvas 真实像素，CSS 尺寸保持显示大小不变
   cv.width  = Math.round(w * dpr);
   cv.height = Math.round(h * dpr);
