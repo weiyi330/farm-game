@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.38</div>
+<div id="splash-version">版本号：v0.0.3.39</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -825,7 +825,7 @@ _slotImg.onload = drawToolbarBg;
 // 原图: 48×64，左固定4px，右固定4px，中间40px可拉伸，高度64px
 const TB_SL = 4, TB_SR = 4;
 const TB_SW = 48, TB_SH = 64;
-const TB_EDGE_SCALE = 2; // 边缘放大倍率（让边缘线更粗）
+const TB_EDGE_SCALE = 10; // 边缘放大倍率（让边缘线更粗）
 const TB_SCALE = 1; // 高度1:1
 
 function drawToolbarBg() {
@@ -865,7 +865,7 @@ function drawToolbarBg() {
     const SLOT_SL = 1, SLOT_SR = 1; // 格子左右固定1px
     const SLOT_SM = SLOT_W - SLOT_SL - SLOT_SR; // 中间14px
     const slotScale = dpr;
-    const SLOT_EDGE = 2 * dpr; // 格子边缘放大2倍显示
+    const SLOT_EDGE = 10 * dpr; // 格子边缘放大10倍显示
     const slotDisplayW = 41 * dpr; // 显示宽41px
     const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
     const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
@@ -933,6 +933,7 @@ let spFrameTimer = 0;
 // 浇水动作状态
 let wateringTimer = 0;        // 浇水动画剩余时间(ms)
 const WATERING_DURATION = 8 * 120; // 8帧×120ms=960ms
+let pendingWaterTile = null;  // 待浇水的地块 {r,c}，动画播完后执行
 
 // 跑步触发：摇杆顶到边界持续 > RUN_HOLD_MS 毫秒后切跑
 const RUN_HOLD_MS = 200;
@@ -1172,33 +1173,42 @@ function loop(ts){
   }
 
   // ---------- 动画状态切换 ----------
-  // 浇水动画优先（浇水期间锁定方向，不被移动覆盖）
-  if (wateringTimer > 0) {
-    wateringTimer -= dt;
-    if (wateringTimer <= 0) {
-      wateringTimer = 0;
-      spAnim = ANIM_IDLE;
-    }
-  }
-  const newAnim = wateringTimer > 0 ? ANIM_WATER : (!player.moving ? ANIM_IDLE : (isRunning ? ANIM_RUN : ANIM_WALK));
-  if (newAnim !== spAnim) {
-    spAnim = newAnim;
-    spFrame = 0;
-    spFrameTimer = 0;
-  }
-
-  // ---------- 帧推进 ----------
-  if (player.moving) {
-    spFrameTimer += dt * 1000;
-    const cfg = SPRITE_CFG[spAnim];
-    if (spFrameTimer >= cfg.frameMs) {
-      spFrameTimer = 0;
-      spFrame = (spFrame + 1) % cfg.frames;
+  // 浇水动画：位移立即打断
+  if (spAnim === ANIM_WATER) {
+    if (player.moving) {
+      // 位移打断，丢弃浇水
+      spAnim = ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+      wateringTimer = 0; pendingWaterTile = null;
+      showToast('浇水被打断');
+    } else {
+      // 帧推进（不循环，到最后一帧停住）
+      spFrameTimer += dt * 1000;
+      const cfg = SPRITE_CFG[ANIM_WATER];
+      if (spFrameTimer >= cfg.frameMs) {
+        spFrameTimer = 0;
+        if (spFrame < cfg.frames - 1) {
+          spFrame++;
+        } else {
+          // 动画播完 → 执行浇水
+          if (pendingWaterTile) {
+            const {r, c} = pendingWaterTile;
+            if (!wateredMap[r]) wateredMap[r] = {};
+            if (cropMap[r][c]) cropMap[r][c].watered = true;
+            else wateredMap[r][c] = true;
+            showToast('浇水完成 💧');
+            pendingWaterTile = null;
+          }
+          spAnim = ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+          wateringTimer = 0;
+        }
+      }
     }
   } else {
-    // idle 也要播放动画
+    const newAnim = !player.moving ? ANIM_IDLE : (isRunning ? ANIM_RUN : ANIM_WALK);
+    if (newAnim !== spAnim) { spAnim = newAnim; spFrame = 0; spFrameTimer = 0; }
+    // 帧推进（循环播放）
     spFrameTimer += dt * 1000;
-    const cfg = SPRITE_CFG[ANIM_IDLE];
+    const cfg = SPRITE_CFG[spAnim] || SPRITE_CFG[ANIM_IDLE];
     if (spFrameTimer >= cfg.frameMs) {
       spFrameTimer = 0;
       spFrame = (spFrame + 1) % cfg.frames;
@@ -1222,12 +1232,13 @@ function loop(ts){
 // ============================================================
 // 行动按钮
 // ============================================================
-// 启动浇水动画
-function startWateringAnim() {
+// 启动浇水动画，记录目标地块，动画播完才浇水
+function startWateringAnim(r, c) {
   spAnim = ANIM_WATER;
   spFrame = 0;
   spFrameTimer = 0;
   wateringTimer = WATERING_DURATION;
+  pendingWaterTile = { r, c };
 }
 
 function doAction(){
@@ -1272,14 +1283,11 @@ function doAction(){
     if(!wateredMap[r]) wateredMap[r] = {};
     if(cropMap[r][c]) {
       if(cropMap[r][c].watered){ showToast('今天已经浇过水啦 💧'); return; }
-      cropMap[r][c].watered = true;
     } else {
       if(wateredMap[r][c]){ showToast('今天已经浇过水啦 💧'); return; }
-      wateredMap[r][c] = true;
     }
-    showToast('浇水完成 💧');
-    // 触发浇水动画
-    startWateringAnim();
+    // 先播动画，播完才实际浇水
+    startWateringAnim(r, c);
   }
   else if(itemId==='harvest'){
     const crop=cropMap[r][c];
