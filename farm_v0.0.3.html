@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.36</div>
+<div id="splash-version">版本号：v0.0.3.37</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -611,7 +611,7 @@ function cropsIcon(col, row) {
 const ITEM_DEF = {
   hoe:     { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Hoe_single.png","锄头"),        name:'锄头',   use:'tile' },
   water:   { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Watering_can_single.png","水壶"), name:'浇水壶', use:'tile' },
-  harvest: { icon:'🧺', name:'收获篮', use:'tile' },
+  harvest: { iconEl:()=>itemIcon("assets/images/ui/icon/Weapons and Armor/1. Wood/Sickle_single.png","镰刀"), name:'收获', use:'tile' },
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
@@ -625,9 +625,9 @@ const ITEM_DEF = {
 
 // 工具栏：12格，存 itemId 或 null
 let hotbar = [
-  'hoe', 'water', 'harvest', 'seed_potato', 'seed_carrot',
+  'hoe', 'water', 'harvest', 'seed_potato',
   'sleep', 'shop',
-  null, null, null, null, null
+  null, null, null, null, null, null
 ];
 let selectedSlot = 0; // 当前选中格子索引
 
