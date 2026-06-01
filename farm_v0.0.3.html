@@ -216,7 +216,7 @@ canvas { display:block; }
   background: url('assets/images/ui/toolbar/toolbar_bottom_01.png') no-repeat center/100% 100%;
   image-rendering: pixelated;
   border:none; border-radius:0;
-  cursor:pointer;
+  cursor:pointer; position:relative;
   transition:all 0.15s;
 }
 .tool-btn.active {
@@ -226,6 +226,10 @@ canvas { display:block; }
 .tool-icon { font-size:18px; }
 .tool-name { font-size:8px; color:#7a4a10; letter-spacing:0.5px; }
 .tool-btn.active .tool-name { color:#c06000; }
+.tool-count {
+  position:absolute; bottom:2px; right:4px;
+  font-size:9px; color:#7a3a00; font-weight:bold; line-height:1;
+}
 
 /* 确认按钮
    大小: 70×70px
@@ -310,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.10</div>
+<div id="splash-version">版本号：v0.0.3.11</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -332,15 +336,7 @@ canvas { display:block; }
     </div>
     <div id="toolbar-wrap">
       <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(calc(-50% - 5px),-50%);pointer-events:none;"></canvas>
-      <div id="toolbar">
-      <div class="tool-btn active" data-tool="hoe" onclick="setTool(this,'hoe')"><span class="tool-icon">⛏️</span><span class="tool-name">锄地</span></div>
-      <div class="tool-btn" data-tool="seed" onclick="setTool(this,'seed')"><span class="tool-icon">🌱</span><span class="tool-name">播种</span></div>
-      <div class="tool-btn" id="seed-switch-btn" onclick="switchSeed()" title="切换种子"><span class="tool-icon" id="seed-switch-icon">🥔</span><span class="tool-name" id="seed-switch-name">土豆</span></div>
-      <div class="tool-btn" data-tool="water" onclick="setTool(this,'water')"><span class="tool-icon">💧</span><span class="tool-name">浇水</span></div>
-      <div class="tool-btn" data-tool="harvest" onclick="setTool(this,'harvest')"><span class="tool-icon">🧺</span><span class="tool-name">收获</span></div>
-      <div class="tool-btn" data-tool="shop" onclick="openShop()"><span class="tool-icon">🏪</span><span class="tool-name">商店</span></div>
-      <div class="tool-btn" data-tool="sleep" onclick="nextDay()"><span class="tool-icon">🌙</span><span class="tool-name">入睡</span></div>
-    </div>
+      <div id="toolbar"></div>
     </div><!-- /toolbar-wrap -->
     <div id="action-btn" onclick="doAction()"></div>
   </div>
@@ -579,9 +575,43 @@ const CROPS = {
 let coins=80, day=1, seasonIdx=0;
 // 弹出动画表: key='r_c', {startMs, r, c, type}
 const harvestAnims = {};
-let currentTool='hoe', selectedSeed='potato';
-let seedBag={potato:5,carrot:1}, harvestBag={};
+let harvestBag={};
 const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
+
+// ============================================================
+// 道具系统
+// ============================================================
+// use: 'tile' = 需对准地块使用, 'direct' = 选中点确认键直接使用
+const ITEM_DEF = {
+  hoe:     { icon:'⛏️', name:'锄头',   use:'tile' },
+  water:   { icon:'💧', name:'浇水壶', use:'tile' },
+  harvest: { icon:'🧺', name:'收获篮', use:'tile' },
+  sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
+  shop:    { icon:'🏪', name:'商店',   use:'direct' },
+  // 种子类：type前缀seed_
+  seed_potato:  { icon:'🥔', name:'土豆种子',  use:'tile',   seedType:'potato'  },
+  seed_carrot:  { icon:'🥕', name:'萝卜种子',  use:'tile',   seedType:'carrot'  },
+  seed_cabbage: { icon:'🥬', name:'白菜种子',  use:'tile',   seedType:'cabbage' },
+  seed_peach:   { icon:'🍑', name:'桃子种子',  use:'tile',   seedType:'peach'   },
+};
+
+// 工具栏：12格，存 itemId 或 null
+let toolbar = [
+  'hoe', 'water', 'harvest', 'seed_potato', 'seed_carrot',
+  'sleep', 'shop',
+  null, null, null, null, null
+];
+let selectedSlot = 0; // 当前选中格子索引
+
+// 地图上掉落的道具: [{id, wx, wy}]
+let groundItems = [];
+
+function currentItem() { return toolbar[selectedSlot] ? ITEM_DEF[toolbar[selectedSlot]] : null; }
+function currentItemId() { return toolbar[selectedSlot] || null; }
+
+// 获取种子道具的数量（用于显示）
+const seedCount = { potato:5, carrot:1, cabbage:0, peach:0 };
+
 
 // ============================================================
 // 玩家
@@ -930,16 +960,26 @@ function render() {
     ctx.restore();
   }
 
+  // 地图上道具渲染
+  renderGroundItems();
+
   // 提示文字
-  ctx.fillStyle='rgba(245,215,142,0.75)';
-  ctx.font='12px serif'; ctx.textAlign='center'; ctx.textBaseline='top';
-  const hints={
-    hoe:'走到任意地块，按✅锄地',
-    seed:`播种:${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}(剩${seedBag[selectedSeed]||0}袋)`,
-    water:'走到作物旁，按✅浇水',
-    harvest:'走到成熟作物旁，按✅收获'
-  };
-  if(hints[currentTool]) ctx.fillText(hints[currentTool], W/2, H-130);
+  const _item = currentItem(), _id = currentItemId();
+  if (_item && _item.use === 'tile') {
+    const hintMap = {
+      hoe:'走到任意地块，按确认锄地',
+      water:'走到作物旁，按确认浇水',
+      harvest:'走到成熟作物旁，按确认收获',
+    };
+    let hint = _item.seedType
+      ? `播种:${CROPS[_item.seedType].icon}${CROPS[_item.seedType].name}(剩${seedCount[_item.seedType]||0}袋)`
+      : hintMap[_id];
+    if (hint) {
+      ctx.fillStyle='rgba(245,215,142,0.75)';
+      ctx.font='12px serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText(hint, W/2, H-130);
+    }
+  }
 }
 
 // ============================================================
@@ -1072,6 +1112,8 @@ function loop(ts){
     }
   }
 
+  checkPickup();
+
   // 相机跟随
   const targetX = player.wx * TILE - canvas.width/2;
   const targetY = player.wy * TILE - canvas.height/2;
@@ -1091,24 +1133,35 @@ function doAction(){
   const r=Math.round(player.wy), c=Math.round(player.wx);
   if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
   const type=tileMap[r][c];
+  const itemId = currentItemId();
+  const item   = currentItem();
+  if (!itemId || !item) return;
 
-  if(currentTool==='hoe'){
+  if (item.use === 'direct') {
+    if (itemId === 'sleep') { nextDay(); return; }
+    if (itemId === 'shop')  { openShop(); return; }
+    return;
+  }
+
+  if(itemId==='hoe'){
     if(type===T.GRASS||type===T.PATH||type===T.SOIL){
       tileMap[r][c]=T.TILLED; showToast('翻土完成 ⛏️');
     } else if(type===T.TILLED){ showToast('已翻过土啦～'); }
     else showToast('这里不能翻土');
   }
-  else if(currentTool==='seed'){
+  else if(item.seedType){
+    const seedType = item.seedType;
     if(type!==T.TILLED){ showToast('请先锄地再播种'); return; }
-    if(!(seedBag[selectedSeed]>0)){ showToast(`没有${CROPS[selectedSeed].name}种子了！`); return; }
-    seedBag[selectedSeed]--;
+    if(!(seedCount[seedType]>0)){ showToast(`没有${CROPS[seedType].name}种子了！`); return; }
+    seedCount[seedType]--;
+    if(seedCount[seedType]<=0){ toolbar[selectedSlot]=null; showToast(`${CROPS[seedType].icon}种子用尽！`); }
     tileMap[r][c]=T.CROP;
-    // 播种时检查是否已浇过水（先浇水后播种的情况）
     const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
-    cropMap[r][c]={type:selectedSeed,daysGrown:0,watered:alreadyWatered,ready:false};
-    showToast(`种下了${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}`);
+    cropMap[r][c]={type:seedType,daysGrown:0,watered:alreadyWatered,ready:false};
+    showToast(`种下了${CROPS[seedType].icon}${CROPS[seedType].name}`);
+    renderToolbar();
   }
-  else if(currentTool==='water'){
+  else if(itemId==='water'){
     if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
     if(!wateredMap[r]) wateredMap[r] = {};
     if(cropMap[r][c]) {
@@ -1120,12 +1173,10 @@ function doAction(){
     }
     showToast('浇水完成 💧');
   }
-  else if(currentTool==='harvest'){
+  else if(itemId==='harvest'){
     const crop=cropMap[r][c];
     if(!crop){ showToast('这里没有作物'); return; }
     if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
-    const cfg=CROPS[crop.type];
-    // 触发弹出动画，600ms后清除地块，作物进入背包
     const key = r+'_'+c;
     harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
     harvestBag[crop.type]=(harvestBag[crop.type]||0)+1;
@@ -1137,32 +1188,163 @@ function doAction(){
 }
 
 // ============================================================
-// 工具 / 商店 / 入睡
+// 工具栏渲染 + 交互
 // ============================================================
-function setTool(el,tool){
-  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active'); currentTool=tool;
+function renderToolbar() {
+  const el = document.getElementById('toolbar');
+  el.innerHTML = '';
+  toolbar.forEach((itemId, idx) => {
+    const item = itemId ? ITEM_DEF[itemId] : null;
+    const slot = document.createElement('div');
+    slot.className = 'tool-btn' + (idx === selectedSlot ? ' active' : '');
+    slot.dataset.idx = idx;
+    if (item) {
+      // 显示数量（种子类）
+      const cnt = (item.seedType && seedCount[item.seedType] > 0)
+        ? `<span class="tool-count">${seedCount[item.seedType]}</span>` : '';
+      slot.innerHTML = `<span class="tool-icon">${item.icon}</span><span class="tool-name">${item.name}</span>${cnt}`;
+    }
+    // 点击选中
+    slot.addEventListener('pointerdown', e => onSlotPointerDown(e, idx));
+    el.appendChild(slot);
+  });
 }
 
-function switchSeed(){
-  const allTypes = Object.keys(CROPS);
-  const withStock = allTypes.filter(t => (seedBag[t]||0) > 0);
-  if(!withStock.length){ showToast('没有任何种子，去商店购买！'); return; }
-  const idx = withStock.indexOf(selectedSeed);
-  selectedSeed = withStock[(idx+1)%withStock.length];
-  const seedBtn = document.querySelector('[data-tool="seed"]');
-  setTool(seedBtn, 'seed');
-  updateSeedSwitchUI();
-  showToast(`切换种子：${CROPS[selectedSeed].icon}${CROPS[selectedSeed].name}(剩${seedBag[selectedSeed]}袋)`);
+// 长按拖动
+let dragState = null; // {idx, itemId, startX, startY, ghost, moved}
+const LONG_PRESS_MS = 400;
+
+function onSlotPointerDown(e, idx) {
+  if (!toolbar[idx]) { selectSlot(idx); return; }
+  e.preventDefault();
+  const startX = e.clientX, startY = e.clientY;
+  let pressTimer = setTimeout(() => {
+    // 开始拖动
+    startDrag(idx, startX, startY);
+  }, LONG_PRESS_MS);
+
+  const onUp = () => {
+    clearTimeout(pressTimer);
+    if (!dragState) selectSlot(idx);
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+  };
+  const onMove = (e) => {
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (Math.sqrt(dx*dx+dy*dy) > 8) clearTimeout(pressTimer);
+    if (dragState) moveDrag(e.clientX, e.clientY);
+  };
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointerup', endDrag, { once: true });
 }
 
-function updateSeedSwitchUI(){
-  const cfg = CROPS[selectedSeed];
-  const stock = seedBag[selectedSeed] || 0;
-  document.getElementById('seed-switch-icon').textContent = cfg.icon;
-  document.getElementById('seed-switch-name').textContent = cfg.name + (stock>0 ? `x${stock}` : '无');
-  document.getElementById('seed-switch-btn').style.opacity = stock > 0 ? '1' : '0.4';
+function selectSlot(idx) {
+  selectedSlot = idx;
+  const item = currentItem();
+  // 直接使用类道具就直接触发
+  if (item && item.use === 'direct') {
+    const id = currentItemId();
+    if (id === 'sleep') { renderToolbar(); nextDay(); return; }
+    if (id === 'shop')  { renderToolbar(); openShop(); return; }
+  }
+  renderToolbar();
 }
+
+function startDrag(idx, x, y) {
+  const item = ITEM_DEF[toolbar[idx]];
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.textContent = item.icon;
+  ghost.style.cssText = `position:fixed;font-size:32px;pointer-events:none;z-index:999;
+    transform:translate(-50%,-50%);transition:none;`;
+  ghost.style.left = x+'px'; ghost.style.top = y+'px';
+  document.body.appendChild(ghost);
+  dragState = { idx, itemId: toolbar[idx], startX:x, startY:y, ghost };
+}
+
+function moveDrag(x, y) {
+  if (!dragState) return;
+  dragState.ghost.style.left = x+'px';
+  dragState.ghost.style.top  = y+'px';
+}
+
+function endDrag(e) {
+  if (!dragState) return;
+  const { idx, itemId, ghost } = dragState;
+  dragState = null;
+  ghost.remove();
+
+  const x = e.clientX, y = e.clientY;
+  const W = window.innerWidth, H = window.innerHeight;
+  const outOfScreen = x < 0 || x > W || y < 0 || y > H;
+
+  if (outOfScreen) {
+    // 抓到屏幕外 → 丢到地上
+    toolbar[idx] = null;
+    // 地图坐标取玩家当前位置附近
+    groundItems.push({ id: itemId, wx: player.wx + (Math.random()-0.5)*2, wy: player.wy + 1 });
+    showToast(`${ITEM_DEF[itemId].icon}掉到地上了`);
+  } else {
+    // 检测是否拖到另一个格子上（交换）
+    const slots = document.querySelectorAll('.tool-btn');
+    let targetIdx = -1;
+    slots.forEach(s => {
+      const r = s.getBoundingClientRect();
+      if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
+        targetIdx = parseInt(s.dataset.idx);
+    });
+    if (targetIdx >= 0 && targetIdx !== idx) {
+      [toolbar[idx], toolbar[targetIdx]] = [toolbar[targetIdx], toolbar[idx]];
+      if (selectedSlot === idx) selectedSlot = targetIdx;
+      else if (selectedSlot === targetIdx) selectedSlot = idx;
+    }
+  }
+  renderToolbar();
+}
+
+// 地上道具跳进检测（在 loop 里调用）
+function checkPickup() {
+  if (!groundItems.length) return;
+  groundItems = groundItems.filter(gi => {
+    const dx = gi.wx - player.wx, dy = gi.wy - player.wy;
+    if (Math.sqrt(dx*dx+dy*dy) < 0.8) {
+      // 检到！放入工具栏第一个空格
+      const emptyIdx = toolbar.indexOf(null);
+      if (emptyIdx >= 0) {
+        toolbar[emptyIdx] = gi.id;
+        showToast(`捕到了 ${ITEM_DEF[gi.id].icon}${ITEM_DEF[gi.id].name}`);
+        renderToolbar();
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+// 地上道具渲染（在 render 里调用）
+function renderGroundItems() {
+  groundItems.forEach(gi => {
+    const item = ITEM_DEF[gi.id];
+    if (!item) return;
+    const sx = Math.round(gi.wx * TILE - camX);
+    const sy = Math.round(gi.wy * TILE - camY);
+    ctx.save();
+    ctx.font = '20px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // 轻微浮动动画
+    const bob = Math.sin(performance.now() / 400) * 3;
+    ctx.drawImage; // noop
+    ctx.fillText(item.icon, sx, sy + bob);
+    ctx.restore();
+  });
+}
+
+function setTool(el, tool) {} // 兼容性保留，不再使用
+function switchSeed() {}     // 兼容性保留
+function updateSeedSwitchUI() {}
+
 
 function nextDay(){
   day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
@@ -1187,11 +1369,22 @@ function closeShop(){ document.getElementById('shop-panel').style.display='none'
 function buySeed(type){
   const cfg=CROPS[type];
   if(coins<cfg.cost){ showToast('铜钱不够！'); return; }
-  coins-=cfg.cost; seedBag[type]=(seedBag[type]||0)+1;
-  selectedSeed=type; updateHUD(); updateSeedSwitchUI();
-  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('[data-tool="seed"]').classList.add('active');
-  currentTool='seed';
+  coins-=cfg.cost;
+  const itemId = 'seed_'+type;
+  // 如果工具栏已有该种子道具，数量+1；否则放入第一个空格
+  const existIdx = toolbar.indexOf(itemId);
+  if (existIdx >= 0) {
+    seedCount[type] = (seedCount[type]||0) + 1;
+  } else {
+    const emptyIdx = toolbar.indexOf(null);
+    if (emptyIdx >= 0) {
+      toolbar[emptyIdx] = itemId;
+      seedCount[type] = (seedCount[type]||0) + 1;
+    } else {
+      showToast('道具栏已满，无法放入！'); coins+=cfg.cost; return;
+    }
+  }
+  updateHUD(); renderToolbar();
   showToast(`购入${cfg.icon}${cfg.name}种子 -${cfg.cost}枚`);
   closeShop();
 }
@@ -1390,7 +1583,7 @@ document.getElementById('quit-btn').addEventListener('click', () => {
 // ============================================================
 camX = Math.round(player.wx * TILE - canvas.width/2);
 camY = Math.round(player.wy * TILE - canvas.height/2);
-updateSeedSwitchUI();
+renderToolbar();
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 </script>
 </body>
