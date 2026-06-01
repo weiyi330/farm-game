@@ -224,7 +224,10 @@ canvas { display:block; }
   transition:all 0.15s;
 }
 .tool-btn.active {
-  filter: brightness(1.25) drop-shadow(0 0 4px rgba(255,200,80,0.7));
+  outline: 2px solid #f5c842;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 1px #8b5e00, inset 0 0 0 1px rgba(255,220,100,0.3);
+  border-radius: 2px;
 }
 .tool-btn:active { transform:scale(0.92); }
 .tool-icon { font-size:22px; line-height:1; }
@@ -317,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.35</div>
+<div id="splash-version">版本号：v0.0.3.36</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -587,7 +590,7 @@ const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
 // use: 'tile' = 需对准地块使用, 'direct' = 选中点确认键直接使用
 // 图片图标辅助：返回 <img> 或 emoji span
 function itemIcon(src, alt) {
-  return `<span style="display:inline-block;width:32px;height:32px;overflow:hidden;
+  return `<span style="display:inline-block;width:38px;height:38px;overflow:hidden;
     background:url('${src}') no-repeat center/contain;
     image-rendering:pixelated;"></span>`;
 }
