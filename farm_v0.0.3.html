@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.13</div>
+<div id="splash-version">版本号：v0.0.3.14</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1154,7 +1154,12 @@ function doAction(){
     if(type!==T.TILLED){ showToast('请先锄地再播种'); return; }
     if(!(seedCount[seedType]>0)){ showToast(`没有${CROPS[seedType].name}种子了！`); return; }
     seedCount[seedType]--;
-    if(seedCount[seedType]<=0){ hotbar[selectedSlot]=null; showToast(`${CROPS[seedType].icon}种子用尽！`); }
+    if(seedCount[seedType]<=0){
+      hotbar[selectedSlot]=null;
+      showToast(`${CROPS[seedType].icon}种子用尽！`);
+      const next = hotbar.findIndex((v,i) => i !== selectedSlot && v !== null);
+      if (next >= 0) selectedSlot = next;
+    }
     tileMap[r][c]=T.CROP;
     const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
     cropMap[r][c]={type:seedType,daysGrown:0,watered:alreadyWatered,ready:false};
@@ -1245,13 +1250,6 @@ function onSlotPointerDown(e, idx) {
 
 function selectSlot(idx) {
   selectedSlot = idx;
-  const item = currentItem();
-  // 直接使用类道具就直接触发
-  if (item && item.use === 'direct') {
-    const id = currentItemId();
-    if (id === 'sleep') { renderHotbar(); nextDay(); return; }
-    if (id === 'shop')  { renderHotbar(); openShop(); return; }
-  }
   renderHotbar();
 }
 
@@ -1343,7 +1341,6 @@ function renderGroundItems() {
     ctx.textBaseline = 'middle';
     // 轻微浮动动画
     const bob = Math.sin(performance.now() / 400) * 3;
-    ctx.drawImage; // noop
     ctx.fillText(item.icon, sx, sy + bob);
     ctx.restore();
   });
