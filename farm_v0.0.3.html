@@ -218,11 +218,11 @@ canvas { display:block; }
   border:2px solid rgba(255,255,255,0.30);
   box-shadow:none;
   display:flex; align-items:center; justify-content:center;
-  font-size:14px; font-weight:700; color:rgba(60,60,60,0.85);
-  letter-spacing:1px;
   cursor:pointer; pointer-events:all;
   flex-shrink:0;
-  margin-bottom:50px; margin-right:50px;
+  /* 圆心对齐：摇杆120px中心=60px，按钮70px中心=35px
+     两者底边距离一致，margin-bottom = 50 + (120-70)/2 = 75px */
+  margin-bottom:75px; margin-right:50px;
 }
 #action-btn:active { transform:scale(0.9); }
 
@@ -321,7 +321,7 @@ canvas { display:block; }
       <div class="tool-btn" data-tool="shop" onclick="openShop()"><span class="tool-icon">🏪</span><span class="tool-name">商店</span></div>
       <div class="tool-btn" data-tool="sleep" onclick="nextDay()"><span class="tool-icon">🌙</span><span class="tool-name">入睡</span></div>
     </div>
-    <div id="action-btn" onclick="doAction()">OK</div>
+    <div id="action-btn" onclick="doAction()"></div>
   </div>
 
   <div id="toast"></div>
