@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.17</div>
+<div id="splash-version">版本号：v0.0.3.18</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -805,7 +805,7 @@ function drawToolbarBg() {
   if (!toolbar || !cv) return;
   const dpr = window.devicePixelRatio || 1;
   const w = 548; // 底框宽度，12个格子×41px + 11间距×4px + 内边距12px
-  const h = Math.round(TB_SH * TB_SCALE);
+  const h = 53; // 外框高度：41px格子 + 上下各6px padding
   // 按 dpr 设置 canvas 真实像素，CSS 尺寸保持显示大小不变
   cv.width  = Math.round(w * dpr);
   cv.height = Math.round(h * dpr);
@@ -836,8 +836,8 @@ function drawToolbarBg() {
     const SLOT_SL = 1, SLOT_SR = 1; // 格子左右固定1px
     const SLOT_SM = SLOT_W - SLOT_SL - SLOT_SR; // 中间14px
     const slotScale = dpr;
-    const slotDisplayW = 41 * dpr; // 显示宽41px（缩小10%）
-    const slotDisplayH = 47 * dpr; // 显示高47px（原图完整高度，不裁切）
+    const slotDisplayW = 41 * dpr; // 显示宽41px
+    const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
     const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
     const startX = 6 * dpr; // padding 6px
     const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
