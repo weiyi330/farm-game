@@ -213,7 +213,7 @@ canvas { display:block; }
 .tool-btn {
   display:flex; flex-direction:column; align-items:center; gap:2px;
   width:46px; height:46px; justify-content:center;
-  background: url('assets/images/ui/toolbar/toolbar_slot.png') no-repeat center/100% 100%;
+  background: transparent;
   image-rendering: pixelated;
   border:none; border-radius:0;
   cursor:pointer; position:relative;
@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.15</div>
+<div id="splash-version">版本号：v0.0.3.16</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -791,10 +791,13 @@ function drawAbove(r, c) {
 // ============================================================
 const _tbImg = new Image();
 _tbImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
-// 原图: 48×64，左固定1px，右固定1px，中间46px可拉伸，高度固定64px
-const TB_SL = 1, TB_SR = 1;
+const _slotImg = new Image();
+_slotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
+_slotImg.onload = drawToolbarBg;
+// 原图: 48×64，左固定4px，右固定4px，中间40px可拉伸，高度64px
+const TB_SL = 4, TB_SR = 4;
 const TB_SW = 48, TB_SH = 64;
-const TB_SCALE = 1; // 高度固定64px（原图64px，1:1）
+const TB_SCALE = 1; // 高度1:1
 
 function drawToolbarBg() {
   const toolbar = document.getElementById('toolbar');
@@ -826,6 +829,28 @@ function drawToolbarBg() {
   c.drawImage(_tbImg, TB_SL, 0, SM, TB_SH, TB_SL * scale, 0, DM, cv.height);
   // 右固定
   c.drawImage(_tbImg, TB_SL + SM, 0, TB_SR, TB_SH, totalW - TB_SR * scale, 0, TB_SR * scale, cv.height);
+
+  // 在外框canvas上叠画格子（12个）
+  if (_slotImg.complete && _slotImg.naturalWidth) {
+    const SLOT_W = 16, SLOT_H = 47;
+    const SLOT_SL = 1, SLOT_SR = 1; // 格子左右固定1px
+    const SLOT_SM = SLOT_W - SLOT_SL - SLOT_SR; // 中间14px
+    const slotScale = dpr;
+    const slotDisplayW = 46 * dpr; // 显示宽46px
+    const slotDisplayH = 46 * dpr; // 显示高46px（裁切，不含底部多余）
+    const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
+    const startX = 6 * dpr; // padding 6px
+    const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
+    for (let i = 0; i < 12; i++) {
+      const sx = startX + i * (slotDisplayW + 4 * dpr);
+      // 左
+      c.drawImage(_slotImg, 0, 0, SLOT_SL, SLOT_H, sx, startY, SLOT_SL * slotScale, slotDisplayH);
+      // 中拉伸
+      c.drawImage(_slotImg, SLOT_SL, 0, SLOT_SM, SLOT_H, sx + SLOT_SL * slotScale, startY, slotDM, slotDisplayH);
+      // 右
+      c.drawImage(_slotImg, SLOT_SL + SLOT_SM, 0, SLOT_SR, SLOT_H, sx + slotDisplayW - SLOT_SR * slotScale, startY, SLOT_SR * slotScale, slotDisplayH);
+    }
+  }
 }
 
 // 布局完成后调用
