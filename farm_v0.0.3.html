@@ -199,10 +199,10 @@ canvas { display:block; }
 /* 工具栏整体底板 */
 #toolbar-wrap {
   position:relative;
-  width:558px; height:65px;
+  width:558px; height:60px;
   pointer-events:all;
   flex-shrink:0;
-  margin-bottom:-20px;
+  margin-bottom:-25px;
 }
 #toolbar {
   display:flex; gap:4px; align-items:center;
@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.44</div>
+<div id="splash-version">版本号：v0.0.3.45</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1240,7 +1240,14 @@ function loop(ts){
               const crop = cropMap[r] && cropMap[r][c];
               if (crop && crop.ready) {
                 const key = r+'_'+c;
+                // 1. 立即清除地块上的作物（让作物图消失）
+                tileMap[r][c] = T.TILLED;
+                cropMap[r][c] = null;
+                // 2. 启动弹出动画（从当前位置弹起）
                 harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type };
+                // 3. 600ms后清除弹出动画
+                setTimeout(() => { delete harvestAnims[key]; }, 600);
+                // 4. 计入背包
                 harvestBag[crop.type] = (harvestBag[crop.type]||0) + 1;
                 if (crop.type === 'potato') {
                   const existIdx = hotbar.indexOf('potato');
@@ -1250,10 +1257,6 @@ function loop(ts){
                   }
                   renderHotbar();
                 }
-                setTimeout(() => {
-                  delete harvestAnims[key];
-                  tileMap[r][c] = T.TILLED; cropMap[r][c] = null;
-                }, 600);
                 showToast(`收获了 ${CROPS[crop.type]?.icon||''}${CROPS[crop.type]?.name||crop.type}！`);
               }
             }
