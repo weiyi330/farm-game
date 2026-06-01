@@ -220,7 +220,7 @@ canvas { display:block; }
   background: transparent;
   image-rendering: pixelated;
   border:none; border-radius:0;
-  cursor:pointer; position:relative; overflow:visible;
+  cursor:pointer; position:relative;
   transition:all 0.15s;
 }
 .tool-btn.active {
@@ -228,7 +228,7 @@ canvas { display:block; }
 }
 .tool-btn:active { transform:scale(0.92); }
 .tool-icon { font-size:22px; line-height:1; }
-.tool-icon img { width:56px; height:56px; image-rendering:pixelated; }
+.tool-icon img { width:28px; height:28px; image-rendering:pixelated; }
 .tool-count {
   position:absolute; bottom:2px; right:4px;
   font-size:9px; color:#7a3a00; font-weight:bold; line-height:1;
@@ -317,7 +317,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.33</div>
+<div id="splash-version">版本号：v0.0.3.34</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -587,7 +587,9 @@ const SEASONS=['🌸春','☀️夏','🍂秋','❄️冬'];
 // use: 'tile' = 需对准地块使用, 'direct' = 选中点确认键直接使用
 // 图片图标辅助：返回 <img> 或 emoji span
 function itemIcon(src, alt) {
-  return `<img src="${src}" alt="${alt}" draggable="false">`;
+  return `<span style="display:inline-block;width:28px;height:28px;overflow:hidden;
+    background:url('${src}') no-repeat center/contain;
+    image-rendering:pixelated;"></span>`;
 }
 // Crops图集裁切参数（16×16每格，第5排=row4）
 const CROPS_SHEET = 'assets/images/Crops/Crops_All Crops.png';
