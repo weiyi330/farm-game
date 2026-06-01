@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.18</div>
+<div id="splash-version">版本号：v0.0.3.19</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -832,12 +832,12 @@ function drawToolbarBg() {
 
   // 在外框canvas上叠画格子（12个）
   if (_slotImg.complete && _slotImg.naturalWidth) {
-    const SLOT_W = 16, SLOT_H = 47;
+    const SLOT_W = 16, SLOT_H = 49; // 原图16×49，含完整顶底边框
     const SLOT_SL = 1, SLOT_SR = 1; // 格子左右固定1px
     const SLOT_SM = SLOT_W - SLOT_SL - SLOT_SR; // 中间14px
     const slotScale = dpr;
     const slotDisplayW = 41 * dpr; // 显示宽41px
-    const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
+    const slotDisplayH = 41 * dpr; // 显示高41px（正方形，原图49px缩放）
     const slotDM = slotDisplayW - SLOT_SL * slotScale - SLOT_SR * slotScale;
     const startX = 6 * dpr; // padding 6px
     const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
