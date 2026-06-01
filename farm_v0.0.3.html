@@ -199,7 +199,7 @@ canvas { display:block; }
 /* 工具栏整体底板 */
 #toolbar-wrap {
   position:relative;
-  display:flex; align-items:center;
+  display:flex; align-items:center; justify-content:center;
   pointer-events:all;
 }
 #toolbar {
@@ -310,7 +310,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.7</div>
+<div id="splash-version">版本号：v0.0.3.8</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -331,7 +331,7 @@ canvas { display:block; }
       <div id="joy-stick"></div>
     </div>
     <div id="toolbar-wrap">
-      <canvas id="toolbar-bg-canvas" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+      <canvas id="toolbar-bg-canvas" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;"></canvas>
       <div id="toolbar">
       <div class="tool-btn active" data-tool="hoe" onclick="setTool(this,'hoe')"><span class="tool-icon">⛏️</span><span class="tool-name">锄地</span></div>
       <div class="tool-btn" data-tool="seed" onclick="setTool(this,'seed')"><span class="tool-icon">🌱</span><span class="tool-name">播种</span></div>
@@ -771,14 +771,14 @@ function drawToolbarBg() {
   const cv = document.getElementById('toolbar-bg-canvas');
   if (!toolbar || !cv) return;
   const dpr = window.devicePixelRatio || 1;
-  const w = toolbar.offsetWidth;
+  const w = 365; // 与底框宽度保持一致
   const h = Math.round(TB_SH * TB_SCALE);
   // 按 dpr 设置 canvas 真实像素，CSS 尺寸保持显示大小不变
   cv.width  = Math.round(w * dpr);
   cv.height = Math.round(h * dpr);
   cv.style.width  = w + 'px';
   cv.style.height = h + 'px';
-  cv.style.top = Math.round((toolbar.offsetHeight - h) / 2) + 'px';
+  // 位置由CSS transform:translate(-50%,-50%)负责居中
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_tbImg.complete || !_tbImg.naturalWidth) {
