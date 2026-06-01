@@ -210,7 +210,7 @@ canvas { display:block; }
   padding:6px;
   position:absolute;
   top:50%; left:50%;
-  transform:translate(-50%, -50%);
+  transform:translate(-50%, calc(-50% - 10px));
   z-index:1;
 }
 /* 单个工具格 */
@@ -320,7 +320,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.49</div>
+<div id="splash-version">版本号：v0.0.3.50</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1232,10 +1232,8 @@ function loop(ts){
               if (!wateredMap[r]) wateredMap[r] = {};
               if (cropMap[r][c]) cropMap[r][c].watered = true;
               else wateredMap[r][c] = true;
-              showToast('浇水完成 💧');
             } else if (action === 'hoe') {
               tileMap[r][c] = T.TILLED;
-              showToast('翻土完成 🌱');
             } else if (action === 'harvest') {
               const crop = cropMap[r] && cropMap[r][c];
               if (crop && crop.ready) {
