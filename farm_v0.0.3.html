@@ -314,7 +314,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.11</div>
+<div id="splash-version">版本号：v0.0.3.12</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -596,7 +596,7 @@ const ITEM_DEF = {
 };
 
 // 工具栏：12格，存 itemId 或 null
-let toolbar = [
+let hotbar = [
   'hoe', 'water', 'harvest', 'seed_potato', 'seed_carrot',
   'sleep', 'shop',
   null, null, null, null, null
@@ -606,8 +606,8 @@ let selectedSlot = 0; // 当前选中格子索引
 // 地图上掉落的道具: [{id, wx, wy}]
 let groundItems = [];
 
-function currentItem() { return toolbar[selectedSlot] ? ITEM_DEF[toolbar[selectedSlot]] : null; }
-function currentItemId() { return toolbar[selectedSlot] || null; }
+function currentItem() { return hotbar[selectedSlot] ? ITEM_DEF[hotbar[selectedSlot]] : null; }
+function currentItemId() { return hotbar[selectedSlot] || null; }
 
 // 获取种子道具的数量（用于显示）
 const seedCount = { potato:5, carrot:1, cabbage:0, peach:0 };
@@ -1154,12 +1154,12 @@ function doAction(){
     if(type!==T.TILLED){ showToast('请先锄地再播种'); return; }
     if(!(seedCount[seedType]>0)){ showToast(`没有${CROPS[seedType].name}种子了！`); return; }
     seedCount[seedType]--;
-    if(seedCount[seedType]<=0){ toolbar[selectedSlot]=null; showToast(`${CROPS[seedType].icon}种子用尽！`); }
+    if(seedCount[seedType]<=0){ hotbar[selectedSlot]=null; showToast(`${CROPS[seedType].icon}种子用尽！`); }
     tileMap[r][c]=T.CROP;
     const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
     cropMap[r][c]={type:seedType,daysGrown:0,watered:alreadyWatered,ready:false};
     showToast(`种下了${CROPS[seedType].icon}${CROPS[seedType].name}`);
-    renderToolbar();
+    renderHotbar();
   }
   else if(itemId==='water'){
     if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
@@ -1190,10 +1190,10 @@ function doAction(){
 // ============================================================
 // 工具栏渲染 + 交互
 // ============================================================
-function renderToolbar() {
+function renderHotbar() {
   const el = document.getElementById('toolbar');
   el.innerHTML = '';
-  toolbar.forEach((itemId, idx) => {
+  hotbar.forEach((itemId, idx) => {
     const item = itemId ? ITEM_DEF[itemId] : null;
     const slot = document.createElement('div');
     slot.className = 'tool-btn' + (idx === selectedSlot ? ' active' : '');
@@ -1215,7 +1215,7 @@ let dragState = null; // {idx, itemId, startX, startY, ghost, moved}
 const LONG_PRESS_MS = 400;
 
 function onSlotPointerDown(e, idx) {
-  if (!toolbar[idx]) { selectSlot(idx); return; }
+  if (!hotbar[idx]) { selectSlot(idx); return; }
   e.preventDefault();
   const startX = e.clientX, startY = e.clientY;
   let pressTimer = setTimeout(() => {
@@ -1245,14 +1245,14 @@ function selectSlot(idx) {
   // 直接使用类道具就直接触发
   if (item && item.use === 'direct') {
     const id = currentItemId();
-    if (id === 'sleep') { renderToolbar(); nextDay(); return; }
-    if (id === 'shop')  { renderToolbar(); openShop(); return; }
+    if (id === 'sleep') { renderHotbar(); nextDay(); return; }
+    if (id === 'shop')  { renderHotbar(); openShop(); return; }
   }
-  renderToolbar();
+  renderHotbar();
 }
 
 function startDrag(idx, x, y) {
-  const item = ITEM_DEF[toolbar[idx]];
+  const item = ITEM_DEF[hotbar[idx]];
   const ghost = document.createElement('div');
   ghost.className = 'drag-ghost';
   ghost.textContent = item.icon;
@@ -1260,7 +1260,7 @@ function startDrag(idx, x, y) {
     transform:translate(-50%,-50%);transition:none;`;
   ghost.style.left = x+'px'; ghost.style.top = y+'px';
   document.body.appendChild(ghost);
-  dragState = { idx, itemId: toolbar[idx], startX:x, startY:y, ghost };
+  dragState = { idx, itemId: hotbar[idx], startX:x, startY:y, ghost };
 }
 
 function moveDrag(x, y) {
@@ -1281,7 +1281,7 @@ function endDrag(e) {
 
   if (outOfScreen) {
     // 抓到屏幕外 → 丢到地上
-    toolbar[idx] = null;
+    hotbar[idx] = null;
     // 地图坐标取玩家当前位置附近
     groundItems.push({ id: itemId, wx: player.wx + (Math.random()-0.5)*2, wy: player.wy + 1 });
     showToast(`${ITEM_DEF[itemId].icon}掉到地上了`);
@@ -1295,12 +1295,12 @@ function endDrag(e) {
         targetIdx = parseInt(s.dataset.idx);
     });
     if (targetIdx >= 0 && targetIdx !== idx) {
-      [toolbar[idx], toolbar[targetIdx]] = [toolbar[targetIdx], toolbar[idx]];
+      [hotbar[idx], hotbar[targetIdx]] = [hotbar[targetIdx], hotbar[idx]];
       if (selectedSlot === idx) selectedSlot = targetIdx;
       else if (selectedSlot === targetIdx) selectedSlot = idx;
     }
   }
-  renderToolbar();
+  renderHotbar();
 }
 
 // 地上道具跳进检测（在 loop 里调用）
@@ -1310,11 +1310,11 @@ function checkPickup() {
     const dx = gi.wx - player.wx, dy = gi.wy - player.wy;
     if (Math.sqrt(dx*dx+dy*dy) < 0.8) {
       // 检到！放入工具栏第一个空格
-      const emptyIdx = toolbar.indexOf(null);
+      const emptyIdx = hotbar.indexOf(null);
       if (emptyIdx >= 0) {
-        toolbar[emptyIdx] = gi.id;
+        hotbar[emptyIdx] = gi.id;
         showToast(`捕到了 ${ITEM_DEF[gi.id].icon}${ITEM_DEF[gi.id].name}`);
-        renderToolbar();
+        renderHotbar();
         return false;
       }
     }
@@ -1372,19 +1372,19 @@ function buySeed(type){
   coins-=cfg.cost;
   const itemId = 'seed_'+type;
   // 如果工具栏已有该种子道具，数量+1；否则放入第一个空格
-  const existIdx = toolbar.indexOf(itemId);
+  const existIdx = hotbar.indexOf(itemId);
   if (existIdx >= 0) {
     seedCount[type] = (seedCount[type]||0) + 1;
   } else {
-    const emptyIdx = toolbar.indexOf(null);
+    const emptyIdx = hotbar.indexOf(null);
     if (emptyIdx >= 0) {
-      toolbar[emptyIdx] = itemId;
+      hotbar[emptyIdx] = itemId;
       seedCount[type] = (seedCount[type]||0) + 1;
     } else {
       showToast('道具栏已满，无法放入！'); coins+=cfg.cost; return;
     }
   }
-  updateHUD(); renderToolbar();
+  updateHUD(); renderHotbar();
   showToast(`购入${cfg.icon}${cfg.name}种子 -${cfg.cost}枚`);
   closeShop();
 }
@@ -1583,7 +1583,7 @@ document.getElementById('quit-btn').addEventListener('click', () => {
 // ============================================================
 camX = Math.round(player.wx * TILE - canvas.width/2);
 camY = Math.round(player.wy * TILE - canvas.height/2);
-renderToolbar();
+renderHotbar();
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 </script>
 </body>
