@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.121</div>
+<div id="splash-version">版本号：v0.0.3.122</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -669,7 +669,7 @@ canvas { display:block; }
       <span class="dbg-label">面板上下</span>
       <input class="dbg-slider" type="range" min="-200" max="200" value="-27"
         oninput="applyShopDbg('shopOffY',this.value)" onchange="applyShopDbg('shopOffY',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopOffY" value="33"
+      <input class="dbg-val" type="number" id="sdv-shopOffY" value="-42"
         onchange="applyShopDbg('shopOffY',this.value)">
     </div>
     <div class="dbg-row">
@@ -712,28 +712,28 @@ canvas { display:block; }
       <span class="dbg-label">底板宽</span>
       <input class="dbg-slider" type="range" min="20" max="300" value="128"
         oninput="applyShopDbg('shopTitleW',this.value)" onchange="applyShopDbg('shopTitleW',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleW" value="128"
+      <input class="dbg-val" type="number" id="sdv-shopTitleW" value="148"
         onchange="applyShopDbg('shopTitleW',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板高</span>
       <input class="dbg-slider" type="range" min="10" max="80" value="38"
         oninput="applyShopDbg('shopTitleH',this.value)" onchange="applyShopDbg('shopTitleH',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleH" value="38"
+      <input class="dbg-val" type="number" id="sdv-shopTitleH" value="64"
         onchange="applyShopDbg('shopTitleH',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板左右</span>
       <input class="dbg-slider" type="range" min="-150" max="150" value="148"
         oninput="applyShopDbg('shopTitleLeft',this.value)" onchange="applyShopDbg('shopTitleLeft',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleLeft" value="148"
+      <input class="dbg-val" type="number" id="sdv-shopTitleLeft" value="150"
         onchange="applyShopDbg('shopTitleLeft',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板上下</span>
       <input class="dbg-slider" type="range" min="-50" max="50" value="-1"
         oninput="applyShopDbg('shopTitleTop',this.value)" onchange="applyShopDbg('shopTitleTop',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleTop" value="-1"
+      <input class="dbg-val" type="number" id="sdv-shopTitleTop" value="-2"
         onchange="applyShopDbg('shopTitleTop',this.value)">
     </div>
     <div class="dbg-row">
@@ -797,7 +797,7 @@ canvas { display:block; }
       <span class="dbg-label">商品区高度</span>
       <input class="dbg-slider" type="range" min="50" max="600" value="310"
         oninput="applyShopDbg('shopBagScrollH',this.value)" onchange="applyShopDbg('shopBagScrollH',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopBagScrollH" value="310"
+      <input class="dbg-val" type="number" id="sdv-shopBagScrollH" value="224"
         onchange="applyShopDbg('shopBagScrollH',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
@@ -2330,9 +2330,6 @@ function drawBagBtnIcon() {
 // 绘制背包底板（九宫格，和工具栏一样的图集）
 // 绘制背包标题底板（九宫格拉伸）
 function drawBagTitle(cv, displayW, displayH) {
-  // 调试覆盖
-  if (dbgParams.bagTitleW > 0) displayW = dbgParams.bagTitleW;
-  if (dbgParams.bagTitleH > 0) displayH = dbgParams.bagTitleH;
   if (!cv || !_bagTitleImg.complete || !_bagTitleImg.naturalWidth) return;
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(displayW * dpr);
@@ -2821,17 +2818,17 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 // 调试参数（与CSS/JS变量对应）
 // 商店调试参数
 const shopDbg = {
-  shopOffX: 115, shopOffY: 33,
+  shopOffX: 115, shopOffY: -42,
   shopBagOffX: 35, shopBagOffY: -27, shopBagScale: 1,
-  shopTitleW: 128, shopTitleH: 38,
-  shopTitleLeft: 148, shopTitleTop: -1,
+  shopTitleW: 148, shopTitleH: 64,
+  shopTitleLeft: 150, shopTitleTop: -2,
   shopTitleTextLeft: 0, shopTitleTextTop: 0,
   shopTitleMT: -33, shopTitleFS: 20,
   shopBgPadW: 48, shopBgPadH: -4,
   shopCols: 7,
   shopCloseRight: -31, shopCloseTop: -31,
   shopBagRight: 20,
-  shopBagScrollH: 310,
+  shopBagScrollH: 224,
 };
 
 const dbgParams = {
@@ -2924,9 +2921,10 @@ function applyDbg(key, val) {
     if (tt) tt.style.top = v+'px';
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
-    const titleWrap = document.getElementById('bag-title-wrap');
     const titleCv = document.getElementById('bag-title-canvas');
-    if (titleWrap && titleCv) drawBagTitle(titleCv, titleWrap.offsetWidth, titleWrap.offsetHeight);
+    const W = dbgParams.bagTitleW > 0 ? dbgParams.bagTitleW : 83;
+    const H = dbgParams.bagTitleH > 0 ? dbgParams.bagTitleH : 30;
+    if (titleCv) drawBagTitle(titleCv, W, H);
   }
   if (key === 'bagTitleFS') {
     const tt = document.getElementById('bag-title-text');
