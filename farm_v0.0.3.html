@@ -529,7 +529,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.81</div>
+<div id="splash-version">版本号：v0.0.3.82</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1037,7 +1037,21 @@ function cropsIcon(col, row) {
 // buildIcon: 统一图标构建，给定 ITEM_DEF 条目
 function buildIcon(item) {
   if (!item) return '';
+  if (item.bagImg !== undefined) {
+    // 背包道具：返回一个canvas元素字符串不行，改为返回div占位，再用data属性延迟绘制
+    return `<canvas class="bag-icon-cv" data-bagimg="${item.bagImg}" style="image-rendering:pixelated;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);"></canvas>`;
+  }
   return item.iconEl ? item.iconEl() : `<span class="tool-icon">${item.icon||''}</span>`;
+}
+
+// 绘制所有等待渲染的背包图标canvas（renderHotbar/renderBagSlots之后调用）
+function flushBagIcons(root) {
+  (root || document).querySelectorAll('canvas.bag-icon-cv').forEach(cv => {
+    if (!cv.dataset.rendered) {
+      cv.dataset.rendered = '1';
+      drawBagIcon(cv, parseInt(cv.dataset.bagimg), 28);
+    }
+  });
 }
 
 const ITEM_DEF = {
@@ -1911,6 +1925,7 @@ function renderHotbar() {
     slot.addEventListener('pointerdown', e => onSlotPointerDown(e, idx));
     el.appendChild(slot);
   });
+  flushBagIcons(el);
 }
 
 // 长按拖动
@@ -2134,6 +2149,26 @@ _bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
 const _bagsIconImg = new Image();
 _bagsIconImg.src = 'assets/images/ui/icon/Extras/Bags.png';
 
+// 从 Bags.png 图集绘制背包图标到 canvas
+function drawBagIcon(cv, bagImgIdx, displaySize) {
+  const dpr = window.devicePixelRatio || 1;
+  const px = Math.round(displaySize * dpr);
+  cv.width = px; cv.height = px;
+  cv.style.width = displaySize + 'px';
+  cv.style.height = displaySize + 'px';
+  const c = cv.getContext('2d');
+  c.imageSmoothingEnabled = false;
+  c.clearRect(0, 0, px, px);
+  if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) {
+    c.drawImage(_bagsIconImg, bagImgIdx * 16, 0, 16, 16, 0, 0, px, px);
+  } else {
+    _bagsIconImg.addEventListener('load', () => {
+      c.clearRect(0, 0, px, px);
+      c.drawImage(_bagsIconImg, bagImgIdx * 16, 0, 16, 16, 0, 0, px, px);
+    }, {once: true});
+  }
+}
+
 const _bagTitleImg = new Image();
 _bagTitleImg.src = 'assets/images/ui/common/common_button02.png';
 // 九宫格参数：左右边缘3px(含2px透明+1px边框)，上下边缘1px(边框)，中间可拉伸
@@ -2304,20 +2339,8 @@ function renderBagSlots() {
       } else {
         const itemDef = ITEM_DEF[item.id];
         if (itemDef && itemDef.bagImg !== undefined) {
-          // 背包类道具：用canvas从图集切图
-          const icv = document.createElement('canvas');
-          iconEl.style.cssText = 'width:28px;height:28px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;';
-          iconEl.appendChild(icv);
-          const doDrawBag = () => {
-            icv.width = 56; icv.height = 56;
-            icv.style.cssText = 'width:28px;height:28px;image-rendering:pixelated;';
-            const c = icv.getContext('2d');
-            c.imageSmoothingEnabled = false;
-            c.clearRect(0,0,56,56);
-            c.drawImage(_bagsIconImg, itemDef.bagImg*16, 0, 16, 16, 0, 0, 56, 56);
-          };
-          if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) doDrawBag();
-          else { _bagsIconImg.addEventListener('load', doDrawBag, {once:true}); }
+          // 背包类道具：通过buildIcon统一处理
+          iconEl.innerHTML = buildIcon(itemDef);
         } else if (itemDef) {
           iconEl.innerHTML = buildIcon(itemDef);
         } else {
@@ -2334,6 +2357,7 @@ function renderBagSlots() {
     }
     slotsEl.appendChild(div);
   }
+  flushBagIcons(slotsEl);
   // 扩展格（5个），索引从mainSlots开始
   const extOffset = mainSlots; // 扩展格起始index
   for (let i = 0; i < 5; i++) {
@@ -2352,16 +2376,8 @@ function renderBagSlots() {
           const icv = document.createElement('canvas');
           icv.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);image-rendering:pixelated;';
           el.appendChild(icv);
-          const doDrawExt = () => {
-            icv.width = 44; icv.height = 44;
-            icv.style.width = '22px'; icv.style.height = '22px';
-            const c = icv.getContext('2d');
-            c.imageSmoothingEnabled = false;
-            c.clearRect(0,0,44,44);
-            c.drawImage(_bagsIconImg, itemDef.bagImg*16, 0, 16, 16, 0, 0, 44, 44);
-          };
-          if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) doDrawExt();
-          else { _bagsIconImg.addEventListener('load', doDrawExt, {once:true}); }
+          drawBagIcon(icv, itemDef.bagImg, 22);
+          cv.dataset.rendered = '1';
         } else {
           const iconEl = document.createElement('div');
           iconEl.className = 'bag-item-icon';
@@ -2680,14 +2696,11 @@ function openShop(){
     drawPanelCloseBtn('bag-close-btn');
     document.querySelectorAll('.sitem-bg').forEach(cv => drawSlotCanvas(cv, 41, 41, 1));
     // 渲染商店里的背包图标
-    const renderShopBagIcons = () => {
-      document.querySelectorAll('.sitem-bag-icon').forEach(cv => {
-        const idx = parseInt(cv.dataset.idx);
-        if (!isNaN(idx)) drawBagIcon(cv, idx, 28);
-      });
-    };
-    if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) renderShopBagIcons();
-    else _bagsIconImg.addEventListener('load', renderShopBagIcons, {once:true});
+    // 商店背包图标
+    document.querySelectorAll('.sitem-bag-icon').forEach(cv => {
+      const idx = parseInt(cv.dataset.idx);
+      if (!isNaN(idx)) drawBagIcon(cv, idx, 28);
+    });
   }, 80);
 }
 function closeShop(){
