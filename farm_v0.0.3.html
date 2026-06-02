@@ -181,7 +181,7 @@ canvas { display:block; }
   position:absolute; bottom:0; left:0; right:0;
   display:flex; align-items:flex-end; justify-content:space-between;
   padding:0 16px 16px;
-  pointer-events:none; z-index:10;
+  pointer-events:none; z-index:35;
 }
 
 /* 摇杆
@@ -291,12 +291,9 @@ canvas { display:block; }
 
 /* 背包面板 */
 #bag-panel {
-  position:absolute; top:0; left:0; right:0; bottom:90px; z-index:20;
-  background:rgba(10,5,0,0.55);
+  position:absolute; inset:0; z-index:30;
+  background:rgba(10,5,0,0.75);
   display:none; align-items:center; justify-content:center;
-  pointer-events:none;
-}
-#bag-inner {
   pointer-events:all;
 }
 #bag-inner {
@@ -304,6 +301,13 @@ canvas { display:block; }
   display:flex; flex-direction:column; align-items:center;
   gap:10px;
   pointer-events:all;
+}
+/* 商店+背包同时显示时，背包靠右 */
+#bag-panel.with-shop {
+  justify-content:flex-end;
+  padding-right:20px;
+  align-items:center;
+  background:transparent;
 }
 #bag-canvas {
   position:absolute; top:0; left:0;
@@ -375,9 +379,10 @@ canvas { display:block; }
 
 /* 商店 */
 #shop-panel {
-  position:absolute; top:0; left:0; right:0; bottom:90px; z-index:20;
-  background:rgba(10,5,0,0.55);
-  display:none; align-items:center; justify-content:center;
+  position:absolute; inset:0; z-index:30;
+  background:rgba(10,5,0,0.75);
+  display:none; align-items:center; justify-content:flex-start;
+  padding-left:20px; gap:16px;
 }
 .shop-box {
   position:relative;
@@ -448,7 +453,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.61</div>
+<div id="splash-version">版本号：v0.0.3.62</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1636,7 +1641,11 @@ let dragState = null; // {idx, itemId, startX, startY, ghost, moved}
 const LONG_PRESS_MS = 400;
 
 function onSlotPointerDown(e, idx) {
-  if (!hotbar[idx]) { selectSlot(idx); return; }
+  if (!hotbar[idx]) {
+    // 空格子：如果背包有选中则放入
+    if (bagOpen && selectedBagSlot !== null) { trySwapWithHotbar(idx); return; }
+    selectSlot(idx); return;
+  }
   e.preventDefault();
   const startX = e.clientX, startY = e.clientY;
   let dragging = false;
@@ -1665,6 +1674,8 @@ function onSlotPointerDown(e, idx) {
 }
 
 function selectSlot(idx) {
+  // 背包开着且有选中格子 → 互换而不是选中
+  if (trySwapWithHotbar(idx)) return;
   selectedSlot = idx;
   renderHotbar();
 }
@@ -2062,8 +2073,15 @@ function trySwapWithHotbar(hotbarIdx) {
 
 let bagOpen = false;
 function toggleBag() {
+  // 如果商店打开，直接关商店（商店关闭会连带关背包）
+  if (document.getElementById('shop-panel').style.display === 'flex') {
+    closeShop(); return;
+  }
   bagOpen = !bagOpen;
   const panel = document.getElementById('bag-panel');
+  // 确保 bag-inner 在 bag-panel 里
+  const bagInner = document.getElementById('bag-inner');
+  if (bagInner && bagInner.parentElement !== panel) panel.appendChild(bagInner);
   panel.style.display = bagOpen ? 'flex' : 'none';
   selectedBagSlot = null;
   if (bagOpen) {
@@ -2088,27 +2106,34 @@ window.addEventListener('load', () => { setTimeout(drawBagBtnIcon, 200); });
 
 function openShop(){
   updateSellGrid();
-  document.getElementById('shop-panel').style.display='flex';
-  // 同时打开背包
-  if (!bagOpen) {
-    bagOpen = true;
-    document.getElementById('bag-panel').style.display='flex';
-    renderBagSlots();
+  const shopPanel = document.getElementById('shop-panel');
+  shopPanel.style.display='flex';
+  // 背包inner移入商店panel右侧（左商店右背包）
+  const bagInner = document.getElementById('bag-inner');
+  if (bagInner && bagInner.parentElement.id !== 'shop-panel') {
+    shopPanel.appendChild(bagInner);
   }
+  bagOpen = true;
+  renderBagSlots();
   setTimeout(() => {
     drawShopBg();
     drawPanelCloseBtn('shop-close-btn');
     drawBagBg();
-    drawBagBtnIcon();
     drawPanelCloseBtn('bag-close-btn');
-    // 绘制格子底板
     document.querySelectorAll('.sitem-bg').forEach(cv => drawSlotCanvas(cv, 41, 41, 1));
   }, 80);
 }
 function closeShop(){
-  document.getElementById('shop-panel').style.display='none';
+  const shopPanel = document.getElementById('shop-panel');
+  shopPanel.style.display='none';
+  // 把 bag-inner 还回 bag-panel
+  const bagInner = document.getElementById('bag-inner');
+  const bagPanel = document.getElementById('bag-panel');
+  if (bagInner && bagInner.parentElement !== bagPanel) {
+    bagPanel.appendChild(bagInner);
+  }
   bagOpen = false;
-  document.getElementById('bag-panel').style.display='none';
+  bagPanel.style.display='none';
   selectedBagSlot = null;
 }
 
