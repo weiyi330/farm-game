@@ -460,57 +460,46 @@ canvas { display:block; }
   display:none; align-items:center; justify-content:flex-start;
   padding-left:20px; gap:16px;
   pointer-events:all;
-  touch-action:none;
 }
-/* 商店外壳：固定大小，不滚动 */
+/* 商店外壳：完全复刻 bag-inner */
 #shop-inner {
   position:relative;
   display:flex; flex-direction:column; align-items:center;
   gap:10px;
   pointer-events:all;
-  touch-action:none;
 }
-.shop-box-wrap {
-  position:relative; overflow:visible; flex-shrink:0;
-}
-/* shop-box：固定尺寸容器，只是定位锚点 */
-.shop-box {
-  position:relative;
-  width:220px;
-  height:calc(3.5 * 41px + 2.5 * 4px + 80px);
-  overflow:hidden;
-}
-/* 底板canvas：固定在shop-box内，不滚动 */
+/* 底板canvas：绝对定位，JS动态设置大小（同 bag-canvas） */
 #shop-canvas {
-  position:absolute; top:0; left:0; width:100%; height:100%;
-  image-rendering:pixelated; pointer-events:none; z-index:0;
+  position:absolute;
+  image-rendering:pixelated;
+  pointer-events:none;
 }
-/* 内容层：可以上下滚动 */
-#shop-scroll {
-  position:absolute; top:0; left:0; right:0; bottom:0;
-  overflow-y:auto; overflow-x:hidden;
-  scrollbar-width:none;
-  padding:10px 16px 16px;
-  display:flex; flex-direction:column; gap:10px;
-  z-index:1;
-}
-#shop-scroll::-webkit-scrollbar { display:none; }
-.shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
+/* 标题wrap：复刻 bag-title-wrap */
 #shop-title-wrap {
   position:relative; z-index:2;
   display:flex; align-items:center; justify-content:center;
   width:100%; margin-bottom:4px; margin-top:-33px;
 }
 #shop-title-canvas {
-  position:absolute; top:0; left:50px;
-  image-rendering:pixelated; pointer-events:none; z-index:0;
-  width:83px; height:30px;
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  image-rendering:pixelated; pointer-events:none;
 }
 #shop-title-text {
   position:relative; z-index:1;
-  font-size:17px; color:#3a1a08; letter-spacing:3px;
+  font-size:16px; color:#3a1a08; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
 }
+/* 商店内容区：可滚动，固定最大高度（同 bag-slots） */
+#shop-scroll {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; gap:10px;
+  max-height:calc(4 * 41px + 3 * 4px + 60px);
+  overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:none;
+  padding:0 4px 4px;
+}
+#shop-scroll::-webkit-scrollbar { display:none; }
+.shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
 #shop-close-btn {
   position:absolute; z-index:10;
   right:-22px; top:-31px;
@@ -610,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.99</div>
+<div id="splash-version">版本号：v0.0.3.100</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -839,12 +828,10 @@ canvas { display:block; }
 
   <div id="shop-panel">
     <div id="shop-inner">
-    <div class="shop-box-wrap">
-    <div class="shop-box">
       <canvas id="shop-canvas"></canvas>
       <canvas class="panel-close-btn" id="shop-close-btn" width="36" height="36" onclick="closeShop()" style="image-rendering:pixelated;"></canvas>
       <div id="shop-title-wrap">
-        <canvas id="shop-title-canvas" width="83" height="30"></canvas>
+        <canvas id="shop-title-canvas"></canvas>
         <span id="shop-title-text">桃源杂货铺</span>
       </div>
       <div id="shop-scroll">
@@ -901,8 +888,6 @@ canvas { display:block; }
       <div class="shop-section-label shop-grid-label">── 出售农产品 ──</div>
       <div class="shop-grid" id="sellGrid"></div>
       </div><!-- /shop-scroll -->
-    </div><!-- /shop-box -->
-    </div><!-- /shop-box-wrap -->
     </div><!-- /shop-inner -->
   </div><!-- /shop-panel -->
 
@@ -2589,17 +2574,31 @@ function drawShopTitle() {
 
 // 商店底板绘制
 function drawShopBg() {
-  const box = document.querySelector('.shop-box');
+  const inner = document.getElementById('shop-inner');
   const cv = document.getElementById('shop-canvas');
-  if (!box || !cv || !_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
+  if (!cv || !inner) return;
+  const scroll = document.getElementById('shop-scroll');
+  const title  = document.getElementById('shop-title-wrap');
+  if (!scroll || !title) return;
+  const PAD_W = 48, PAD_H = 80;
+  const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
+  const H = title.offsetHeight + scroll.offsetHeight + PAD_H;
   const dpr = window.devicePixelRatio || 1;
-  const W = box.clientWidth, H = box.scrollHeight || box.clientHeight;
-  cv.width  = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-  cv.style.width = W+'px'; cv.style.height = H+'px';
+  cv.width  = Math.round(W * dpr);
+  cv.height = Math.round(H * dpr);
+  cv.style.width  = W + 'px';
+  cv.style.height = H + 'px';
+  cv.style.top  = '-24px';
+  cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
+  // 同步重绘标题底板
+  const tCv = document.getElementById('shop-title-canvas');
+  const tWrap = document.getElementById('shop-title-wrap');
+  if (tWrap && tCv && tWrap.offsetWidth > 0) drawBagTitle(tCv, tWrap.offsetWidth, tWrap.offsetHeight||26);
   const c = cv.getContext('2d');
-  c.clearRect(0,0,cv.width,cv.height);
+  c.clearRect(0, 0, cv.width, cv.height);
+  if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
   c.imageSmoothingEnabled = false;
-  const SL=4,SR=4,ST=4,SB=4,SW=48,SH=48,EDGE_SCALE=2;
+  const SL=4, SR=4, ST=4, SB=4, SW=48, SH=48, EDGE_SCALE=2;
   const SMH=SW-SL-SR, SMV=SH-ST-SB;
   const ew=SL*EDGE_SCALE*dpr, eh=ST*EDGE_SCALE*dpr;
   const totalW=cv.width, totalH=cv.height;
