@@ -518,7 +518,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.71</div>
+<div id="splash-version">版本号：v0.0.3.72</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -630,6 +630,29 @@ canvas { display:block; }
         oninput="applyDbg('iconYOff',this.value)" onchange="applyDbg('iconYOff',this.value)">
       <input class="dbg-val" type="number" id="dv-iconYOff" value="19"
         onchange="applyDbg('iconYOff',this.value)">
+    </div>
+
+    <div class="dbg-group-title">📐 背包整体位置</div>
+    <div class="dbg-row">
+      <span class="dbg-label">整体左右</span>
+      <input class="dbg-slider" type="range" min="-300" max="300" value="0"
+        oninput="applyDbg('bagOffX',this.value)" onchange="applyDbg('bagOffX',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagOffX" value="0"
+        onchange="applyDbg('bagOffX',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">整体上下</span>
+      <input class="dbg-slider" type="range" min="-300" max="300" value="0"
+        oninput="applyDbg('bagOffY',this.value)" onchange="applyDbg('bagOffY',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagOffY" value="0"
+        onchange="applyDbg('bagOffY',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">整体缩放</span>
+      <input class="dbg-slider" type="range" min="50" max="200" value="100"
+        oninput="applyDbg('bagScale',this.value/100)" onchange="applyDbg('bagScale',this.value/100)">
+      <input class="dbg-val" type="number" id="dv-bagScale" value="1.0" step="0.05"
+        onchange="applyDbg('bagScale',parseFloat(this.value))">
     </div>
 
     <div class="dbg-row">
@@ -2395,6 +2418,7 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
   bagBgPadW: 48, bagBgPadH: 100, bagBgTop: -24,
+  bagOffX: 0, bagOffY: 0, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 16, bagTitleColor: '#3a1a08',
   bagCloseRight: -54, bagCloseTop: -31,
   tbHeight: 60, tbMarginBottom: -10,
@@ -2472,6 +2496,11 @@ function applyDbg(key, val) {
   if (key === 'bagCloseRight') {
     const btn = document.getElementById('bag-close-btn');
     if (btn) btn.style.right = v+'px';
+  }
+  if (key === 'bagOffX' || key === 'bagOffY' || key === 'bagScale') {
+    const inner = document.getElementById('bag-inner');
+    if (inner) inner.style.transform = `translate(${dbgParams.bagOffX}px, ${dbgParams.bagOffY}px) scale(${dbgParams.bagScale})`;
+    setTimeout(drawBagBg, 30);
   }
   if (key === 'bagBgPadW' || key === 'bagBgPadH' || key === 'bagBgTop') {
     setTimeout(drawBagBg, 30);
