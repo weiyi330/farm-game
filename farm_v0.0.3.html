@@ -530,7 +530,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.89</div>
+<div id="splash-version">版本号：v0.0.3.90</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1089,13 +1089,13 @@ const ITEM_DEF = {
   // 背包道具占位（原有）
   'bag_pack': { name:'背包道具', icon:'🎒', desc:'可携带物品', type:'bag' },
   // 7种背包（Bags.png图集，每格16×16，从左到右索引0-6）
-  'bag_normal':  { name:'普通背包',   bagSlots:8,  bagImg:0, desc:'容量8格' },
-  'bag_large':   { name:'大格背包',   bagSlots:12, bagImg:1, desc:'容量12格' },
-  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:16, bagImg:2, desc:'容量16格' },
-  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:24, bagImg:3, desc:'容量24格' },
-  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:16, bagImg:4, desc:'容量16格' },
-  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:24, bagImg:5, desc:'容量24格' },
-  'bag_mystery': { name:'神秘背包',   bagSlots:32, bagImg:6, desc:'容量32格' },
+  'bag_normal':  { name:'普通背包',   bagSlots:4,  bagImg:0, desc:'容量4格' },
+  'bag_large':   { name:'大格背包',   bagSlots:8,  bagImg:1, desc:'容量8格' },
+  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:12, bagImg:2, desc:'容量12格' },
+  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:16, bagImg:3, desc:'容量16格' },
+  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:12, bagImg:4, desc:'容量12格' },
+  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:16, bagImg:5, desc:'容量16格' },
+  'bag_mystery': { name:'神秘背包',   bagSlots:20, bagImg:6, desc:'容量20格' },
 };
 
 // 工具栏：12格，存 itemId 或 null
@@ -2154,7 +2154,7 @@ function _bagPackIcon() {
 // 初始状态：扩展格[0]放普通背包，基础格8格全空
 // bagItems = [0..7基础格] + [8..12扩展格x5]
 equippedBag = 'bag_normal';
-bagItems = new Array(8).fill(null);          // 基础格 8格
+bagItems = new Array(4).fill(null);          // 基础格 4格（普通背包）
 bagItems.push({ id: 'bag_normal', count: 1 }); // 扩展格[0]
 for (let _i=0;_i<4;_i++) bagItems.push(null); // 扩展格[1-4]空
 
@@ -2521,12 +2521,27 @@ let selectedHotbarForBag = null; // 工具栏被选中的格子（等待放入�
 function onBagSlotClick(idx) {
   // 扩展格已选中 → 点基础格空位：把扩展格背包取出到基础格
   if (selectedExtSlot !== null) {
-    const extBase2 = getTotalBagSlots();
-    const extCount = bagUnlocked.filter((u,k)=>u && bagItems[extBase2+k]?.id && ITEM_DEF[bagItems[extBase2+k].id]?.bagImg!==undefined).length;
-    if (extCount <= 1) { showToast('至少保留一个背包在扩展格'); selectedExtSlot=null; renderBagSlots(); return; }
+    const extStart = bagItems.length - 5;
+    const extItem = bagItems[extStart + selectedExtSlot];
+    if (!extItem) { selectedExtSlot = null; renderBagSlots(); return; }
+    // 至少保留1个背包
+    const extBagCount = bagItems.slice(extStart).filter(x => x && ITEM_DEF[x.id]?.bagImg !== undefined).length;
+    if (extBagCount <= 1) { showToast('至少保留一个背包在扩展格'); selectedExtSlot = null; renderBagSlots(); return; }
     if (bagItems[idx]) { showToast('基础格已有道具'); return; }
-    bagItems[idx] = bagItems[extBase2 + selectedExtSlot];
-    bagItems[extBase2 + selectedExtSlot] = null;
+    // 检查缩小后末尾格子是否全空
+    const removedSlots = ITEM_DEF[extItem.id]?.bagSlots || 0;
+    const newTotal = getTotalBagSlots() - removedSlots;
+    const tail = bagItems.slice(newTotal, extStart).filter(x => x !== null);
+    if (tail.length > 0) { showToast(`请先清空后${tail.length}格道具再取出背包`); return; }
+    // 取出：放入基础格，扩展格清空，缩小基础格
+    bagItems[idx] = extItem;
+    bagItems[extStart + selectedExtSlot] = null;
+    // 缩小基础格（删除末尾多余格子）
+    if (newTotal < extStart) bagItems.splice(newTotal, extStart - newTotal);
+    // 更新equippedBag
+    let bestBag = null, bestSl = 0;
+    bagItems.slice(bagItems.length - 5).forEach(x => { if(x){ const d=ITEM_DEF[x.id]; if(d&&(d.bagSlots||0)>bestSl){bestSl=d.bagSlots||0;bestBag=x.id;}}});
+    equippedBag = bestBag;
     selectedExtSlot = null;
     renderBagSlots(); drawBagBg(); return;
   }
@@ -2646,12 +2661,12 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 // 调试参数（与CSS/JS变量对应）
 const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
-  bagBgPadW: 48, bagBgPadH: 100, bagBgTop: -24,
-  bagTitleW: 0, bagTitleH: 0,
-  bagTitleLeft: 0, bagTitleTop: 0,
-  bagOffX: 0, bagOffY: 0, bagScale: 1.0,
-  bagTitleMT: -33, bagTitleFS: 16, bagTitleColor: '#3a1a08',
-  bagCloseRight: -54, bagCloseTop: -31,
+  bagBgPadW: 25, bagBgPadH: 49, bagBgTop: -24,
+  bagTitleW: 83, bagTitleH: 28,
+  bagTitleLeft: 5, bagTitleTop: 0,
+  bagOffX: 0, bagOffY: -27, bagScale: 1.0,
+  bagTitleMT: -35, bagTitleFS: 20, bagTitleColor: '#3a1a08',
+  bagCloseRight: -22, bagCloseTop: -31,
   tbHeight: 60, tbMarginBottom: -10,
   iconSize: 30, iconYOff: 19,
 };
@@ -2714,13 +2729,14 @@ function applyDbg(key, val) {
     setTimeout(drawBagBg, 30);
   }
   if (key === 'bagTitleLeft') {
-    const tw = document.getElementById('bag-title-wrap');
-    if (tw) tw.style.marginLeft = v+'px';
+    // 只移标题底板canvas，不移文字span
+    const tc = document.getElementById('bag-title-canvas');
+    if (tc) tc.style.left = v+'px';
   }
   if (key === 'bagTitleTop') {
-    const tw = document.getElementById('bag-title-wrap');
-    if (tw) tw.style.marginTop = (dbgParams.bagTitleMT + v)+'px';
-    setTimeout(drawBagBg, 30);
+    // 只移标题底板canvas，不移文字span
+    const tc = document.getElementById('bag-title-canvas');
+    if (tc) tc.style.top = v+'px';
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
     const titleWrap = document.getElementById('bag-title-wrap');
@@ -3140,6 +3156,14 @@ document.getElementById('quit-btn').addEventListener('click', () => {
 camX = Math.round(player.wx * TILE - canvas.width/2);
 camY = Math.round(player.wy * TILE - canvas.height/2);
 renderHotbar();
+// 应用 dbgParams 默认值到 DOM
+(function applyAllDbg() {
+  const keys = ['bagBgPadW','bagBgPadH','bagBgTop','bagTitleW','bagTitleH',
+    'bagTitleLeft','bagTitleTop','bagOffX','bagOffY','bagScale',
+    'bagTitleMT','bagTitleFS','bagCloseRight','bagCloseTop','tbHeight','tbMarginBottom'];
+  keys.forEach(k => { try { applyDbg(k, dbgParams[k]); } catch(e){} });
+  applyDbg('bagTitleColor', dbgParams.bagTitleColor);
+})();
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 </script>
 </body>
