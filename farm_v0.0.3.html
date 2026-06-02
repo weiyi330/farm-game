@@ -606,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.130</div>
+<div id="splash-version">版本号：v0.0.3.131</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -641,6 +641,13 @@ canvas { display:block; }
         oninput="applyDbg('bagTitleW',this.value)" onchange="applyDbg('bagTitleW',this.value)">
       <input class="dbg-val" type="number" id="dv-bagTitleW" value="83"
         onchange="applyDbg('bagTitleW',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题左右位移</span>
+      <input class="dbg-slider" type="range" min="-150" max="150" value="50"
+        oninput="applyDbg('bagTitleLeft',this.value)" onchange="applyDbg('bagTitleLeft',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleLeft" value="50"
+        onchange="applyDbg('bagTitleLeft',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
     <div id="dbg-export-out" style="font-size:9px;color:#aaa;word-break:break-all;display:none;"></div>
@@ -2831,7 +2838,7 @@ function applyDbg(key, val) {
 function exportDbgValues() {
   const out = document.getElementById('dbg-export-out');
   if (!out) return;
-  const bagTitleLine = 'bagTitleW: ' + dbgParams.bagTitleW;
+  const bagTitleLine = 'bagTitleW: ' + dbgParams.bagTitleW + '\nbagTitleLeft: ' + dbgParams.bagTitleLeft;
   const lines = bagTitleLine + '\n' + Object.entries(shopDbg).map(([k,v]) => `${k}: ${v}`).join('\n');
   out.textContent = lines;
   out.style.display = 'block';
