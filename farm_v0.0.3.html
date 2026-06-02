@@ -481,7 +481,7 @@ canvas { display:block; }
 }
 .sitem-wrap {
   display:flex; flex-direction:column; align-items:center; gap:3px;
-  cursor:pointer;
+  cursor:pointer; width:52px;
 }
 .sitem-wrap:active .sitem { transform:scale(0.93); }
 .sitem {
@@ -528,7 +528,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.78</div>
+<div id="splash-version">版本号：v0.0.3.79</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2106,6 +2106,7 @@ function _bagPackIcon() {
 }
 
 // 初始化：塞一个背包道具
+bagItems[0] = { id: 'bag_normal', count: 1 }; // 普通背包放基础格[0]供测试
 bagItems[9] = { id: 'bag_normal', count: 1 }; // 普通背包放扩展格[0]
 equippedBag = 'bag_normal'; // 默认装备普通背包（8格）
 
