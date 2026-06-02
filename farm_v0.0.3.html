@@ -64,22 +64,23 @@ canvas { display:block; }
   width:100%;
   text-align:center;
   color:rgba(255,255,255,0.4);
-  font-size:19px;
-  letter-spacing:1px;
+  font-size:38px;
+  letter-spacing:2px;
   animation: guidePulse 1.6s ease-in-out infinite;
 }
 #guide-browser-tip {
-  width:100%;
+  display:inline-block;
   text-align:center;
   color:rgba(255,160,60,0.85);
   font-size:16px;
   letter-spacing:1px;
   line-height:1.7;
-  margin-top:4px;
+  margin-top:34px;
   padding:8px 20px;
   background:rgba(255,120,0,0.12);
   border:1px solid rgba(255,160,60,0.3);
   border-radius:10px;
+}
 }
 @keyframes guidePulse {
   0%,100%{ opacity:0.4; } 50%{ opacity:1; }
@@ -334,7 +335,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.54</div>
+<div id="splash-version">版本号：v0.0.3.55</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1038,7 +1039,7 @@ function drawPlayer(x, y) {
     const _hItem = currentItem();
     const _id = currentItemId();
     if (_hItem && _id) {
-      const iconSize = 20;
+      const iconSize = 40;
       const iconX = x - iconSize / 2;
       const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize - 1;
       const _cropSheetEntry = getImg(CROPS_SHEET);
@@ -1277,11 +1278,6 @@ function loop(ts){
       // 位移打断
       const actionName = { water:'浇水', hoe:'锄地', harvest:'收获', carry_throw:'播种' }[spAnim] || '操作';
       showToast(`${actionName}被打断`);
-      // 播种动画被打断时还原地块状态
-      if (spAnim === ANIM_CARRY_THROW && pendingActionTile) {
-        const {r:pr, c:pc} = pendingActionTile;
-        tileMap[pr][pc] = T.TILLED;
-      }
       pendingActionTile = null;
       const wasCarry = [ANIM_CARRY_THROW].includes(spAnim);
       spAnim = wasCarry ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
@@ -1306,7 +1302,7 @@ function loop(ts){
             } else if (action === 'sow') {
               // 播种动画播完 → 执行种植
               const sowSeedType = pendingActionTile.seedType;
-              if (sowSeedType && tileMap[r][c] === T.TILLED) {
+              if (sowSeedType) {
                 const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
                 tileMap[r][c] = T.CROP;
                 cropMap[r][c] = {type:sowSeedType, daysGrown:0, watered:alreadyWatered, ready:false};
@@ -1436,9 +1432,7 @@ function doAction(){
       const next = hotbar.findIndex((v,i) => i !== selectedSlot && v !== null);
       if (next >= 0) selectedSlot = next;
     }
-    tileMap[r][c]=T.CROP; // 先标记为 CROP 占位，动画播完后写入 cropMap
-    const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
-    // 解批：准备播种动画，播完后在 pendingActionTile.seedType 里执行种植
+    // 不预先占位，动画播完后再写入 cropMap
     spAnim = ANIM_CARRY_THROW; spFrame = 0; spFrameTimer = 0;
     pendingActionTile = { r, c, action: 'sow', seedType };
     showToast(`种下了${CROPS[seedType].icon}${CROPS[seedType].name}`);
