@@ -530,7 +530,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.90</div>
+<div id="splash-version">版本号：v0.0.3.91</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -624,6 +624,20 @@ canvas { display:block; }
         oninput="applyDbg('bagTitleTop',this.value)" onchange="applyDbg('bagTitleTop',this.value)">
       <input class="dbg-val" type="number" id="dv-bagTitleTop" value="0"
         onchange="applyDbg('bagTitleTop',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">文字左移</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="0"
+        oninput="applyDbg('bagTitleTextLeft',this.value)" onchange="applyDbg('bagTitleTextLeft',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleTextLeft" value="0"
+        onchange="applyDbg('bagTitleTextLeft',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">文字上移</span>
+      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+        oninput="applyDbg('bagTitleTextTop',this.value)" onchange="applyDbg('bagTitleTextTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleTextTop" value="0"
+        onchange="applyDbg('bagTitleTextTop',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">关闭按钮右</span>
@@ -1102,7 +1116,7 @@ const ITEM_DEF = {
 let hotbar = [
   'hoe', 'water', 'harvest', 'seed_potato',
   'sleep', 'shop',
-  null, null, null, null, null, null
+  null, null, null, null
 ];
 let selectedSlot = 0; // 当前选中格子索引
 
@@ -2432,8 +2446,16 @@ function renderBagSlots() {
         }
         const selItem = bagItems[extBase + selectedExtSlot];
         if (extItem) {
-          // 两个扩展格都有背包 → 替换装备（走placeBagIntoExtSlot，从选中格换到目标格）
-          placeBagIntoExtSlot(extBase + selectedExtSlot, extBase + slotI);
+          // 两个扩展格都有背包 → 直接swap（格子总数不变，只换位置）
+          const extStart2 = bagItems.length - 5;
+          const tmp = bagItems[extStart2 + selectedExtSlot];
+          bagItems[extStart2 + selectedExtSlot] = bagItems[extStart2 + slotI];
+          bagItems[extStart2 + slotI] = tmp;
+          // 更新equippedBag = 最大格子背包
+          let bestBag = null, bestSl = 0;
+          bagItems.slice(extStart2).forEach(x => { if(x){const d=ITEM_DEF[x.id];if(d&&(d.bagSlots||0)>bestSl){bestSl=d.bagSlots||0;bestBag=x.id;}}});
+          equippedBag = bestBag;
+          selectedExtSlot = null; renderBagSlots(); drawBagBg();
         } else {
           // 目标格为空 → 纯移位，不改格子数，不改equippedBag
           bagItems[extBase + slotI] = selItem;
@@ -2662,11 +2684,12 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
   bagBgPadW: 25, bagBgPadH: 49, bagBgTop: -24,
-  bagTitleW: 83, bagTitleH: 28,
-  bagTitleLeft: 5, bagTitleTop: 0,
+  bagTitleW: 83, bagTitleH: 30,
+  bagTitleLeft: 48, bagTitleTop: -1,
+  bagTitleTextLeft: 0, bagTitleTextTop: 0,
   bagOffX: 0, bagOffY: -27, bagScale: 1.0,
-  bagTitleMT: -35, bagTitleFS: 20, bagTitleColor: '#3a1a08',
-  bagCloseRight: -22, bagCloseTop: -31,
+  bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#3a1a08',
+  bagCloseRight: -19, bagCloseTop: -32,
   tbHeight: 60, tbMarginBottom: -10,
   iconSize: 30, iconYOff: 19,
 };
@@ -2734,9 +2757,18 @@ function applyDbg(key, val) {
     if (tc) tc.style.left = v+'px';
   }
   if (key === 'bagTitleTop') {
-    // 只移标题底板canvas，不移文字span
     const tc = document.getElementById('bag-title-canvas');
     if (tc) tc.style.top = v+'px';
+  }
+  if (key === 'bagTitleTextLeft') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) tt.style.position = 'relative';
+    if (tt) tt.style.left = v+'px';
+  }
+  if (key === 'bagTitleTextTop') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) tt.style.position = 'relative';
+    if (tt) tt.style.top = v+'px';
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
     const titleWrap = document.getElementById('bag-title-wrap');
@@ -2749,10 +2781,12 @@ function applyDbg(key, val) {
     setTimeout(drawBagBg, 30);
   }
   if (key === 'bagTitleColor') {
-    const tt = document.getElementById('bag-title-text');
-    if (tt) tt.style.color = val;
-    const dv = document.getElementById('dv-bagTitleColor');
-    if (dv) dv.textContent = val;
+    if (val && val !== 'NaN' && val !== 'undefined') {
+      const tt = document.getElementById('bag-title-text');
+      if (tt) tt.style.color = val;
+      const dv = document.getElementById('dv-bagTitleColor');
+      if (dv) dv.textContent = val;
+    }
   }
   if (key === 'bagCloseRight') {
     const btn = document.getElementById('bag-close-btn');
@@ -3159,7 +3193,8 @@ renderHotbar();
 // 应用 dbgParams 默认值到 DOM
 (function applyAllDbg() {
   const keys = ['bagBgPadW','bagBgPadH','bagBgTop','bagTitleW','bagTitleH',
-    'bagTitleLeft','bagTitleTop','bagOffX','bagOffY','bagScale',
+    'bagTitleLeft','bagTitleTop','bagTitleTextLeft','bagTitleTextTop',
+    'bagOffX','bagOffY','bagScale',
     'bagTitleMT','bagTitleFS','bagCloseRight','bagCloseTop','tbHeight','tbMarginBottom'];
   keys.forEach(k => { try { applyDbg(k, dbgParams[k]); } catch(e){} });
   applyDbg('bagTitleColor', dbgParams.bagTitleColor);
