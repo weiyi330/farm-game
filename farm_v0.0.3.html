@@ -321,7 +321,7 @@ canvas { display:block; }
 #bag-title-wrap {
   position:relative; z-index:2;
   display:flex; align-items:center; justify-content:center;
-  width:100%; margin-bottom:4px; margin-top:-33px;
+  margin-bottom:4px; margin-top:-33px;
 }
 #bag-title-canvas {
   position:absolute; top:0; left:0;
@@ -606,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.126</div>
+<div id="splash-version">版本号：v0.0.3.127</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2390,9 +2390,11 @@ function drawBagBg() {
   // 同步重绘标题底板
   const _tWrap = document.getElementById('bag-title-wrap');
   const _tCv   = document.getElementById('bag-title-canvas');
-  if (_tWrap && _tCv && _tWrap.offsetWidth > 0) {
+  if (_tWrap && _tCv) {
     const _bTW = dbgParams.bagTitleW || 83, _bTH = dbgParams.bagTitleH || 30;
     drawBagTitle(_tCv, _bTW, _bTH);
+    _tWrap.style.width  = _bTW + 'px';
+    _tWrap.style.height = _bTH + 'px';
   }
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
@@ -2933,9 +2935,11 @@ function applyDbg(key, val) {
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
     const titleCv = document.getElementById('bag-title-canvas');
+    const titleWrap = document.getElementById('bag-title-wrap');
     const W = dbgParams.bagTitleW > 0 ? dbgParams.bagTitleW : 83;
     const H = dbgParams.bagTitleH > 0 ? dbgParams.bagTitleH : 30;
     if (titleCv) drawBagTitle(titleCv, W, H);
+    if (titleWrap) { titleWrap.style.width = W+'px'; titleWrap.style.height = H+'px'; }
   }
   if (key === 'bagTitleFS') {
     const tt = document.getElementById('bag-title-text');
