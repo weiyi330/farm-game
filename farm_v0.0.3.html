@@ -291,14 +291,19 @@ canvas { display:block; }
 
 /* 背包面板 */
 #bag-panel {
-  position:absolute; inset:0; z-index:30;
-  background:rgba(10,5,0,0.8);
+  position:absolute; top:0; left:0; right:0; bottom:90px; z-index:20;
+  background:rgba(10,5,0,0.55);
   display:none; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+#bag-inner {
+  pointer-events:all;
 }
 #bag-inner {
   position:relative;
   display:flex; flex-direction:column; align-items:center;
   gap:10px;
+  pointer-events:all;
 }
 #bag-canvas {
   position:absolute; top:0; left:0;
@@ -370,15 +375,19 @@ canvas { display:block; }
 
 /* 商店 */
 #shop-panel {
-  position:absolute; inset:0; z-index:30;
-  background:rgba(10,5,0,0.8);
+  position:absolute; top:0; left:0; right:0; bottom:90px; z-index:20;
+  background:rgba(10,5,0,0.55);
   display:none; align-items:center; justify-content:center;
 }
 .shop-box {
   position:relative;
   padding:20px 16px 16px;
-  width:360px; max-height:85vh; overflow-y:auto;
+  width:360px; max-height:calc(100vh - 120px); overflow-y:auto; overflow-x:visible;
   display:flex; flex-direction:column; gap:10px;
+}
+.shop-box-wrap {
+  position:relative;
+  overflow:visible;
 }
 #shop-canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
@@ -386,18 +395,28 @@ canvas { display:block; }
 }
 .shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
 .shop-section-label { position:relative; z-index:1; font-size:10px; color:#a08040; letter-spacing:2px; }
-.shop-grid { position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
-.sitem {
-  background:rgba(180,130,50,0.1); border:1px solid #6a4a20;
-  border-radius:10px; padding:8px 4px;
-  display:flex; flex-direction:column; align-items:center; gap:2px;
+.shop-grid-label { position:relative; z-index:1; }
+.shop-grid {
+  display:flex; flex-wrap:wrap; gap:10px;
+}
+.sitem-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
   cursor:pointer;
 }
-.sitem:active { transform:scale(0.93); background:rgba(200,160,60,0.2); }
-.sitem-icon { font-size:20px; }
-.sitem-name { font-size:10px; color:#d4a060; }
-.sitem-price { font-size:10px; color:#f5d78e; }
-.sitem-desc { font-size:9px; color:#886640; text-align:center; }
+.sitem-wrap:active .sitem { transform:scale(0.93); }
+.sitem {
+  position:relative;
+  width:41px; height:41px;
+  display:flex; align-items:center; justify-content:center;
+}
+.sitem canvas.sitem-bg {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  image-rendering:pixelated; pointer-events:none;
+}
+.sitem-icon { font-size:20px; position:relative; z-index:1; }
+.sitem-name { font-size:9px; color:#d4a060; text-align:center; max-width:48px; }
+.sitem-price { font-size:9px; color:#f5d78e; text-align:center; }
+.sitem-desc { font-size:8px; color:#886640; text-align:center; max-width:48px; }
 .shop-close {
   position:relative; z-index:1;
   padding:9px; background:rgba(140,60,20,0.4); border:1px solid #b06030;
@@ -429,7 +448,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.60</div>
+<div id="splash-version">版本号：v0.0.3.61</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -480,19 +499,33 @@ canvas { display:block; }
   </div>
 
   <div id="shop-panel">
+    <div class="shop-box-wrap">
     <div class="shop-box">
       <canvas id="shop-canvas"></canvas>
       <canvas class="panel-close-btn" id="shop-close-btn" width="36" height="36" onclick="closeShop()" style="image-rendering:pixelated;"></canvas>
       <div class="shop-title">📜 桃源杂货铺</div>
-      <div class="shop-section-label">── 种子 ──</div>
+      <div class="shop-section-label shop-grid-label">── 种子 ──</div>
       <div class="shop-grid">
-        <div class="sitem" onclick="buySeed('potato')"><span class="sitem-icon">🥔</span><span class="sitem-name">土豆</span><span class="sitem-price">🪙8</span><span class="sitem-desc">8天·售25</span></div>
-        <div class="sitem" onclick="buySeed('carrot')"><span class="sitem-icon">🥕</span><span class="sitem-name">萝卜</span><span class="sitem-price">🪙8</span><span class="sitem-desc">4天·售18</span></div>
-        <div class="sitem" onclick="buySeed('cabbage')"><span class="sitem-icon">🥬</span><span class="sitem-name">白菜</span><span class="sitem-price">🪙12</span><span class="sitem-desc">5天·售30</span></div>
-        <div class="sitem" onclick="buySeed('peach')"><span class="sitem-icon">🍑</span><span class="sitem-name">桃子</span><span class="sitem-price">🪙30</span><span class="sitem-desc">7天·售80</span></div>
+        <div class="sitem-wrap" onclick="buySeed('potato')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥔</span></div>
+          <div class="sitem-name">土豆</div><div class="sitem-price">🪙8</div>
+        </div>
+        <div class="sitem-wrap" onclick="buySeed('carrot')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥕</span></div>
+          <div class="sitem-name">萝卜</div><div class="sitem-price">🪙8</div>
+        </div>
+        <div class="sitem-wrap" onclick="buySeed('cabbage')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥬</span></div>
+          <div class="sitem-name">白菜</div><div class="sitem-price">🪙12</div>
+        </div>
+        <div class="sitem-wrap" onclick="buySeed('peach')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🍑</span></div>
+          <div class="sitem-name">桃子</div><div class="sitem-price">🪙30</div>
+        </div>
       </div>
-      <div class="shop-section-label">── 出售农产品 ──</div>
+      <div class="shop-section-label shop-grid-label">── 出售农产品 ──</div>
       <div class="shop-grid" id="sellGrid"></div>
+    </div>
     </div>
   </div>
 </div>
@@ -2056,12 +2089,28 @@ window.addEventListener('load', () => { setTimeout(drawBagBtnIcon, 200); });
 function openShop(){
   updateSellGrid();
   document.getElementById('shop-panel').style.display='flex';
+  // 同时打开背包
+  if (!bagOpen) {
+    bagOpen = true;
+    document.getElementById('bag-panel').style.display='flex';
+    renderBagSlots();
+  }
   setTimeout(() => {
     drawShopBg();
     drawPanelCloseBtn('shop-close-btn');
-  }, 50);
+    drawBagBg();
+    drawBagBtnIcon();
+    drawPanelCloseBtn('bag-close-btn');
+    // 绘制格子底板
+    document.querySelectorAll('.sitem-bg').forEach(cv => drawSlotCanvas(cv, 41, 41, 1));
+  }, 80);
 }
-function closeShop(){ document.getElementById('shop-panel').style.display='none'; }
+function closeShop(){
+  document.getElementById('shop-panel').style.display='none';
+  bagOpen = false;
+  document.getElementById('bag-panel').style.display='none';
+  selectedBagSlot = null;
+}
 
 function buySeed(type){
   const cfg=CROPS[type];
