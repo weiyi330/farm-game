@@ -321,7 +321,7 @@ canvas { display:block; }
 #bag-title-wrap {
   position:relative; z-index:2;
   display:flex; align-items:center; justify-content:center;
-  width:100%; margin-bottom:4px;
+  width:100%; margin-bottom:4px; margin-top:-25px;
 }
 #bag-title-canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
@@ -382,7 +382,7 @@ canvas { display:block; }
 
 /* 关闭按钮（共用，背包+商店右上角） */
 .panel-close-btn {
-  position:absolute; top:-14px; right:-14px; z-index:10;
+  position:absolute; top:-14px; right:-34px; z-index:10;
   width:36px; height:36px;
   cursor:pointer; image-rendering:pixelated;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));
@@ -466,7 +466,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.67</div>
+<div id="splash-version">版本号：v0.0.3.68</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1929,7 +1929,7 @@ function drawBagBg() {
   if (!cv || !inner) return;
   const slots = document.getElementById('bag-slots');
   const extra = document.getElementById('bag-extra-slots');
-  const title = document.getElementById('bag-title');
+  const title = document.getElementById('bag-title-wrap');
   if (!slots || !extra || !title) return;
   const W = Math.max(slots.offsetWidth, extra.offsetWidth, 180) + 48;
   const H = title.offsetHeight + slots.offsetHeight + extra.offsetHeight + 100;
