@@ -606,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.128</div>
+<div id="splash-version">版本号：v0.0.3.129</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -634,35 +634,7 @@ canvas { display:block; }
   </div>
   <!-- UI调试面板 -->
   <div id="ui-debug-panel">
-    <div class="dbg-group-title">🗂️ 工具栏</div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板宽度</span>
-      <input class="dbg-slider" type="range" min="200" max="600" value="470"
-        oninput="applyDbg('tbWidth',this.value)" onchange="applyDbg('tbWidth',this.value)">
-      <input class="dbg-val" type="number" id="dv-tbWidth" value="470"
-        onchange="applyDbg('tbWidth',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板宽余量</span>
-      <input class="dbg-slider" type="range" min="0" max="120" value="48"
-        oninput="applyDbg('bagBgPadW',this.value)" onchange="applyDbg('bagBgPadW',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagBgPadW" value="48"
-        onchange="applyDbg('bagBgPadW',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板高余量</span>
-      <input class="dbg-slider" type="range" min="20" max="200" value="100"
-        oninput="applyDbg('bagBgPadH',this.value)" onchange="applyDbg('bagBgPadH',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagBgPadH" value="100"
-        onchange="applyDbg('bagBgPadH',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板上偏移</span>
-      <input class="dbg-slider" type="range" min="-60" max="0" value="-24"
-        oninput="applyDbg('bagBgTop',this.value)" onchange="applyDbg('bagBgTop',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagBgTop" value="-24"
-        onchange="applyDbg('bagBgTop',this.value)">
-    </div>
+    <div class="dbg-group-title">🎒 背包标题</div>
     <div class="dbg-row">
       <span class="dbg-label">标题底板宽</span>
       <input class="dbg-slider" type="range" min="40" max="300" value="83"
