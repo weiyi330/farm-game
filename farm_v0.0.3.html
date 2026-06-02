@@ -336,11 +336,9 @@ canvas { display:block; }
   position:relative; z-index:2;
   display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
   max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
-  scrollbar-width:thin; scrollbar-color:rgba(80,140,50,0.7) transparent;
+  scrollbar-width:none;
 }
-#bag-slots::-webkit-scrollbar { width:4px; }
-#bag-slots::-webkit-scrollbar-track { background:transparent; }
-#bag-slots::-webkit-scrollbar-thumb { background:rgba(80,140,50,0.7); border-radius:2px; }
+#bag-slots::-webkit-scrollbar { display:none; }
 #bag-divider {
   position:relative; z-index:2;
   width:100%; height:1px;
@@ -532,7 +530,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.87</div>
+<div id="splash-version">版本号：v0.0.3.88</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2402,23 +2400,21 @@ function renderBagSlots() {
       // ── 情况1：当前有选中的扩展格 ──
       if (selectedExtSlot !== null) {
         if (selectedExtSlot === slotI) {
-          // 点同一个 → 取消选中
           selectedExtSlot = null;
           renderBagSlots(); return;
         }
+        const selItem = bagItems[extBase + selectedExtSlot];
         if (extItem) {
-          // 目标格有背包 → 互换两个扩展格（直接swap，不改格子数）
-          const tmp = bagItems[extBase + selectedExtSlot];
-          bagItems[extOffset + selectedExtSlot] = bagItems[extBase + slotI];
-          bagItems[extBase + slotI] = tmp;
-          selectedExtSlot = null;
-          renderBagSlots(); return;
-        } else {
-          // 目标格为空 → 移动扩展格背包到此格（触发格子数变化）
+          // 两个扩展格都有背包 → 替换装备（走placeBagIntoExtSlot，从选中格换到目标格）
           placeBagIntoExtSlot(extBase + selectedExtSlot, extBase + slotI);
-          selectedExtSlot = null;
-          return;
+        } else {
+          // 目标格为空 → 纯移位，不改格子数，不改equippedBag
+          bagItems[extBase + slotI] = selItem;
+          bagItems[extBase + selectedExtSlot] = null;
+          renderBagSlots(); drawBagBg();
         }
+        selectedExtSlot = null;
+        return;
       }
 
       // ── 情况2：有选中的基础格背包 → 放入扩展格 ──
@@ -2496,24 +2492,32 @@ let selectedBagSlot = null;
 let selectedExtSlot = null; // 当前选中的扩展格索引（0-4）
 let selectedHotbarForBag = null; // 工具栏被选中的格子（等待放入背包）
 function onBagSlotClick(idx) {
+  // 扩展格已选中 → 点基础格空位：把扩展格背包取出到基础格
+  if (selectedExtSlot !== null) {
+    const extBase2 = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots||8) : 8;
+    const extCount = bagUnlocked.filter((u,k)=>u && bagItems[extBase2+k]?.id && ITEM_DEF[bagItems[extBase2+k].id]?.bagImg!==undefined).length;
+    if (extCount <= 1) { showToast('至少保留一个背包在扩展格'); selectedExtSlot=null; renderBagSlots(); return; }
+    if (bagItems[idx]) { showToast('基础格已有道具'); return; }
+    bagItems[idx] = bagItems[extBase2 + selectedExtSlot];
+    bagItems[extBase2 + selectedExtSlot] = null;
+    selectedExtSlot = null;
+    renderBagSlots(); drawBagBg(); return;
+  }
+
   if (selectedBagSlot === null && selectedHotbarForBag === null) {
-    // 无选中 → 选中背包格子（只有有道具才能选中）
     if (!bagItems[idx]) return;
     selectedBagSlot = idx;
     renderBagSlots();
   } else if (selectedBagSlot === idx) {
-    // 点同一格 → 取消
     selectedBagSlot = null;
     renderBagSlots();
   } else if (selectedBagSlot !== null) {
-    // 已选背包格子 → 点另一背包格子：互换/移动
     const tmp = bagItems[selectedBagSlot];
     bagItems[selectedBagSlot] = bagItems[idx];
     bagItems[idx] = tmp;
     selectedBagSlot = null;
     renderBagSlots();
   } else if (selectedHotbarForBag !== null) {
-    // 已选工具栏道具 → 点背包格子：移动/互换
     doSwapHotbarBag(selectedHotbarForBag, idx);
   }
 }
@@ -2617,6 +2621,7 @@ const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
   bagBgPadW: 48, bagBgPadH: 100, bagBgTop: -24,
   bagTitleW: 0, bagTitleH: 0,
+  bagTitleLeft: 0, bagTitleTop: 0,
   bagOffX: 0, bagOffY: 0, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 16, bagTitleColor: '#3a1a08',
   bagCloseRight: -54, bagCloseTop: -31,
@@ -2679,6 +2684,15 @@ function applyDbg(key, val) {
   if (key === 'bagTitleMT') {
     const tw = document.getElementById('bag-title-wrap');
     if (tw) tw.style.marginTop = v+'px';
+    setTimeout(drawBagBg, 30);
+  }
+  if (key === 'bagTitleLeft') {
+    const tw = document.getElementById('bag-title-wrap');
+    if (tw) tw.style.marginLeft = v+'px';
+  }
+  if (key === 'bagTitleTop') {
+    const tw = document.getElementById('bag-title-wrap');
+    if (tw) tw.style.marginTop = (dbgParams.bagTitleMT + v)+'px';
     setTimeout(drawBagBg, 30);
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
