@@ -335,7 +335,8 @@ canvas { display:block; }
 #bag-slots {
   position:relative; z-index:2;
   display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
-  max-height:calc(3.5*(41px+4px)); overflow-y:auto;
+  max-height:calc(3.5 * 41px + 3 * 4px); overflow-y:scroll;
+  height:calc(3.5 * 41px + 3 * 4px);
   scrollbar-width:thin; scrollbar-color:rgba(120,170,80,0.5) transparent;
 }
 #bag-slots::-webkit-scrollbar { width:4px; }
@@ -355,6 +356,7 @@ canvas { display:block; }
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; image-rendering:pixelated;
 }
+.bag-slot.selected canvas:first-child { outline:2px solid #f5e642; outline-offset:-2px; }
 .bag-slot-extra {
   width:32px; height:32px; position:relative;
   display:flex; align-items:center; justify-content:center;
@@ -530,7 +532,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.84</div>
+<div id="splash-version">版本号：v0.0.3.85</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2311,7 +2313,7 @@ function renderBagSlots() {
   const mainSlots = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots || 8) : 8;
   for (let i = 0; i < mainSlots; i++) {
     const div = document.createElement('div');
-    div.className = 'bag-slot';
+    div.className = 'bag-slot' + (selectedBagSlot === i ? ' selected' : '');
     div.dataset.idx = i;
     div.onclick = () => onBagSlotClick(i);
     const cv = document.createElement('canvas');
@@ -2362,6 +2364,8 @@ function renderBagSlots() {
     }
     slotsEl.appendChild(div);
   }
+  // 清除rendered标记，确保每次重绘
+  slotsEl.querySelectorAll('canvas.bag-icon-cv').forEach(c=>delete c.dataset.rendered);
   flushBagIcons(slotsEl);
   // 扩展格（5个），索引从mainSlots开始
   const extOffset = mainSlots; // 扩展格起始index
@@ -2653,7 +2657,7 @@ function applyDbg(key, val) {
   if (key === 'bagPad' || key === 'bagSlot' || key === 'bagGap') {
     // 重新计算格子grid
     const slots = document.getElementById('bag-slots');
-    if (slots) slots.style.gridTemplateColumns = `repeat(4,${dbgParams.bagSlot}px)`;
+    if (slots) slots.style.gridTemplateColumns = `repeat(4,${dbgParams.bagSlot}px)`; slots.style.height=''; slots.style.maxHeight='';
     document.querySelectorAll('.bag-slot').forEach(s => {
       s.style.width = dbgParams.bagSlot+'px';
       s.style.height = dbgParams.bagSlot+'px';
