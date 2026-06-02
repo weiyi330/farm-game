@@ -334,7 +334,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.53</div>
+<div id="splash-version">版本号：v0.0.3.54</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -928,19 +928,20 @@ window.addEventListener('resize', drawToolbarBg);
 
 // 动画状态枚举
 const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run', ANIM_WATER = 'water', ANIM_HOE = 'hoe', ANIM_HARVEST = 'harvest';
-const ANIM_CARRY_IDLE = 'carry_idle', ANIM_CARRY_WALK = 'carry_walk', ANIM_CARRY_RUN = 'carry_run';
+const ANIM_CARRY_IDLE = 'carry_idle', ANIM_CARRY_WALK = 'carry_walk', ANIM_CARRY_RUN = 'carry_run', ANIM_CARRY_THROW = 'carry_throw';
 
 // 各状态图集配置
 const SPRITE_CFG = {
-  idle:       { src: 'assets/images/player/1. Idle/Skins/1.png',                                           frames: 4, frameMs: 200 },
-  walk:       { src: 'assets/images/player/2. Walk/Skins/1.png',                                           frames: 6, frameMs: 140 },
-  run:        { src: 'assets/images/player/3. Run/Skins/1.png',                                            frames: 8, frameMs: 100 },
-  carry_idle: { src: 'assets/images/player/6. Carrying - Idle/Skins/1.png',                               frames: 4, frameMs: 200 },
-  carry_walk: { src: 'assets/images/player/6.1 Carrying - Walk/Skins/1.png',                              frames: 6, frameMs: 140 },
-  carry_run:  { src: 'assets/images/player/6.2 Carrying - Run/Skins/1.png',                               frames: 8, frameMs: 100 },
-  water:      { src: 'assets/images/player/5. Watering/Skins/1.png',                                      frames: 8, frameMs: 120 },
-  hoe:        { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Skins/1.png',             frames: 6, frameMs: 110 },
-  harvest:    { src: 'assets/images/player/8. Axe and Sickle/Skins/1.png',                                frames: 6, frameMs: 110 },
+  idle:        { src: 'assets/images/player/1. Idle/Skins/1.png',                                           frames: 4,  frameMs: 200 },
+  walk:        { src: 'assets/images/player/2. Walk/Skins/1.png',                                           frames: 6,  frameMs: 140 },
+  run:         { src: 'assets/images/player/3. Run/Skins/1.png',                                            frames: 8,  frameMs: 100 },
+  carry_idle:  { src: 'assets/images/player/6. Carrying - Idle/Skins/1.png',                               frames: 4,  frameMs: 200 },
+  carry_walk:  { src: 'assets/images/player/6.1 Carrying - Walk/Skins/1.png',                              frames: 6,  frameMs: 140 },
+  carry_run:   { src: 'assets/images/player/6.2 Carrying - Run/Skins/1.png',                               frames: 8,  frameMs: 100 },
+  carry_throw: { src: 'assets/images/player/6.4 Carrying - Throwing items/Skins/1.png',                   frames: 20, frameMs: 60  },
+  water:       { src: 'assets/images/player/5. Watering/Skins/1.png',                                      frames: 8,  frameMs: 120 },
+  hoe:         { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Skins/1.png',             frames: 6,  frameMs: 110 },
+  harvest:     { src: 'assets/images/player/8. Axe and Sickle/Skins/1.png',                                frames: 6,  frameMs: 110 },
 };
 // 浇水武器图集（与角色动画叠加）
 const WEAPON_CFG = {
@@ -1028,6 +1029,43 @@ function drawPlayer(x, y) {
         y - SP_FRAME_H * SP_SCALE / 2,
         SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
       );
+    }
+  }
+
+  // 搜携状态时头顶道具图标
+  const CARRY_ANIMS = [ANIM_CARRY_IDLE, ANIM_CARRY_WALK, ANIM_CARRY_RUN, ANIM_CARRY_THROW];
+  if (CARRY_ANIMS.includes(spAnim)) {
+    const _hItem = currentItem();
+    const _id = currentItemId();
+    if (_hItem && _id) {
+      const iconSize = 20;
+      const iconX = x - iconSize / 2;
+      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize - 1;
+      const _cropSheetEntry = getImg(CROPS_SHEET);
+      if (_hItem.iconEl && _cropSheetEntry && _cropSheetEntry.loaded) {
+        // 图集类图标，直接画到 canvas
+        const _cropIconMap = {
+          seed_potato: [0, 4], potato: [2, 4],
+          seed_carrot: [0, 3], carrot: [2, 3],
+          seed_cabbage:[0, 5], cabbage:[2, 5],
+          seed_peach:  [0, 2], peach:  [2, 2],
+        };
+        const _pos = _cropIconMap[_id];
+        if (_pos) {
+          const fw = 16;
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(_cropSheetEntry.img, _pos[0]*fw, _pos[1]*fw, fw, fw, iconX, iconY, iconSize, iconSize);
+          ctx.restore();
+        }
+      } else if (_hItem.icon) {
+        ctx.save();
+        ctx.font = `${iconSize}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(_hItem.icon, x, y - SP_FRAME_H * SP_SCALE / 2 - 1);
+        ctx.restore();
+      }
     }
   }
   ctx.restore();
@@ -1233,14 +1271,20 @@ function loop(ts){
   }
 
   // ---------- 动画状态切换 ----------
-  const ACTION_ANIMS = [ANIM_WATER, ANIM_HOE, ANIM_HARVEST];
+  const ACTION_ANIMS = [ANIM_WATER, ANIM_HOE, ANIM_HARVEST, ANIM_CARRY_THROW];
   if (ACTION_ANIMS.includes(spAnim)) {
     if (player.moving) {
       // 位移打断
-      const actionName = { water:'浇水', hoe:'锄地', harvest:'收获' }[spAnim] || '操作';
+      const actionName = { water:'浇水', hoe:'锄地', harvest:'收获', carry_throw:'播种' }[spAnim] || '操作';
       showToast(`${actionName}被打断`);
+      // 播种动画被打断时还原地块状态
+      if (spAnim === ANIM_CARRY_THROW && pendingActionTile) {
+        const {r:pr, c:pc} = pendingActionTile;
+        tileMap[pr][pc] = T.TILLED;
+      }
       pendingActionTile = null;
-      spAnim = ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+      const wasCarry = [ANIM_CARRY_THROW].includes(spAnim);
+      spAnim = wasCarry ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
     } else {
       // 帧推进（不循环，播完执行操作）
       spFrameTimer += dt * 1000;
@@ -1259,6 +1303,14 @@ function loop(ts){
               else wateredMap[r][c] = true;
             } else if (action === 'hoe') {
               tileMap[r][c] = T.TILLED;
+            } else if (action === 'sow') {
+              // 播种动画播完 → 执行种植
+              const sowSeedType = pendingActionTile.seedType;
+              if (sowSeedType && tileMap[r][c] === T.TILLED) {
+                const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
+                tileMap[r][c] = T.CROP;
+                cropMap[r][c] = {type:sowSeedType, daysGrown:0, watered:alreadyWatered, ready:false};
+              }
             } else if (action === 'harvest') {
               const crop = cropMap[r] && cropMap[r][c];
               if (crop && crop.ready) {
@@ -1301,14 +1353,16 @@ function loop(ts){
             }
             pendingActionTile = null;
           }
-          spAnim = ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+          // 播种播完回搜携idle，其他动作回普通idle
+          const wasThrow = (spAnim === ANIM_CARRY_THROW);
+          spAnim = wasThrow ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
         }
       }
     }
   } else {
     // 判断是否搬运模式（当前选中种子类道具）
     const _curItem = currentItem();
-    const isCarrying = _curItem && _curItem.seedType;
+    const isCarrying = _curItem && (_curItem.seedType || (_curItem.stackMax && _curItem.use === 'direct'));
     let newAnim;
     if (!player.moving) newAnim = isCarrying ? ANIM_CARRY_IDLE : ANIM_IDLE;
     else if (isRunning)  newAnim = isCarrying ? ANIM_CARRY_RUN  : ANIM_RUN;
@@ -1382,9 +1436,11 @@ function doAction(){
       const next = hotbar.findIndex((v,i) => i !== selectedSlot && v !== null);
       if (next >= 0) selectedSlot = next;
     }
-    tileMap[r][c]=T.CROP;
+    tileMap[r][c]=T.CROP; // 先标记为 CROP 占位，动画播完后写入 cropMap
     const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
-    cropMap[r][c]={type:seedType,daysGrown:0,watered:alreadyWatered,ready:false};
+    // 解批：准备播种动画，播完后在 pendingActionTile.seedType 里执行种植
+    spAnim = ANIM_CARRY_THROW; spFrame = 0; spFrameTimer = 0;
+    pendingActionTile = { r, c, action: 'sow', seedType };
     showToast(`种下了${CROPS[seedType].icon}${CROPS[seedType].name}`);
     renderHotbar();
   }
