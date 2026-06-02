@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.109</div>
+<div id="splash-version">版本号：v0.0.3.110</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -867,21 +867,11 @@ canvas { display:block; }
       <div id="shop-scroll">
       <div class="shop-section-label shop-grid-label">种子</div>
       <div class="shop-grid">
-        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_potato',8)\">
-          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥔</span></div>
-          <div class="sitem-name">土豆</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
-        </div>
-        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_carrot',8)\">
-          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥕</span></div>
-          <div class="sitem-name">萝卜</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
-        </div>
-        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_cabbage',12)\">
-          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥬</span></div>
-          <div class="sitem-name">白菜</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>12</div>
-        </div>
-        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_peach',30)\">
-          <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🍑</span></div>
-          <div class="sitem-name">桃子</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>30</div>
+        <div class="sitem-wrap" onclick="openTrade('buy','seed_potato',8)" data-item="seed_potato">
+          <div class="sitem"><canvas class="sitem-bg"></canvas>
+            <span class="sitem-icon" style="background:url('assets/images/Crops/Spring/Crops_Spring_Potato.png') no-repeat 0 0 / auto 100%;width:28px;height:28px;display:inline-block;image-rendering:pixelated;"></span>
+          </div>
+          <div class="sitem-name">土豆种子</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
         </div>
       </div>
       <div class="shop-section-label shop-grid-label">背包</div>
