@@ -358,6 +358,16 @@ canvas { display:block; }
   cursor:pointer; font-family:inherit; letter-spacing:2px;
 }
 
+/* 关闭按钮（共用，背包+商店右上角） */
+.panel-close-btn {
+  position:absolute; top:-14px; right:-14px; z-index:10;
+  width:36px; height:36px;
+  cursor:pointer; image-rendering:pixelated;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+  transition:transform 0.12s;
+}
+.panel-close-btn:active { transform:scale(0.88); }
+
 /* 商店 */
 #shop-panel {
   position:absolute; inset:0; z-index:30;
@@ -365,14 +375,18 @@ canvas { display:block; }
   display:none; align-items:center; justify-content:center;
 }
 .shop-box {
-  background:linear-gradient(160deg,#3d2010,#251508);
-  border:2px solid #c8922a; border-radius:18px;
-  padding:16px; width:360px; max-height:85vh; overflow-y:auto;
+  position:relative;
+  padding:20px 16px 16px;
+  width:360px; max-height:85vh; overflow-y:auto;
   display:flex; flex-direction:column; gap:10px;
 }
-.shop-title { text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
-.shop-section-label { font-size:10px; color:#a08040; letter-spacing:2px; }
-.shop-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+#shop-canvas {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  image-rendering:pixelated; pointer-events:none; z-index:0;
+}
+.shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
+.shop-section-label { position:relative; z-index:1; font-size:10px; color:#a08040; letter-spacing:2px; }
+.shop-grid { position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
 .sitem {
   background:rgba(180,130,50,0.1); border:1px solid #6a4a20;
   border-radius:10px; padding:8px 4px;
@@ -385,6 +399,7 @@ canvas { display:block; }
 .sitem-price { font-size:10px; color:#f5d78e; }
 .sitem-desc { font-size:9px; color:#886640; text-align:center; }
 .shop-close {
+  position:relative; z-index:1;
   padding:9px; background:rgba(140,60,20,0.4); border:1px solid #b06030;
   border-radius:10px; color:#f0a060; font-size:13px;
   cursor:pointer; font-family:inherit; letter-spacing:2px; text-align:center;
@@ -414,7 +429,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.59</div>
+<div id="splash-version">版本号：v0.0.3.60</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -452,6 +467,7 @@ canvas { display:block; }
   <div id="bag-panel">
     <div id="bag-inner">
       <canvas id="bag-canvas"></canvas>
+      <canvas class="panel-close-btn" id="bag-close-btn" width="36" height="36" onclick="toggleBag()" style="image-rendering:pixelated;"></canvas>
       <div id="bag-title">背包</div>
       <div id="bag-slots"></div>
       <div id="bag-extra-slots">
@@ -459,12 +475,14 @@ canvas { display:block; }
         <div class="bag-slot-extra locked" id="bag-extra-0"><canvas></canvas></div>
         <div class="bag-slot-extra locked" id="bag-extra-1"><canvas></canvas></div>
       </div>
-      <div class="bag-close-btn" onclick="toggleBag()">关闭</div>
+
     </div>
   </div>
 
   <div id="shop-panel">
     <div class="shop-box">
+      <canvas id="shop-canvas"></canvas>
+      <canvas class="panel-close-btn" id="shop-close-btn" width="36" height="36" onclick="closeShop()" style="image-rendering:pixelated;"></canvas>
       <div class="shop-title">📜 桃源杂货铺</div>
       <div class="shop-section-label">── 种子 ──</div>
       <div class="shop-grid">
@@ -475,7 +493,6 @@ canvas { display:block; }
       </div>
       <div class="shop-section-label">── 出售农产品 ──</div>
       <div class="shop-grid" id="sellGrid"></div>
-      <div class="shop-close" onclick="closeShop()">关闭</div>
     </div>
   </div>
 </div>
@@ -1768,7 +1785,11 @@ _bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
 // HUD 背包图标 canvas
 const _hudIconImg = new Image();
 _hudIconImg.src = 'assets/images/ui/common/common_HUD.png';
-_hudIconImg.onload = drawBagBtnIcon;
+_hudIconImg.onload = () => {
+  drawBagBtnIcon();
+  drawPanelCloseBtn('bag-close-btn');
+  drawPanelCloseBtn('shop-close-btn');
+};
 
 function drawBagBtnIcon() {
   const cv = document.getElementById('bag-btn-canvas');
@@ -1859,6 +1880,7 @@ function renderBagSlots() {
     const div = document.createElement('div');
     div.className = 'bag-slot';
     div.dataset.idx = i;
+    div.onclick = () => onBagSlotClick(i);
     const cv = document.createElement('canvas');
     div.appendChild(cv);
     _bagSlotImg.onload = () => drawSlotCanvas(cv, 41, 41, 1);
@@ -1920,14 +1942,104 @@ function renderBagSlots() {
   }
 }
 
+// 绘制关闭按钮图标（HUD第5排第18个，row=4 col=17）
+function drawPanelCloseBtn(canvasId) {
+  const cv = document.getElementById(canvasId);
+  if (!cv || !_hudIconImg.complete || !_hudIconImg.naturalWidth) return;
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, 36, 36);
+  c.imageSmoothingEnabled = false;
+  c.drawImage(_hudIconImg, 17*16, 4*16, 16, 16, 0, 0, 36, 36);
+}
+
+// 商店底板绘制
+function drawShopBg() {
+  const box = document.querySelector('.shop-box');
+  const cv = document.getElementById('shop-canvas');
+  if (!box || !cv || !_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = box.clientWidth, H = box.scrollHeight || box.clientHeight;
+  cv.width  = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0,0,cv.width,cv.height);
+  c.imageSmoothingEnabled = false;
+  const SL=4,SR=4,ST=4,SB=4,SW=48,SH=48,EDGE_SCALE=2;
+  const SMH=SW-SL-SR, SMV=SH-ST-SB;
+  const ew=SL*EDGE_SCALE*dpr, eh=ST*EDGE_SCALE*dpr;
+  const totalW=cv.width, totalH=cv.height;
+  const DW=totalW-ew*2, DH=totalH-eh*2;
+  const img=_bagFrameImg;
+  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+  c.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
+  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+  c.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
+  c.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
+  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
+  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
+}
+
+// 背包格子与工具栏互换
+// selectedBagSlot: 当前选中的背包格子索引（null=无选中）
+let selectedBagSlot = null;
+function onBagSlotClick(idx) {
+  if (selectedBagSlot === null) {
+    // 第一次点击：选中背包格子
+    selectedBagSlot = idx;
+    renderBagSlots();
+    highlightBagSlot(idx, true);
+  } else if (selectedBagSlot === idx) {
+    // 再次点击同一格：取消选中
+    selectedBagSlot = null;
+    renderBagSlots();
+  } else {
+    // 点击另一格：背包内互换
+    const tmp = bagItems[selectedBagSlot];
+    bagItems[selectedBagSlot] = bagItems[idx];
+    bagItems[idx] = tmp;
+    selectedBagSlot = null;
+    renderBagSlots();
+  }
+}
+function highlightBagSlot(idx, on) {
+  const slots = document.getElementById('bag-slots');
+  if (!slots) return;
+  const divs = slots.querySelectorAll('.bag-slot');
+  divs.forEach((d, i) => {
+    d.style.outline = (on && i === idx) ? '2px solid #f5c842' : '';
+  });
+}
+
+// 背包格子与工具栏互换：长按工具栏格子触发
+// 点击工具栏格子时，如果背包面板开着且有选中格子，互换
+function trySwapWithHotbar(hotbarIdx) {
+  if (!bagOpen || selectedBagSlot === null) return false;
+  const bagItem = bagItems[selectedBagSlot];
+  const hotbarItemId = hotbar[hotbarIdx];
+  // 互换
+  bagItems[selectedBagSlot] = hotbarItemId ? { id: hotbarItemId, count: seedCount[hotbarItemId] || (harvestBag[hotbarItemId]||0) || 1 } : null;
+  hotbar[hotbarIdx] = bagItem ? bagItem.id : null;
+  selectedBagSlot = null;
+  renderBagSlots();
+  renderHotbar();
+  return true;
+}
+
 let bagOpen = false;
 function toggleBag() {
   bagOpen = !bagOpen;
   const panel = document.getElementById('bag-panel');
   panel.style.display = bagOpen ? 'flex' : 'none';
+  selectedBagSlot = null;
   if (bagOpen) {
     renderBagSlots();
-    setTimeout(() => { drawBagBg(); drawBagBtnIcon(); }, 50);
+    setTimeout(() => {
+      drawBagBg();
+      drawBagBtnIcon();
+      drawPanelCloseBtn('bag-close-btn');
+    }, 50);
   }
 }
 
@@ -1941,7 +2053,14 @@ function unlockBagSlot(idx) {
 // 页面加载后绘制背包图标
 window.addEventListener('load', () => { setTimeout(drawBagBtnIcon, 200); });
 
-function openShop(){ updateSellGrid(); document.getElementById('shop-panel').style.display='flex'; }
+function openShop(){
+  updateSellGrid();
+  document.getElementById('shop-panel').style.display='flex';
+  setTimeout(() => {
+    drawShopBg();
+    drawPanelCloseBtn('shop-close-btn');
+  }, 50);
+}
 function closeShop(){ document.getElementById('shop-panel').style.display='none'; }
 
 function buySeed(type){
