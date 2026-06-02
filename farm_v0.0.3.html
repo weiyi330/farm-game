@@ -330,7 +330,7 @@ canvas { display:block; }
 #bag-title-text {
   position:relative; z-index:1;
   font-size:16px; color:#3a1a08; letter-spacing:3px;
-  padding:4px 16px; line-height:1;
+  padding:4px 16px; line-height:1; font-weight:bold;
 }
 #bag-slots {
   position:relative; z-index:2;
@@ -339,7 +339,7 @@ canvas { display:block; }
 #bag-divider {
   position:relative; z-index:2;
   width:100%; height:1px;
-  background:linear-gradient(to right, transparent, rgba(120,170,80,0.6), transparent);
+  background:linear-gradient(to right, transparent, rgba(0,0,0,0.7), transparent);
   margin:2px 0;
 }
 #bag-extra-slots {
@@ -524,7 +524,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.73</div>
+<div id="splash-version">版本号：v0.0.3.74</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -577,6 +577,20 @@ canvas { display:block; }
         oninput="applyDbg('bagTitleMT',this.value)" onchange="applyDbg('bagTitleMT',this.value)">
       <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-33"
         onchange="applyDbg('bagTitleMT',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题底板宽</span>
+      <input class="dbg-slider" type="range" min="0" max="300" value="0"
+        oninput="applyDbg('bagTitleW',this.value)" onchange="applyDbg('bagTitleW',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleW" value="0"
+        onchange="applyDbg('bagTitleW',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题底板高</span>
+      <input class="dbg-slider" type="range" min="0" max="80" value="0"
+        oninput="applyDbg('bagTitleH',this.value)" onchange="applyDbg('bagTitleH',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleH" value="0"
+        onchange="applyDbg('bagTitleH',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">标题字号</span>
@@ -2099,6 +2113,9 @@ function drawBagBtnIcon() {
 // 绘制背包底板（九宫格，和工具栏一样的图集）
 // 绘制背包标题底板（九宫格拉伸）
 function drawBagTitle(cv, displayW, displayH) {
+  // 调试覆盖
+  if (dbgParams.bagTitleW > 0) displayW = dbgParams.bagTitleW;
+  if (dbgParams.bagTitleH > 0) displayH = dbgParams.bagTitleH;
   if (!cv || !_bagTitleImg.complete || !_bagTitleImg.naturalWidth) return;
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(displayW * dpr);
@@ -2427,6 +2444,7 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
   bagBgPadW: 48, bagBgPadH: 100, bagBgTop: -24,
+  bagTitleW: 0, bagTitleH: 0,
   bagOffX: 0, bagOffY: 0, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 16, bagTitleColor: '#3a1a08',
   bagCloseRight: -54, bagCloseTop: -31,
@@ -2490,6 +2508,11 @@ function applyDbg(key, val) {
     const tw = document.getElementById('bag-title-wrap');
     if (tw) tw.style.marginTop = v+'px';
     setTimeout(drawBagBg, 30);
+  }
+  if (key === 'bagTitleW' || key === 'bagTitleH') {
+    const titleWrap = document.getElementById('bag-title-wrap');
+    const titleCv = document.getElementById('bag-title-canvas');
+    if (titleWrap && titleCv) drawBagTitle(titleCv, titleWrap.offsetWidth, titleWrap.offsetHeight);
   }
   if (key === 'bagTitleFS') {
     const tt = document.getElementById('bag-title-text');
