@@ -279,6 +279,85 @@ canvas { display:block; }
 }
 #toast.show { opacity:1; }
 
+/* 背包按钮 */
+.hud-right { display:flex; flex-direction:column; align-items:flex-end; }
+#bag-btn {
+  width:48px; height:48px; cursor:pointer; pointer-events:all;
+  image-rendering:pixelated;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+  transition: transform 0.12s;
+}
+#bag-btn:active { transform:scale(0.9); }
+
+/* 背包面板 */
+#bag-panel {
+  position:absolute; inset:0; z-index:30;
+  background:rgba(10,5,0,0.8);
+  display:none; align-items:center; justify-content:center;
+}
+#bag-inner {
+  position:relative;
+  display:flex; flex-direction:column; align-items:center;
+  gap:10px;
+}
+#bag-canvas {
+  position:absolute; top:0; left:0;
+  image-rendering:pixelated;
+  pointer-events:none;
+}
+#bag-title {
+  position:relative; z-index:2;
+  font-size:15px; color:#f5d78e; letter-spacing:3px;
+  margin-bottom:4px; text-align:center;
+}
+#bag-slots {
+  position:relative; z-index:2;
+  display:grid; grid-template-columns:repeat(3,41px); gap:4px;
+}
+#bag-extra-slots {
+  position:relative; z-index:2;
+  display:flex; gap:8px; align-items:center;
+}
+.bag-slot {
+  width:41px; height:41px; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; image-rendering:pixelated;
+}
+.bag-slot-extra {
+  width:32px; height:32px; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; image-rendering:pixelated;
+}
+.bag-slot-extra.locked::after {
+  content:'';
+  position:absolute; inset:0;
+  background:rgba(0,0,0,0.6);
+  border-radius:2px;
+}
+.bag-slot-extra.locked { cursor:default; filter:grayscale(1) brightness(0.5); }
+.bag-slot canvas, .bag-slot-extra canvas {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  image-rendering:pixelated; pointer-events:none;
+}
+.bag-item-icon {
+  position:relative; z-index:1;
+  display:flex; align-items:center; justify-content:center;
+  width:28px; height:28px;
+  image-rendering:pixelated;
+}
+.bag-item-icon img { width:28px; height:28px; image-rendering:pixelated; }
+.bag-item-count {
+  position:absolute; bottom:2px; right:3px; z-index:2;
+  font-size:9px; color:#7a3a00; font-weight:bold;
+}
+.bag-close-btn {
+  position:relative; z-index:2;
+  padding:8px 24px;
+  background:rgba(140,60,20,0.4); border:1px solid #b06030;
+  border-radius:10px; color:#f0a060; font-size:13px;
+  cursor:pointer; font-family:inherit; letter-spacing:2px;
+}
+
 /* 商店 */
 #shop-panel {
   position:absolute; inset:0; z-index:30;
@@ -335,7 +414,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.57</div>
+<div id="splash-version">版本号：v0.0.3.58</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -346,6 +425,11 @@ canvas { display:block; }
     <div class="hud-left">
       <div class="hud-coin">🪙 <span id="coinVal">80</span> 枚</div>
       <div class="hud-day">第<span id="dayVal">1</span>天 &nbsp;<span id="seasonVal">🌸春</span></div>
+    </div>
+    <div class="hud-right">
+      <div id="bag-btn" onclick="toggleBag()">
+        <canvas id="bag-btn-canvas" width="48" height="48" style="image-rendering:pixelated;"></canvas>
+      </div>
     </div>
   </div>
 
@@ -363,6 +447,21 @@ canvas { display:block; }
   </div>
 
   <div id="toast"></div>
+
+  <!-- 背包面板 -->
+  <div id="bag-panel">
+    <div id="bag-inner">
+      <canvas id="bag-canvas"></canvas>
+      <div id="bag-title">🎒 背包</div>
+      <div id="bag-slots"></div>
+      <div id="bag-extra-slots">
+        <span style="font-size:11px;color:#a08040;letter-spacing:1px;">扩展格</span>
+        <div class="bag-slot-extra locked" id="bag-extra-0"><canvas></canvas></div>
+        <div class="bag-slot-extra locked" id="bag-extra-1"><canvas></canvas></div>
+      </div>
+      <div class="bag-close-btn" onclick="toggleBag()">关闭</div>
+    </div>
+  </div>
 
   <div id="shop-panel">
     <div class="shop-box">
@@ -1634,6 +1733,212 @@ function nextDay(){
   }
   updateHUD(); showToast(`🌙 第${day}天开始了`);
 }
+
+
+// ============================================================
+// 背包系统
+// ============================================================
+// bagItems: 11个格子 [0-8]=3×3基础格, [9-10]=扩展格
+// 每格存 {id, count} 或 null
+let bagItems = new Array(11).fill(null);
+let bagUnlocked = [false, false]; // 扩展格解锁状态
+
+// 初始道具：背包（占位）
+const ITEM_DEF_BAG_PACK = 'bag_pack';
+// 背包道具定义注册到 ITEM_DEF（在此动态追加）
+// 占位背包道具图标：用 common_HUD 第3排第4个（row=2,col=3）
+function _bagPackIcon() {
+  const s = getImg('assets/images/ui/common/common_HUD.png');
+  if (!s || !s.loaded) return '<span style="font-size:20px">🎒</span>';
+  const fw = 16, scale = 2;
+  return `<span style="display:inline-block;width:${fw*scale}px;height:${fw*scale}px;overflow:hidden;` +
+    `background:url('assets/images/ui/common/common_HUD.png') no-repeat -${3*fw*scale}px -${2*fw*scale}px / ${26*fw*scale}px ${6*fw*scale}px;` +
+    `image-rendering:pixelated;"></span>`;
+}
+
+// 初始化：塞一个背包道具
+bagItems[0] = { id: ITEM_DEF_BAG_PACK, count: 1 };
+
+// 背包面板 canvas 九宫格底板
+const _bagFrameImg = new Image();
+_bagFrameImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
+const _bagSlotImg = new Image();
+_bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
+
+// HUD 背包图标 canvas
+const _hudIconImg = new Image();
+_hudIconImg.src = 'assets/images/ui/common/common_HUD.png';
+_hudIconImg.onload = drawBagBtnIcon;
+
+function drawBagBtnIcon() {
+  const cv = document.getElementById('bag-btn-canvas');
+  if (!cv) return;
+  const ctx2 = cv.getContext('2d');
+  ctx2.clearRect(0, 0, 48, 48);
+  ctx2.imageSmoothingEnabled = false;
+  if (_hudIconImg.complete && _hudIconImg.naturalWidth) {
+    // 第3排第4个 = row=2, col=3, 16×16px，放大到48×48
+    ctx2.drawImage(_hudIconImg, 3*16, 2*16, 16, 16, 0, 0, 48, 48);
+  }
+}
+
+// 绘制背包底板（九宫格，和工具栏一样的图集）
+function drawBagBg() {
+  const inner = document.getElementById('bag-inner');
+  const cv = document.getElementById('bag-canvas');
+  if (!cv || !inner) return;
+  // 计算内容尺寸
+  const slots = document.getElementById('bag-slots');
+  const extra = document.getElementById('bag-extra-slots');
+  const title = document.getElementById('bag-title');
+  if (!slots || !extra || !title) return;
+  const W = Math.max(slots.offsetWidth, extra.offsetWidth, 180) + 48;
+  const H = title.offsetHeight + slots.offsetHeight + extra.offsetHeight + 100;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = W * dpr;
+  cv.height = H * dpr;
+  cv.style.width  = W + 'px';
+  cv.style.height = H + 'px';
+  cv.style.top  = '-24px';
+  cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, cv.width, cv.height);
+  if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
+  c.imageSmoothingEnabled = false;
+  // 用相同的工具栏九宫格参数
+  const SL=4,SR=4,ST=4,SB=4,SW=48,SH=64,SC=2;
+  const SMH=SW-SL-SR, SMV=SH-ST-SB;
+  const ew=SL*SC, eh=ST*SC;
+  const totalW=cv.width, totalH=cv.height;
+  const DW=totalW-ew*2, DH=totalH-eh*2;
+  const img=_bagFrameImg;
+  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+  c.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
+  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+  c.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
+  c.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
+  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
+  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
+}
+
+// 绘制格子九宫格到某个 canvas 元素
+function drawSlotCanvas(cv, w, h, alpha) {
+  if (!cv || !_bagSlotImg.complete || !_bagSlotImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = w * dpr; cv.height = h * dpr;
+  cv.style.width = w+'px'; cv.style.height = h+'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0,0,cv.width,cv.height);
+  c.globalAlpha = alpha || 1;
+  c.imageSmoothingEnabled = false;
+  const SL=1,SR=1,ST=1,SB=1,SLOT_W=16,SLOT_H=48;
+  const SMH=SLOT_W-SL-SR, SMV=SLOT_H-ST-SB;
+  const ew=SL*2, eh=ST*2;
+  const DW=cv.width-ew*2, DH=cv.height-eh*2;
+  const img=_bagSlotImg;
+  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+  c.drawImage(img,SL+SMH,0,SR,ST,cv.width-ew,0,ew,eh);
+  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+  c.drawImage(img,SL+SMH,ST,SR,SMV,cv.width-ew,eh,ew,DH);
+  c.drawImage(img,0,ST+SMV,SL,SB,0,cv.height-eh,ew,eh);
+  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,cv.height-eh,DW,eh);
+  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,cv.width-ew,cv.height-eh,ew,eh);
+}
+
+// 渲染背包格子内容
+function renderBagSlots() {
+  const slotsEl = document.getElementById('bag-slots');
+  if (!slotsEl) return;
+  slotsEl.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const div = document.createElement('div');
+    div.className = 'bag-slot';
+    div.dataset.idx = i;
+    const cv = document.createElement('canvas');
+    div.appendChild(cv);
+    _bagSlotImg.onload = () => drawSlotCanvas(cv, 41, 41, 1);
+    if (_bagSlotImg.complete) drawSlotCanvas(cv, 41, 41, 1);
+    // 道具图标
+    const item = bagItems[i];
+    if (item) {
+      const iconEl = document.createElement('div');
+      iconEl.className = 'bag-item-icon';
+      if (item.id === ITEM_DEF_BAG_PACK) {
+        // 背包占位图标：从 HUD 图集裁切
+        const icv = document.createElement('canvas');
+        icv.width = 32; icv.height = 32;
+        icv.style.cssText = 'width:28px;height:28px;image-rendering:pixelated;position:relative;z-index:1;';
+        if (_hudIconImg.complete && _hudIconImg.naturalWidth) {
+          const c2 = icv.getContext('2d');
+          c2.imageSmoothingEnabled = false;
+          c2.drawImage(_hudIconImg, 3*16, 2*16, 16, 16, 0, 0, 32, 32);
+        } else {
+          _hudIconImg.onload = () => {
+            const c2 = icv.getContext('2d');
+            c2.imageSmoothingEnabled = false;
+            c2.drawImage(_hudIconImg, 3*16, 2*16, 16, 16, 0, 0, 32, 32);
+            drawBagBtnIcon();
+          };
+        }
+        iconEl.appendChild(icv);
+      } else {
+        iconEl.innerHTML = ITEM_DEF[item.id]?.icon || '?';
+      }
+      div.appendChild(iconEl);
+      if (item.count > 1) {
+        const cnt = document.createElement('div');
+        cnt.className = 'bag-item-count';
+        cnt.textContent = item.count;
+        div.appendChild(cnt);
+      }
+    }
+    slotsEl.appendChild(div);
+  }
+  // 扩展格
+  for (let i = 0; i < 2; i++) {
+    const el = document.getElementById('bag-extra-'+i);
+    if (!el) continue;
+    const cv = el.querySelector('canvas');
+    const unlocked = bagUnlocked[i];
+    el.className = 'bag-slot-extra' + (unlocked ? '' : ' locked');
+    if (cv) drawSlotCanvas(cv, 32, 32, unlocked ? 1 : 0.4);
+    // 道具
+    el.querySelectorAll('.bag-item-icon,.bag-item-count').forEach(e=>e.remove());
+    const item = bagItems[9+i];
+    if (item && unlocked) {
+      const iconEl = document.createElement('div');
+      iconEl.className = 'bag-item-icon';
+      iconEl.style.cssText = 'width:22px;height:22px;';
+      iconEl.innerHTML = ITEM_DEF[item.id]?.icon || '?';
+      el.appendChild(iconEl);
+    }
+  }
+}
+
+let bagOpen = false;
+function toggleBag() {
+  bagOpen = !bagOpen;
+  const panel = document.getElementById('bag-panel');
+  panel.style.display = bagOpen ? 'flex' : 'none';
+  if (bagOpen) {
+    renderBagSlots();
+    setTimeout(() => { drawBagBg(); drawBagBtnIcon(); }, 50);
+  }
+}
+
+// 解锁扩展格（购买后调用）
+function unlockBagSlot(idx) {
+  if (idx < 0 || idx > 1) return;
+  bagUnlocked[idx] = true;
+  if (bagOpen) renderBagSlots();
+}
+
+// 页面加载后绘制背包图标
+window.addEventListener('load', () => { setTimeout(drawBagBtnIcon, 200); });
 
 function openShop(){ updateSellGrid(); document.getElementById('shop-panel').style.display='flex'; }
 function closeShop(){ document.getElementById('shop-panel').style.display='none'; }
