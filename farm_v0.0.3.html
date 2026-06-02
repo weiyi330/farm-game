@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.105</div>
+<div id="splash-version">版本号：v0.0.3.106</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -657,16 +657,16 @@ canvas { display:block; }
     <div class="dbg-group-title">🏪 商店面板位置</div>
     <div class="dbg-row">
       <span class="dbg-label">商店左右</span>
-      <input class="dbg-slider" type="range" min="0" max="300" value="20"
+      <input class="dbg-slider" type="range" min="0" max="300" value="111"
         oninput="applyShopDbg('shopOffX',this.value)" onchange="applyShopDbg('shopOffX',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopOffX" value="20"
+      <input class="dbg-val" type="number" id="sdv-shopOffX" value="111"
         onchange="applyShopDbg('shopOffX',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">商店上下</span>
-      <input class="dbg-slider" type="range" min="-200" max="200" value="0"
+      <input class="dbg-slider" type="range" min="-200" max="200" value="-27"
         oninput="applyShopDbg('shopOffY',this.value)" onchange="applyShopDbg('shopOffY',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopOffY" value="0"
+      <input class="dbg-val" type="number" id="sdv-shopOffY" value="-27"
         onchange="applyShopDbg('shopOffY',this.value)">
     </div>
     <div class="dbg-group-title">🎒 商店背包位置</div>
@@ -700,16 +700,16 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板高余量</span>
-      <input class="dbg-slider" type="range" min="20" max="200" value="80"
+      <input class="dbg-slider" type="range" min="-10" max="200" value="-1"
         oninput="applyShopDbg('shopBgPadH',this.value)" onchange="applyShopDbg('shopBgPadH',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopBgPadH" value="80"
+      <input class="dbg-val" type="number" id="sdv-shopBgPadH" value="-1"
         onchange="applyShopDbg('shopBgPadH',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">图标每行列数</span>
-      <input class="dbg-slider" type="range" min="1" max="6" value="3"
+      <input class="dbg-slider" type="range" min="1" max="8" value="7"
         oninput="applyShopDbg('shopCols',this.value)" onchange="applyShopDbg('shopCols',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopCols" value="3"
+      <input class="dbg-val" type="number" id="sdv-shopCols" value="7"
         onchange="applyShopDbg('shopCols',this.value)">
     </div>
     <div class="dbg-row">
@@ -721,16 +721,16 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">标题底板宽</span>
-      <input class="dbg-slider" type="range" min="0" max="300" value="120"
+      <input class="dbg-slider" type="range" min="0" max="300" value="0"
         oninput="applyShopDbg('shopTitleW',this.value)" onchange="applyShopDbg('shopTitleW',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleW" value="120"
+      <input class="dbg-val" type="number" id="sdv-shopTitleW" value="0"
         onchange="applyShopDbg('shopTitleW',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">标题底板高</span>
-      <input class="dbg-slider" type="range" min="0" max="80" value="30"
+      <input class="dbg-slider" type="range" min="0" max="80" value="25"
         oninput="applyShopDbg('shopTitleH',this.value)" onchange="applyShopDbg('shopTitleH',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleH" value="30"
+      <input class="dbg-val" type="number" id="sdv-shopTitleH" value="25"
         onchange="applyShopDbg('shopTitleH',this.value)">
     </div>
     <div class="dbg-row">
@@ -742,9 +742,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板上移</span>
-      <input class="dbg-slider" type="range" min="-50" max="50" value="-1"
+      <input class="dbg-slider" type="range" min="-50" max="50" value="0"
         oninput="applyShopDbg('shopTitleTop',this.value)" onchange="applyShopDbg('shopTitleTop',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopTitleTop" value="-1"
+      <input class="dbg-val" type="number" id="sdv-shopTitleTop" value="0"
         onchange="applyShopDbg('shopTitleTop',this.value)">
     </div>
     <div class="dbg-row">
@@ -777,9 +777,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">关闭按钮右</span>
-      <input class="dbg-slider" type="range" min="-60" max="0" value="-22"
+      <input class="dbg-slider" type="range" min="-60" max="0" value="-31"
         oninput="applyShopDbg('shopCloseRight',this.value)" onchange="applyShopDbg('shopCloseRight',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopCloseRight" value="-22"
+      <input class="dbg-val" type="number" id="sdv-shopCloseRight" value="-31"
         onchange="applyShopDbg('shopCloseRight',this.value)">
     </div>
     <div class="dbg-row">
@@ -2805,15 +2805,15 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 // 调试参数（与CSS/JS变量对应）
 // 商店调试参数
 const shopDbg = {
-  shopOffX: 20, shopOffY: 0,
-  shopBagOffX: 35, shopBagOffY: -27, shopBagScale: 1.0,
-  shopTitleW: 120, shopTitleH: 30,
-  shopTitleLeft: 50, shopTitleTop: -1,
+  shopOffX: 111, shopOffY: -27,
+  shopBagOffX: 35, shopBagOffY: -27, shopBagScale: 1,
+  shopTitleW: 0, shopTitleH: 25,
+  shopTitleLeft: 50, shopTitleTop: 0,
   shopTitleTextLeft: 0, shopTitleTextTop: 0,
   shopTitleMT: -33, shopTitleFS: 20,
-  shopBgPadW: 48, shopBgPadH: 80,
-  shopCols: 3,
-  shopCloseRight: -22, shopCloseTop: -31,
+  shopBgPadW: 48, shopBgPadH: -1,
+  shopCols: 7,
+  shopCloseRight: -31, shopCloseTop: -31,
   shopBagRight: 20,
 };
 
