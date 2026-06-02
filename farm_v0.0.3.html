@@ -335,6 +335,7 @@ canvas { display:block; }
 /* 外层负责滚动，内层 grid overflow:visible 让选中框不被裁 */
 #bag-slots-wrap {
   position:relative; z-index:2;
+  width:calc(4 * 41px + 3 * 4px);
   max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
   scrollbar-width:none;
   margin:0 4px;
@@ -605,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.124</div>
+<div id="splash-version">版本号：v0.0.3.125</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2369,12 +2370,16 @@ function drawBagBg() {
   const inner = document.getElementById('bag-inner');
   const cv = document.getElementById('bag-canvas');
   if (!cv || !inner) return;
+  const slotsWrap = document.getElementById('bag-slots-wrap') || document.getElementById('bag-slots');
   const slots = document.getElementById('bag-slots');
   const extra = document.getElementById('bag-extra-slots');
   const title = document.getElementById('bag-title-wrap');
   if (!slots || !extra || !title) return;
-  const W = Math.max(slots.offsetWidth, extra.offsetWidth, 180) + (dbgParams.bagBgPadW||48);
-  const H = title.offsetHeight + slots.offsetHeight + extra.offsetHeight + (dbgParams.bagBgPadH||100);
+  // 宽度用 wrap（有固定宽），高度用 wrap（受max-height约束，不超出底板）
+  const slotsW = slotsWrap.offsetWidth || slots.offsetWidth;
+  const slotsH = slotsWrap.offsetHeight || slots.offsetHeight;
+  const W = Math.max(slotsW, extra.offsetWidth, 180) + (dbgParams.bagBgPadW||48);
+  const H = title.offsetHeight + slotsH + extra.offsetHeight + (dbgParams.bagBgPadH||100);
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(W * dpr);
   cv.height = Math.round(H * dpr);
