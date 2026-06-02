@@ -544,7 +544,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.93</div>
+<div id="splash-version">版本号：v0.0.3.94</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1349,10 +1349,10 @@ function drawToolbarBg() {
     const SLOT_EDGE_V = 1 * dpr * 2; // 上下边缘×2（对称）
     const slotDisplayW = 41 * dpr; // 显示宽41px
     const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
-    const slotGroupW = (12 * 41 + 11 * 4) * dpr; // 格子组总宽
+    const slotGroupW = (10 * 41 + 9 * 4) * dpr; // 格子组总宽
     const startX = (cv.width - slotGroupW) / 2; // 水平居中
     const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
       const sx = startX + i * (slotDisplayW + 4 * dpr);
       const sdw = slotDisplayW, sdh = slotDisplayH;
       const ew = SLOT_EDGE_H, eh = SLOT_EDGE_V;
