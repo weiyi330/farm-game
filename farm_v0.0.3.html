@@ -336,10 +336,11 @@ canvas { display:block; }
   position:relative; z-index:2;
   display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
   max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
-  scrollbar-width:thin; scrollbar-color:rgba(120,170,80,0.5) transparent;
+  scrollbar-width:thin; scrollbar-color:rgba(80,140,50,0.7) transparent;
 }
 #bag-slots::-webkit-scrollbar { width:4px; }
-#bag-slots::-webkit-scrollbar-thumb { background:rgba(120,170,80,0.5); border-radius:2px; }
+#bag-slots::-webkit-scrollbar-track { background:transparent; }
+#bag-slots::-webkit-scrollbar-thumb { background:rgba(80,140,50,0.7); border-radius:2px; }
 #bag-divider {
   position:relative; z-index:2;
   width:100%; height:1px;
@@ -531,7 +532,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.86</div>
+<div id="splash-version">版本号：v0.0.3.87</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2254,6 +2255,10 @@ function drawBagBg() {
   cv.style.height = H + 'px';
   cv.style.top  = (dbgParams.bagBgTop!==undefined ? dbgParams.bagBgTop : -24)+'px';
   cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
+  // 同步重绘标题底板
+  const _tWrap = document.getElementById('bag-title-wrap');
+  const _tCv   = document.getElementById('bag-title-canvas');
+  if (_tWrap && _tCv && _tWrap.offsetWidth > 0) drawBagTitle(_tCv, _tWrap.offsetWidth, _tWrap.offsetHeight||26);
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
@@ -2812,44 +2817,64 @@ function equipByBagId(bagId) {
 }
 
 // 将背包道具放入扩展格，触发格子数量变化
-// srcIdx：来源格索引（基础格 or 另一个扩展格）
-// extIdx：目标扩展格索引
-function placeBagIntoExtSlot(srcIdx, extIdx) {
+// srcIdx：来源格索引（基础格 or 扩展格）
+// destExtI：目标扩展格的位置索引（0-4）
+function placeBagIntoExtSlot(srcIdx, destExtIdx) {
+  // 把 destExtIdx 转换为扩展格的位置索引（0-4）
+  const oldSlots = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots||8) : 8;
   const srcItem = bagItems[srcIdx];
   if (!srcItem) return;
   const newDef = ITEM_DEF[srcItem.id];
   if (!newDef || newDef.bagImg === undefined) return;
   const newSlots = newDef.bagSlots || 8;
 
-  // 当前装备的背包格子数
-  const oldId = equippedBag;
-  const oldDef = oldId ? ITEM_DEF[oldId] : null;
-  const oldSlots = oldDef ? (oldDef.bagSlots || 8) : 8;
+  // destExtIdx 是绝对index，转换为扩展位置
+  const destExtI = destExtIdx - oldSlots;
 
-  // 目标扩展格原有内容（一般是null）
-  const oldExtItem = bagItems[extIdx];
-
-  // 格子缩小：检查末尾格子是否全空
+  // 缩小检查
   if (newSlots < oldSlots) {
     const diff = oldSlots - newSlots;
     const tailItems = bagItems.slice(newSlots, oldSlots).filter(x => x !== null);
     if (tailItems.length > 0) {
-      showToast(`背包有物品，无法缩小！请先清空后${diff}格`);
+      showToast(`背包有物品，无法换小背包！请先清空后${diff}格`);
       return;
     }
-    bagItems.splice(newSlots, diff);
-  } else if (newSlots > oldSlots) {
-    const diff = newSlots - oldSlots;
-    for (let k = 0; k < diff; k++) bagItems.push(null);
   }
 
-  // 重新计算 extIdx（splice可能改变了数组长度）
-  // 扩展格起始始终是 equippedBag对应newSlots
-  // 移动：src清空，extIdx放入
-  bagItems[srcIdx] = oldExtItem; // null或原内容退回
-  bagItems[extIdx] = srcItem;
-  equippedBag = srcItem.id;
+  // 快照扩展格（5格）
+  const extSnap = bagUnlocked.map((u, i) => bagItems[oldSlots + i] || null);
 
+  // 取出 src，如果 src 本身在扩展格里，扩展格快照里清掉
+  const srcIsExt = srcIdx >= oldSlots;
+  const srcExtI = srcIsExt ? srcIdx - oldSlots : -1;
+  if (srcIsExt) extSnap[srcExtI] = null;
+
+  // 目标扩展格原内容（将退回到 srcIdx 位置）
+  const oldDestItem = extSnap[destExtI];
+  extSnap[destExtI] = srcItem;
+
+  // 重建基础格
+  let newMain;
+  if (newSlots < oldSlots) {
+    newMain = bagItems.slice(0, newSlots).map((x, i) => i === srcIdx ? null : x);
+    // oldDestItem 退回到 srcIdx（若srcIdx在新基础格范围内）
+    if (!srcIsExt && srcIdx < newSlots) newMain[srcIdx] = oldDestItem;
+  } else if (newSlots > oldSlots) {
+    newMain = bagItems.slice(0, oldSlots).map((x, i) => i === srcIdx ? null : x);
+    if (!srcIsExt) newMain[srcIdx] = oldDestItem;
+    // 补充新格子
+    for (let k = oldSlots; k < newSlots; k++) newMain.push(null);
+  } else {
+    newMain = bagItems.slice(0, oldSlots).map((x, i) => i === srcIdx ? null : x);
+    if (!srcIsExt && srcIdx < oldSlots) newMain[srcIdx] = oldDestItem;
+  }
+
+  // 组合新 bagItems
+  bagItems.length = 0;
+  newMain.forEach(x => bagItems.push(x));
+  extSnap.forEach(x => bagItems.push(x));
+
+  equippedBag = srcItem.id;
   showToast(`已装备${newDef.name}，背包容量${newSlots}格`);
   renderBagSlots(); drawBagBg();
 }
