@@ -305,7 +305,6 @@ canvas { display:block; }
   display:flex; flex-direction:column; align-items:center;
   gap:10px;
   pointer-events:all;
-  width: fit-content;
 }
 /* 商店+背包同时显示时，背包靠右 */
 #bag-panel.with-shop {
@@ -386,11 +385,8 @@ canvas { display:block; }
 #shop-panel {
   position:absolute; inset:0; z-index:30;
   background:rgba(10,5,0,0.75);
-  display:none; flex-direction:row; align-items:center; justify-content:center;
-  gap:24px;
-}
-#shop-bag-slot {
-  flex-shrink:0;
+  display:none; align-items:center; justify-content:flex-start;
+  padding-left:20px; gap:16px;
 }
 .shop-box {
   position:relative;
@@ -461,7 +457,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.66</div>
+<div id="splash-version">版本号：v0.0.3.65</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2168,12 +2164,10 @@ function openShop(){
   updateSellGrid();
   const shopPanel = document.getElementById('shop-panel');
   shopPanel.style.display='flex';
-  // 背包inner移入商店panel右侧
+  // 背包inner移入商店panel右侧（左商店右背包）
   const bagInner = document.getElementById('bag-inner');
-  const shopBagSlot = document.getElementById('shop-bag-slot');
-  if (bagInner && shopBagSlot) {
-    shopBagSlot.appendChild(bagInner);
-    shopBagSlot.style.display = 'flex';
+  if (bagInner && bagInner.parentElement.id !== 'shop-panel') {
+    shopPanel.appendChild(bagInner);
   }
   bagOpen = true;
   renderBagSlots();
@@ -2191,8 +2185,6 @@ function closeShop(){
   // 把 bag-inner 还回 bag-panel
   const bagInner = document.getElementById('bag-inner');
   const bagPanel = document.getElementById('bag-panel');
-  const shopBagSlot = document.getElementById('shop-bag-slot');
-  if (shopBagSlot) shopBagSlot.style.display = 'none';
   if (bagInner && bagInner.parentElement !== bagPanel) {
     bagPanel.appendChild(bagInner);
   }
