@@ -518,7 +518,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.70</div>
+<div id="splash-version">版本号：v0.0.3.71</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -630,6 +630,28 @@ canvas { display:block; }
         oninput="applyDbg('iconYOff',this.value)" onchange="applyDbg('iconYOff',this.value)">
       <input class="dbg-val" type="number" id="dv-iconYOff" value="19"
         onchange="applyDbg('iconYOff',this.value)">
+    </div>
+
+    <div class="dbg-row">
+      <span class="dbg-label">底板宽余量</span>
+      <input class="dbg-slider" type="range" min="0" max="120" value="48"
+        oninput="applyDbg('bagBgPadW',this.value)" onchange="applyDbg('bagBgPadW',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagBgPadW" value="48"
+        onchange="applyDbg('bagBgPadW',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板高余量</span>
+      <input class="dbg-slider" type="range" min="20" max="200" value="100"
+        oninput="applyDbg('bagBgPadH',this.value)" onchange="applyDbg('bagBgPadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagBgPadH" value="100"
+        onchange="applyDbg('bagBgPadH',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板上偏移</span>
+      <input class="dbg-slider" type="range" min="-60" max="0" value="-24"
+        oninput="applyDbg('bagBgTop',this.value)" onchange="applyDbg('bagBgTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagBgTop" value="-24"
+        onchange="applyDbg('bagBgTop',this.value)">
     </div>
 
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
@@ -2082,14 +2104,14 @@ function drawBagBg() {
   const extra = document.getElementById('bag-extra-slots');
   const title = document.getElementById('bag-title-wrap');
   if (!slots || !extra || !title) return;
-  const W = Math.max(slots.offsetWidth, extra.offsetWidth, 180) + 48;
-  const H = title.offsetHeight + slots.offsetHeight + extra.offsetHeight + 100;
+  const W = Math.max(slots.offsetWidth, extra.offsetWidth, 180) + (dbgParams.bagBgPadW||48);
+  const H = title.offsetHeight + slots.offsetHeight + extra.offsetHeight + (dbgParams.bagBgPadH||100);
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(W * dpr);
   cv.height = Math.round(H * dpr);
   cv.style.width  = W + 'px';
   cv.style.height = H + 'px';
-  cv.style.top  = '-24px';
+  cv.style.top  = (dbgParams.bagBgTop!==undefined ? dbgParams.bagBgTop : -24)+'px';
   cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
@@ -2372,6 +2394,7 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 // 调试参数（与CSS/JS变量对应）
 const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
+  bagBgPadW: 48, bagBgPadH: 100, bagBgTop: -24,
   bagTitleMT: -33, bagTitleFS: 16, bagTitleColor: '#3a1a08',
   bagCloseRight: -54, bagCloseTop: -31,
   tbHeight: 60, tbMarginBottom: -10,
@@ -2449,6 +2472,9 @@ function applyDbg(key, val) {
   if (key === 'bagCloseRight') {
     const btn = document.getElementById('bag-close-btn');
     if (btn) btn.style.right = v+'px';
+  }
+  if (key === 'bagBgPadW' || key === 'bagBgPadH' || key === 'bagBgTop') {
+    setTimeout(drawBagBg, 30);
   }
   if (key === 'bagCloseTop') {
     const btn = document.getElementById('bag-close-btn');
