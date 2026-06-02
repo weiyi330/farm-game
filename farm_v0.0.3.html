@@ -481,8 +481,8 @@ canvas { display:block; }
   width:100%; margin-bottom:4px; margin-top:-33px;
 }
 #shop-title-canvas {
-  position:absolute; top:0; left:0; width:100%; height:100%;
-  image-rendering:pixelated; pointer-events:none;
+  position:absolute; top:0; left:50px;
+  image-rendering:pixelated; pointer-events:none; z-index:0;
 }
 #shop-title-text {
   position:relative; z-index:1;
@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.106</div>
+<div id="splash-version">版本号：v0.0.3.107</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2621,7 +2621,11 @@ function drawShopBg() {
   // 同步重绘标题底板
   const tCv = document.getElementById('shop-title-canvas');
   const tWrap = document.getElementById('shop-title-wrap');
-  if (tWrap && tCv && tWrap.offsetWidth > 0) drawBagTitle(tCv, tWrap.offsetWidth, tWrap.offsetHeight||26);
+  if (tWrap && tCv && tWrap.offsetWidth > 0) {
+    drawBagTitle(tCv, shopDbg.shopTitleW || tWrap.offsetWidth, shopDbg.shopTitleH || tWrap.offsetHeight || 26);
+    tCv.style.left = shopDbg.shopTitleLeft + 'px';
+    tCv.style.top  = shopDbg.shopTitleTop  + 'px';
+  }
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
