@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.104</div>
+<div id="splash-version">版本号：v0.0.3.105</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -632,29 +632,6 @@ canvas { display:block; }
       <input class="dbg-val" type="number" id="dv-tbWidth" value="470"
         onchange="applyDbg('tbWidth',this.value)">
     </div>
-    <div class="dbg-group-title">📐 背包整体位置</div>
-    <div class="dbg-row">
-      <span class="dbg-label">整体左右</span>
-      <input class="dbg-slider" type="range" min="-300" max="300" value="35"
-        oninput="applyDbg('bagOffX',this.value)" onchange="applyDbg('bagOffX',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagOffX" value="35"
-        onchange="applyDbg('bagOffX',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">整体上下</span>
-      <input class="dbg-slider" type="range" min="-300" max="300" value="0"
-        oninput="applyDbg('bagOffY',this.value)" onchange="applyDbg('bagOffY',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagOffY" value="0"
-        onchange="applyDbg('bagOffY',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">整体缩放</span>
-      <input class="dbg-slider" type="range" min="50" max="200" value="100"
-        oninput="applyDbg('bagScale',this.value/100)" onchange="applyDbg('bagScale',this.value/100)">
-      <input class="dbg-val" type="number" id="dv-bagScale" value="1.0" step="0.05"
-        onchange="applyDbg('bagScale',parseFloat(this.value))">
-    </div>
-
     <div class="dbg-row">
       <span class="dbg-label">底板宽余量</span>
       <input class="dbg-slider" type="range" min="0" max="120" value="48"
@@ -677,20 +654,42 @@ canvas { display:block; }
         onchange="applyDbg('bagBgTop',this.value)">
     </div>
 
-    <div class="dbg-group-title">🏪 商店</div>
+    <div class="dbg-group-title">🏪 商店面板位置</div>
     <div class="dbg-row">
-      <span class="dbg-label">整体左右</span>
-      <input class="dbg-slider" type="range" min="0" max="100" value="20"
+      <span class="dbg-label">商店左右</span>
+      <input class="dbg-slider" type="range" min="0" max="300" value="20"
         oninput="applyShopDbg('shopOffX',this.value)" onchange="applyShopDbg('shopOffX',this.value)">
       <input class="dbg-val" type="number" id="sdv-shopOffX" value="20"
         onchange="applyShopDbg('shopOffX',this.value)">
     </div>
     <div class="dbg-row">
-      <span class="dbg-label">整体上下</span>
+      <span class="dbg-label">商店上下</span>
       <input class="dbg-slider" type="range" min="-200" max="200" value="0"
         oninput="applyShopDbg('shopOffY',this.value)" onchange="applyShopDbg('shopOffY',this.value)">
       <input class="dbg-val" type="number" id="sdv-shopOffY" value="0"
         onchange="applyShopDbg('shopOffY',this.value)">
+    </div>
+    <div class="dbg-group-title">🎒 商店背包位置</div>
+    <div class="dbg-row">
+      <span class="dbg-label">背包左右</span>
+      <input class="dbg-slider" type="range" min="-300" max="300" value="35"
+        oninput="applyShopDbg('shopBagOffX',this.value)" onchange="applyShopDbg('shopBagOffX',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopBagOffX" value="35"
+        onchange="applyShopDbg('shopBagOffX',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">背包上下</span>
+      <input class="dbg-slider" type="range" min="-300" max="300" value="-27"
+        oninput="applyShopDbg('shopBagOffY',this.value)" onchange="applyShopDbg('shopBagOffY',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopBagOffY" value="-27"
+        onchange="applyShopDbg('shopBagOffY',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">背包缩放</span>
+      <input class="dbg-slider" type="range" min="50" max="200" value="100"
+        oninput="applyShopDbg('shopBagScale',this.value/100)" onchange="applyShopDbg('shopBagScale',this.value/100)">
+      <input class="dbg-val" type="number" id="sdv-shopBagScale" value="1.0" step="0.05"
+        onchange="applyShopDbg('shopBagScale',parseFloat(this.value))">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板宽余量</span>
@@ -2807,6 +2806,7 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 // 商店调试参数
 const shopDbg = {
   shopOffX: 20, shopOffY: 0,
+  shopBagOffX: 35, shopBagOffY: -27, shopBagScale: 1.0,
   shopTitleW: 120, shopTitleH: 30,
   shopTitleLeft: 50, shopTitleTop: -1,
   shopTitleTextLeft: 0, shopTitleTextTop: 0,
@@ -2964,9 +2964,7 @@ function applyDbg(key, val) {
 function exportDbgValues() {
   const out = document.getElementById('dbg-export-out');
   if (!out) return;
-  const bagLines = Object.entries(dbgParams).map(([k,v]) => `${k}: ${v}`).join('\n');
-  const shopLines = Object.entries(shopDbg).map(([k,v]) => `${k}: ${v}`).join('\n');
-  const lines = '── 背包参数 ──\n' + bagLines + '\n\n── 商店参数 ──\n' + shopLines;
+  const lines = Object.entries(shopDbg).map(([k,v]) => `${k}: ${v}`).join('\n');
   out.textContent = lines;
   out.style.display = 'block';
   navigator.clipboard?.writeText(lines).then(() => {
@@ -3014,12 +3012,13 @@ function openShop(){
 function closeShop(){
   const shopPanel = document.getElementById('shop-panel');
   shopPanel.style.display='none';
-  // 把 bag-inner 还回 bag-panel
   const bagInner = document.getElementById('bag-inner');
   const bagPanel = document.getElementById('bag-panel');
   if (bagInner && bagInner.parentElement !== bagPanel) {
     bagPanel.appendChild(bagInner);
   }
+  // 还原 bag-inner transform 为背包自身参数
+  if (bagInner) bagInner.style.transform = `translate(${dbgParams.bagOffX}px, ${dbgParams.bagOffY}px) scale(${dbgParams.bagScale})`;
   bagOpen = false;
   bagPanel.style.display='none';
   selectedBagSlot = null;
@@ -3399,6 +3398,10 @@ function applyShopDbg(key, val) {
     if (panel) panel.style.alignItems = 'center';
     const inner = document.getElementById('shop-inner');
     if (inner) inner.style.marginTop = shopDbg.shopOffY + 'px';
+  }
+  if (key === 'shopBagOffX' || key === 'shopBagOffY' || key === 'shopBagScale') {
+    const bagInner = document.getElementById('bag-inner');
+    if (bagInner) bagInner.style.transform = `translate(${shopDbg.shopBagOffX}px, ${shopDbg.shopBagOffY}px) scale(${shopDbg.shopBagScale})`;
   }
   if (key === 'shopBgPadW' || key === 'shopBgPadH') {
     setTimeout(drawShopBg, 10);
