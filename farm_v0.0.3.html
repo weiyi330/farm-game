@@ -494,9 +494,9 @@ canvas { display:block; }
   image-rendering:pixelated; pointer-events:none;
 }
 .sitem-icon { font-size:20px; position:relative; z-index:1; }
-.sitem-name { font-size:9px; color:#d4a060; text-align:center; max-width:60px; word-break:keep-all; }
-.sitem-price { font-size:9px; color:#f5d78e; text-align:center; }
-.sitem-desc { font-size:8px; color:#886640; text-align:center; max-width:60px; }
+.sitem-name { font-size:9px; color:#d4a060; text-align:center; max-width:60px; word-break:keep-all; position:relative; z-index:1; }
+.sitem-price { font-size:9px; color:#f5d78e; text-align:center; position:relative; z-index:1; }
+.sitem-desc { font-size:8px; color:#886640; text-align:center; max-width:60px; position:relative; z-index:1; }
 .shop-close {
   position:relative; z-index:1;
   padding:9px; background:rgba(140,60,20,0.4); border:1px solid #b06030;
@@ -528,7 +528,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.77</div>
+<div id="splash-version">版本号：v0.0.3.78</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2292,12 +2292,18 @@ function renderBagSlots() {
         if (itemDef && itemDef.bagImg !== undefined) {
           // 背包类道具：用canvas从图集切图
           const icv = document.createElement('canvas');
-          icv.style.cssText = 'image-rendering:pixelated;';
           iconEl.style.cssText = 'width:28px;height:28px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;';
           iconEl.appendChild(icv);
-          const doDrawBag = () => drawBagIcon(icv, itemDef.bagImg, 28);
+          const doDrawBag = () => {
+            icv.width = 56; icv.height = 56;
+            icv.style.cssText = 'width:28px;height:28px;image-rendering:pixelated;';
+            const c = icv.getContext('2d');
+            c.imageSmoothingEnabled = false;
+            c.clearRect(0,0,56,56);
+            c.drawImage(_bagsIconImg, itemDef.bagImg*16, 0, 16, 16, 0, 0, 56, 56);
+          };
           if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) doDrawBag();
-          else _bagsIconImg.onload = doDrawBag;
+          else { _bagsIconImg.addEventListener('load', doDrawBag, {once:true}); }
         } else if (itemDef) {
           iconEl.innerHTML = buildIcon(itemDef);
         } else {
@@ -2329,12 +2335,18 @@ function renderBagSlots() {
       if (itemDef) {
         if (itemDef.bagImg !== undefined) {
           const icv = document.createElement('canvas');
-          icv.style.imageRendering = 'pixelated';
-          icv.style.position = 'absolute';
-          icv.style.top = '50%'; icv.style.left = '50%';
-          icv.style.transform = 'translate(-50%,-50%)';
+          icv.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);image-rendering:pixelated;';
           el.appendChild(icv);
-          setTimeout(() => drawBagIcon(icv, itemDef.bagImg, 22), 50);
+          const doDrawExt = () => {
+            icv.width = 44; icv.height = 44;
+            icv.style.width = '22px'; icv.style.height = '22px';
+            const c = icv.getContext('2d');
+            c.imageSmoothingEnabled = false;
+            c.clearRect(0,0,44,44);
+            c.drawImage(_bagsIconImg, itemDef.bagImg*16, 0, 16, 16, 0, 0, 44, 44);
+          };
+          if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) doDrawExt();
+          else { _bagsIconImg.addEventListener('load', doDrawExt, {once:true}); }
         } else {
           const iconEl = document.createElement('div');
           iconEl.className = 'bag-item-icon';
@@ -2479,7 +2491,11 @@ function toggleBag() {
       drawPanelCloseBtn('bag-close-btn');
       const titleWrap = document.getElementById('bag-title-wrap');
       const titleCv = document.getElementById('bag-title-canvas');
-      if (titleWrap && titleCv) drawBagTitle(titleCv, titleWrap.offsetWidth, titleWrap.offsetHeight);
+      if (titleWrap && titleCv) {
+        const tw = titleWrap.offsetWidth || 131;
+        const th = titleWrap.offsetHeight || 26;
+        drawBagTitle(titleCv, tw, th);
+      }
     }, 50);
   }
 }
