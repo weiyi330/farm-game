@@ -458,25 +458,43 @@ canvas { display:block; }
   position:absolute; inset:0; z-index:30;
   background:rgba(10,5,0,0.75);
   display:none; align-items:center; justify-content:flex-start;
-  padding-left:var(--shop-off-x, 20px); gap:16px;
+  padding-left:20px; gap:16px;
+  pointer-events:all;
+  touch-action:none;
+}
+/* 商店外壳：固定大小，不滚动 */
+#shop-inner {
+  position:relative;
+  display:flex; flex-direction:column; align-items:center;
+  gap:10px;
+  pointer-events:all;
+  touch-action:none;
 }
 .shop-box-wrap {
   position:relative; overflow:visible; flex-shrink:0;
 }
+/* shop-box：固定尺寸容器，只是定位锚点 */
 .shop-box {
   position:relative;
-  padding:20px 16px 16px;
   width:220px;
-  max-height:calc(100vh - 100px);
-  overflow-y:scroll; overflow-x:visible;
-  scrollbar-width:none;
-  display:flex; flex-direction:column; gap:10px;
+  height:calc(3.5 * 41px + 2.5 * 4px + 80px);
+  overflow:hidden;
 }
-.shop-box::-webkit-scrollbar { display:none; }
+/* 底板canvas：固定在shop-box内，不滚动 */
 #shop-canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
   image-rendering:pixelated; pointer-events:none; z-index:0;
 }
+/* 内容层：可以上下滚动 */
+#shop-scroll {
+  position:absolute; top:0; left:0; right:0; bottom:0;
+  overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:none;
+  padding:10px 16px 16px;
+  display:flex; flex-direction:column; gap:10px;
+  z-index:1;
+}
+#shop-scroll::-webkit-scrollbar { display:none; }
 .shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
 #shop-title-wrap {
   position:relative; z-index:2;
@@ -486,10 +504,11 @@ canvas { display:block; }
 #shop-title-canvas {
   position:absolute; top:0; left:50px;
   image-rendering:pixelated; pointer-events:none; z-index:0;
+  width:83px; height:30px;
 }
 #shop-title-text {
   position:relative; z-index:1;
-  font-size:17px; color:#f5d78e; letter-spacing:3px;
+  font-size:17px; color:#3a1a08; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
 }
 #shop-close-btn {
@@ -590,7 +609,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.97</div>
+<div id="splash-version">版本号：v0.0.3.98</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -818,14 +837,16 @@ canvas { display:block; }
   </div>
 
   <div id="shop-panel">
+    <div id="shop-inner">
     <div class="shop-box-wrap">
     <div class="shop-box">
       <canvas id="shop-canvas"></canvas>
       <canvas class="panel-close-btn" id="shop-close-btn" width="36" height="36" onclick="closeShop()" style="image-rendering:pixelated;"></canvas>
       <div id="shop-title-wrap">
-        <canvas id="shop-title-canvas"></canvas>
-        <span id="shop-title-text">📜 桃源杂货铺</span>
+        <canvas id="shop-title-canvas" width="83" height="30"></canvas>
+        <span id="shop-title-text">桃源杂货铺</span>
       </div>
+      <div id="shop-scroll">
       <div class="shop-section-label shop-grid-label">── 种子 ──</div>
       <div class="shop-grid">
         <div class="sitem-wrap" onclick=\"openTrade('buy','seed_potato',8)\">
@@ -878,10 +899,11 @@ canvas { display:block; }
       </div>
       <div class="shop-section-label shop-grid-label">── 出售农产品 ──</div>
       <div class="shop-grid" id="sellGrid"></div>
-    </div>
-    </div>
-  </div>
-</div>
+      </div><!-- /shop-scroll -->
+    </div><!-- /shop-box -->
+    </div><!-- /shop-box-wrap -->
+    </div><!-- /shop-inner -->
+  </div><!-- /shop-panel -->
 
 <script>
 // ============================================================
@@ -2556,33 +2578,12 @@ function drawPanelCloseBtn(canvasId) {
   c.drawImage(_hudIconImg, 17*16, 4*16, 16, 16, 0, 0, 36, 36);
 }
 
-// 商店标题底板绘制
+// 商店标题底板绘制（使用背包标题同款图：common_button02）
 function drawShopTitle() {
-  const wrap = document.getElementById('shop-title-wrap');
   const cv = document.getElementById('shop-title-canvas');
-  if (!wrap || !cv || !_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
-  const W = shopDbg.shopTitleW || 120, H = shopDbg.shopTitleH || 30;
-  const dpr = window.devicePixelRatio || 1;
-  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
-  cv.style.width = W+'px'; cv.style.height = H+'px';
-  const c = cv.getContext('2d');
-  c.clearRect(0,0,cv.width,cv.height);
-  c.imageSmoothingEnabled = false;
-  const SL=4,SR=4,ST=4,SB=4,SW=48,SH=48,ES=2;
-  const SMH=SW-SL-SR, SMV=SH-ST-SB;
-  const ew=SL*ES*dpr, eh=ST*ES*dpr;
-  const tw=cv.width, th=cv.height;
-  const DW=tw-ew*2, DH=th-eh*2;
-  const img=_bagFrameImg;
-  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
-  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
-  c.drawImage(img,SL+SMH,0,SR,ST,tw-ew,0,ew,eh);
-  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
-  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
-  c.drawImage(img,SL+SMH,ST,SR,SMV,tw-ew,eh,ew,DH);
-  c.drawImage(img,0,ST+SMV,SL,SB,0,th-eh,ew,eh);
-  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,th-eh,DW,eh);
-  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,tw-ew,th-eh,ew,eh);
+  if (!cv) return;
+  const W = shopDbg.shopTitleW || 83, H = shopDbg.shopTitleH || 30;
+  drawBagTitle(cv, W, H);
 }
 
 // 商店底板绘制
