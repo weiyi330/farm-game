@@ -606,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.131</div>
+<div id="splash-version">版本号：v0.0.3.132</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -644,9 +644,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">标题左右位移</span>
-      <input class="dbg-slider" type="range" min="-150" max="150" value="50"
+      <input class="dbg-slider" type="range" min="-150" max="150" value="0"
         oninput="applyDbg('bagTitleLeft',this.value)" onchange="applyDbg('bagTitleLeft',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleLeft" value="50"
+      <input class="dbg-val" type="number" id="dv-bagTitleLeft" value="0"
         onchange="applyDbg('bagTitleLeft',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
@@ -2692,7 +2692,7 @@ const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
   bagBgPadW: 25, bagBgPadH: 49, bagBgTop: -24,
   bagTitleW: 83, bagTitleH: 30,
-  bagTitleLeft: 50, bagTitleTop: -1,
+  bagTitleLeft: 0, bagTitleTop: -1,
   bagTitleTextLeft: 2, bagTitleTextTop: 0,
   bagOffX: 35, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#3a1a08',
