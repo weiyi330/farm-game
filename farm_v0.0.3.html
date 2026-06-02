@@ -335,7 +335,7 @@ canvas { display:block; }
 #bag-slots {
   position:relative; z-index:2;
   display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
-  max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto; overflow-x:visible;
+  max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
   scrollbar-width:none;
 }
 #bag-slots::-webkit-scrollbar { display:none; }
@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.117</div>
+<div id="splash-version">版本号：v0.0.3.118</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -869,7 +869,7 @@ canvas { display:block; }
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="openTrade('buy','seed_potato',8)" data-item="seed_potato">
           <div class="sitem"><canvas class="sitem-bg"></canvas>
-            <span class="sitem-icon" style="display:inline-block;width:32px;height:32px;overflow:hidden;background:url('assets/images/Crops/Crops_All Crops.png') no-repeat 0px -128px / 832px 576px;image-rendering:pixelated;"></span>
+            <span class="sitem-icon" style="background:url('assets/images/Crops/Spring/Crops_Spring_Potato.png') no-repeat 0 0 / auto 100%;width:28px;height:28px;display:inline-block;image-rendering:pixelated;"></span>
           </div>
           <div class="sitem-name">土豆种子</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -72px -90px / 468px 108px;width:18px;height:18px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
         </div>
@@ -2322,6 +2322,9 @@ function drawBagBtnIcon() {
 // 绘制背包底板（九宫格，和工具栏一样的图集）
 // 绘制背包标题底板（九宫格拉伸）
 function drawBagTitle(cv, displayW, displayH) {
+  // 调试覆盖
+  if (dbgParams.bagTitleW > 0) displayW = dbgParams.bagTitleW;
+  if (dbgParams.bagTitleH > 0) displayH = dbgParams.bagTitleH;
   if (!cv || !_bagTitleImg.complete || !_bagTitleImg.naturalWidth) return;
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(displayW * dpr);
@@ -2585,14 +2588,8 @@ function drawPanelCloseBtn(canvasId) {
 function drawShopTitle() {
   const cv = document.getElementById('shop-title-canvas');
   if (!cv) return;
-  const wrap = document.getElementById('shop-title-wrap');
-  const W = (shopDbg.shopTitleW > 0) ? shopDbg.shopTitleW : (wrap ? wrap.offsetWidth || 120 : 120);
-  const H = (shopDbg.shopTitleH > 0) ? shopDbg.shopTitleH : 30;
-  cv.style.width  = W + 'px';
-  cv.style.height = H + 'px';
+  const W = shopDbg.shopTitleW || 83, H = shopDbg.shopTitleH || 30;
   drawBagTitle(cv, W, H);
-  cv.style.left = shopDbg.shopTitleLeft + 'px';
-  cv.style.top  = shopDbg.shopTitleTop  + 'px';
 }
 
 // 商店底板绘制
@@ -2604,10 +2601,11 @@ function drawShopBg() {
   const title  = document.getElementById('shop-title-wrap');
   if (!scroll || !title) return;
   const PAD_W = shopDbg.shopBgPadW !== undefined ? shopDbg.shopBgPadW : 48;
-  const PAD_H = (shopDbg.shopBgPadH !== undefined && shopDbg.shopBgPadH >= 0) ? shopDbg.shopBgPadH : 60;
+  const PAD_H = shopDbg.shopBgPadH !== undefined ? shopDbg.shopBgPadH : 80;
   const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
-  // 底板高 = 标题高 + scroll固定高（max-height约束）+ PAD
-  const H = title.offsetHeight + scroll.offsetHeight + PAD_H;
+  // 用 scrollHeight 获取实际内容高度（不受 max-height 截断）
+  const scrollH = Math.min(scroll.scrollHeight, window.innerHeight - 160);
+  const H = title.offsetHeight + scrollH + PAD_H;
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(W * dpr);
   cv.height = Math.round(H * dpr);
@@ -2616,7 +2614,13 @@ function drawShopBg() {
   cv.style.top  = '-24px';
   cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
   // 同步重绘标题底板
-  drawShopTitle();
+  const tCv = document.getElementById('shop-title-canvas');
+  const tWrap = document.getElementById('shop-title-wrap');
+  if (tWrap && tCv && tWrap.offsetWidth > 0) {
+    drawBagTitle(tCv, shopDbg.shopTitleW || tWrap.offsetWidth, shopDbg.shopTitleH || tWrap.offsetHeight || 26);
+    tCv.style.left = shopDbg.shopTitleLeft + 'px';
+    tCv.style.top  = shopDbg.shopTitleTop  + 'px';
+  }
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
@@ -2902,10 +2906,9 @@ function applyDbg(key, val) {
     if (tt) tt.style.top = v+'px';
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
+    const titleWrap = document.getElementById('bag-title-wrap');
     const titleCv = document.getElementById('bag-title-canvas');
-    const W = dbgParams.bagTitleW > 0 ? dbgParams.bagTitleW : 83;
-    const H = dbgParams.bagTitleH > 0 ? dbgParams.bagTitleH : 30;
-    if (titleCv) drawBagTitle(titleCv, W, H);
+    if (titleWrap && titleCv) drawBagTitle(titleCv, titleWrap.offsetWidth, titleWrap.offsetHeight);
   }
   if (key === 'bagTitleFS') {
     const tt = document.getElementById('bag-title-text');
@@ -3357,8 +3360,13 @@ function applyShopDbg(key, val) {
     if (panel) panel.style.paddingLeft = shopDbg.shopOffX+'px';
   }
   if (key === 'shopTitleW' || key === 'shopTitleH') { setTimeout(drawShopTitle,10); }
-  if (key === 'shopTitleLeft' || key === 'shopTitleTop') {
-    setTimeout(drawShopTitle, 10);
+  if (key === 'shopTitleLeft') {
+    const tc = document.getElementById('shop-title-canvas');
+    if (tc) tc.style.left = shopDbg.shopTitleLeft+'px';
+  }
+  if (key === 'shopTitleTop') {
+    const tc = document.getElementById('shop-title-canvas');
+    if (tc) tc.style.top = shopDbg.shopTitleTop+'px';
   }
   if (key === 'shopTitleTextLeft') {
     const tt = document.getElementById('shop-title-text');
