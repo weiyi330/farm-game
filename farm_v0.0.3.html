@@ -475,6 +475,20 @@ canvas { display:block; }
   image-rendering:pixelated; pointer-events:none; z-index:0;
 }
 .shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
+#shop-title-wrap {
+  position:relative; z-index:2;
+  display:flex; align-items:center; justify-content:center;
+  width:100%; margin-bottom:4px; margin-top:-33px;
+}
+#shop-title-canvas {
+  position:absolute; top:0; left:50px;
+  image-rendering:pixelated; pointer-events:none; z-index:0;
+}
+#shop-title-text {
+  position:relative; z-index:1;
+  font-size:17px; color:#f5d78e; letter-spacing:3px;
+  padding:4px 16px; line-height:1; font-weight:bold;
+}
 .shop-section-label { position:relative; z-index:1; font-size:10px; color:#a08040; letter-spacing:2px; }
 .shop-grid-label { position:relative; z-index:1; }
 .shop-grid {
@@ -530,7 +544,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.91</div>
+<div id="splash-version">版本号：v0.0.3.92</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -777,7 +791,10 @@ canvas { display:block; }
     <div class="shop-box">
       <canvas id="shop-canvas"></canvas>
       <canvas class="panel-close-btn" id="shop-close-btn" width="36" height="36" onclick="closeShop()" style="image-rendering:pixelated;"></canvas>
-      <div class="shop-title">📜 桃源杂货铺</div>
+      <div id="shop-title-wrap">
+        <canvas id="shop-title-canvas"></canvas>
+        <span id="shop-title-text">📜 桃源杂货铺</span>
+      </div>
       <div class="shop-section-label shop-grid-label">── 种子 ──</div>
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="buySeed('potato')">
@@ -2466,11 +2483,12 @@ function renderBagSlots() {
         return;
       }
 
-      // ── 情况2：有选中的基础格背包 → 放入扩展格 ──
+      // ── 情况2：有选中的基础格背包 → 放入/替换扩展格 ──
       if (selectedBagSlot !== null) {
         if (extItem) {
-          showToast('扩展格已有背包，请先选中它再互换');
-          selectedBagSlot = null; renderBagSlots(); return;
+          // 基础格背包 ↔ 扩展格背包：直接互换，触发格子数变化
+          placeBagIntoExtSlot(selectedBagSlot, extBase + slotI);
+          selectedBagSlot = null; return;
         }
         const srcItem = bagItems[selectedBagSlot];
         if (!srcItem) { selectedBagSlot = null; renderBagSlots(); return; }
@@ -2504,6 +2522,35 @@ function drawPanelCloseBtn(canvasId) {
   c.clearRect(0, 0, 36, 36);
   c.imageSmoothingEnabled = false;
   c.drawImage(_hudIconImg, 17*16, 4*16, 16, 16, 0, 0, 36, 36);
+}
+
+// 商店标题底板绘制
+function drawShopTitle() {
+  const wrap = document.getElementById('shop-title-wrap');
+  const cv = document.getElementById('shop-title-canvas');
+  if (!wrap || !cv || !_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
+  const W = shopDbg.shopTitleW || 120, H = shopDbg.shopTitleH || 30;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0,0,cv.width,cv.height);
+  c.imageSmoothingEnabled = false;
+  const SL=4,SR=4,ST=4,SB=4,SW=48,SH=48,ES=2;
+  const SMH=SW-SL-SR, SMV=SH-ST-SB;
+  const ew=SL*ES*dpr, eh=ST*ES*dpr;
+  const tw=cv.width, th=cv.height;
+  const DW=tw-ew*2, DH=th-eh*2;
+  const img=_bagFrameImg;
+  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+  c.drawImage(img,SL+SMH,0,SR,ST,tw-ew,0,ew,eh);
+  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+  c.drawImage(img,SL+SMH,ST,SR,SMV,tw-ew,eh,ew,DH);
+  c.drawImage(img,0,ST+SMV,SL,SB,0,th-eh,ew,eh);
+  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,th-eh,DW,eh);
+  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,tw-ew,th-eh,ew,eh);
 }
 
 // 商店底板绘制
@@ -2681,17 +2728,28 @@ window.addEventListener('load', () => { setTimeout(drawBagBtnIcon, 200); });
 const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAbElEQVR4nGNgYGBgCDDiOvH/Tsr//3dS/gcYcZ1goCZANpwWljDBGIFhy04Ghi07SS2DYYAFxli/Ksqc2obDAS2DiRHZEhgb5pvAsGUnN5z7ZkENi1AATVPVqCWjloxaMmoJDS2hmeGjYPADAI4Lptop35kmAAAAAElFTkSuQmCC';
 
 // 调试参数（与CSS/JS变量对应）
+// 商店调试参数
+const shopDbg = {
+  shopOffX: 20, shopOffY: 0,
+  shopTitleW: 120, shopTitleH: 30,
+  shopTitleLeft: 50, shopTitleTop: -1,
+  shopTitleTextLeft: 0, shopTitleTextTop: 0,
+  shopTitleMT: -33, shopTitleFS: 17,
+  shopBgPadW: 0, shopBgPadH: 0,
+  shopCloseRight: -22, shopCloseTop: -31,
+};
+
 const dbgParams = {
   bagPad: 4, bagSlot: 41, bagGap: 4,
   bagBgPadW: 25, bagBgPadH: 49, bagBgTop: -24,
   bagTitleW: 83, bagTitleH: 30,
-  bagTitleLeft: 48, bagTitleTop: -1,
-  bagTitleTextLeft: 0, bagTitleTextTop: 0,
+  bagTitleLeft: 50, bagTitleTop: -1,
+  bagTitleTextLeft: 2, bagTitleTextTop: 0,
   bagOffX: 0, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#3a1a08',
   bagCloseRight: -19, bagCloseTop: -32,
   tbHeight: 60, tbMarginBottom: -10,
-  iconSize: 30, iconYOff: 19,
+  iconSize: 29, iconYOff: 20,
 };
 
 function initDebugIcon() {
@@ -3199,6 +3257,96 @@ renderHotbar();
   keys.forEach(k => { try { applyDbg(k, dbgParams[k]); } catch(e){} });
   applyDbg('bagTitleColor', dbgParams.bagTitleColor);
 })();
+
+function applyShopDbg(key, val) {
+  const v = parseFloat(val);
+  shopDbg[key] = isNaN(v) ? val : v;
+  const dv = document.getElementById('sdv-'+key);
+  if (dv) dv.value = shopDbg[key];
+  if (key === 'shopOffX' || key === 'shopOffY') {
+    const panel = document.getElementById('shop-panel');
+    if (panel) panel.style.paddingLeft = shopDbg.shopOffX+'px';
+  }
+  if (key === 'shopTitleW' || key === 'shopTitleH') { setTimeout(drawShopTitle,10); }
+  if (key === 'shopTitleLeft') {
+    const tc = document.getElementById('shop-title-canvas');
+    if (tc) tc.style.left = shopDbg.shopTitleLeft+'px';
+  }
+  if (key === 'shopTitleTop') {
+    const tc = document.getElementById('shop-title-canvas');
+    if (tc) tc.style.top = shopDbg.shopTitleTop+'px';
+  }
+  if (key === 'shopTitleTextLeft') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) { tt.style.position='relative'; tt.style.left = shopDbg.shopTitleTextLeft+'px'; }
+  }
+  if (key === 'shopTitleTextTop') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) { tt.style.position='relative'; tt.style.top = shopDbg.shopTitleTextTop+'px'; }
+  }
+  if (key === 'shopTitleMT') {
+    const wrap = document.getElementById('shop-title-wrap');
+    if (wrap) wrap.style.marginTop = shopDbg.shopTitleMT+'px';
+  }
+  if (key === 'shopTitleFS') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) tt.style.fontSize = shopDbg.shopTitleFS+'px';
+  }
+  if (key === 'shopCloseRight') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) btn.style.right = shopDbg.shopCloseRight+'px';
+  }
+  if (key === 'shopCloseTop') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) btn.style.top = shopDbg.shopCloseTop+'px';
+  }
+}
+
+
+
+function applyShopDbg(key, val) {
+  const v = parseFloat(val);
+  shopDbg[key] = isNaN(v) ? val : v;
+  const dv = document.getElementById('sdv-'+key);
+  if (dv) dv.value = shopDbg[key];
+  const panel = document.getElementById('shop-panel');
+  const wrap = document.getElementById('shop-title-wrap');
+  if (key === 'shopOffX' || key === 'shopOffY') {
+    if (panel) panel.style.paddingLeft = shopDbg.shopOffX+'px';
+  }
+  if (key === 'shopTitleW' || key === 'shopTitleH') drawShopTitle();
+  if (key === 'shopTitleLeft') {
+    const tc = document.getElementById('shop-title-canvas');
+    if (tc) tc.style.left = shopDbg.shopTitleLeft+'px';
+  }
+  if (key === 'shopTitleTop') {
+    const tc = document.getElementById('shop-title-canvas');
+    if (tc) tc.style.top = shopDbg.shopTitleTop+'px';
+  }
+  if (key === 'shopTitleTextLeft') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) { tt.style.position='relative'; tt.style.left = shopDbg.shopTitleTextLeft+'px'; }
+  }
+  if (key === 'shopTitleTextTop') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) { tt.style.position='relative'; tt.style.top = shopDbg.shopTitleTextTop+'px'; }
+  }
+  if (key === 'shopTitleMT') {
+    if (wrap) wrap.style.marginTop = shopDbg.shopTitleMT+'px';
+  }
+  if (key === 'shopTitleFS') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) tt.style.fontSize = shopDbg.shopTitleFS+'px';
+  }
+  if (key === 'shopCloseRight') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) btn.style.right = shopDbg.shopCloseRight+'px';
+  }
+  if (key === 'shopCloseTop') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) btn.style.top = shopDbg.shopCloseTop+'px';
+  }
+}
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 </script>
 </body>
