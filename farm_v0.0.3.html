@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.103</div>
+<div id="splash-version">版本号：v0.0.3.104</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2964,10 +2964,11 @@ function applyDbg(key, val) {
 function exportDbgValues() {
   const out = document.getElementById('dbg-export-out');
   if (!out) return;
-  const lines = Object.entries(dbgParams).map(([k,v]) => `${k}: ${v}`).join('\n');
+  const bagLines = Object.entries(dbgParams).map(([k,v]) => `${k}: ${v}`).join('\n');
+  const shopLines = Object.entries(shopDbg).map(([k,v]) => `${k}: ${v}`).join('\n');
+  const lines = '── 背包参数 ──\n' + bagLines + '\n\n── 商店参数 ──\n' + shopLines;
   out.textContent = lines;
   out.style.display = 'block';
-  // 复制到剪贴板
   navigator.clipboard?.writeText(lines).then(() => {
     out.textContent = '✅ 已复制到剪贴板\n' + lines;
   }).catch(()=>{});
