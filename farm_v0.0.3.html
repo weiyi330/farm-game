@@ -495,7 +495,7 @@ canvas { display:block; }
   display:flex; flex-direction:column; gap:10px;
   overflow-y:auto; overflow-x:hidden;
   scrollbar-width:none;
-  padding:0 4px 4px;
+  padding:0 4px 20px;
   max-height:calc(4 * 70px + 3 * 10px);
 }
 #shop-scroll::-webkit-scrollbar { display:none; }
@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.115</div>
+<div id="splash-version">版本号：v0.0.3.116</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2585,7 +2585,8 @@ function drawPanelCloseBtn(canvasId) {
 function drawShopTitle() {
   const cv = document.getElementById('shop-title-canvas');
   if (!cv) return;
-  const W = (shopDbg.shopTitleW > 0) ? shopDbg.shopTitleW : 83;
+  const wrap = document.getElementById('shop-title-wrap');
+  const W = (shopDbg.shopTitleW > 0) ? shopDbg.shopTitleW : (wrap ? wrap.offsetWidth || 120 : 120);
   const H = (shopDbg.shopTitleH > 0) ? shopDbg.shopTitleH : 30;
   cv.style.width  = W + 'px';
   cv.style.height = H + 'px';
@@ -2603,7 +2604,7 @@ function drawShopBg() {
   const title  = document.getElementById('shop-title-wrap');
   if (!scroll || !title) return;
   const PAD_W = shopDbg.shopBgPadW !== undefined ? shopDbg.shopBgPadW : 48;
-  const PAD_H = shopDbg.shopBgPadH !== undefined ? shopDbg.shopBgPadH : 80;
+  const PAD_H = (shopDbg.shopBgPadH !== undefined && shopDbg.shopBgPadH >= 0) ? shopDbg.shopBgPadH : 60;
   const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
   // 底板高 = 标题高 + scroll固定高（max-height约束）+ PAD
   const H = title.offsetHeight + scroll.offsetHeight + PAD_H;
@@ -3355,13 +3356,8 @@ function applyShopDbg(key, val) {
     if (panel) panel.style.paddingLeft = shopDbg.shopOffX+'px';
   }
   if (key === 'shopTitleW' || key === 'shopTitleH') { setTimeout(drawShopTitle,10); }
-  if (key === 'shopTitleLeft') {
-    const tc = document.getElementById('shop-title-canvas');
-    if (tc) tc.style.left = shopDbg.shopTitleLeft+'px';
-  }
-  if (key === 'shopTitleTop') {
-    const tc = document.getElementById('shop-title-canvas');
-    if (tc) tc.style.top = shopDbg.shopTitleTop+'px';
+  if (key === 'shopTitleLeft' || key === 'shopTitleTop') {
+    setTimeout(drawShopTitle, 10);
   }
   if (key === 'shopTitleTextLeft') {
     const tt = document.getElementById('shop-title-text');
