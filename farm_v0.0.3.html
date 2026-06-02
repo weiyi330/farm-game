@@ -334,8 +334,12 @@ canvas { display:block; }
 }
 #bag-slots {
   position:relative; z-index:2;
-  display:grid; grid-template-columns:repeat(3,41px); gap:4px; margin:0 4px;
+  display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
+  max-height:calc(3.5*(41px+4px)); overflow-y:auto;
+  scrollbar-width:thin; scrollbar-color:rgba(120,170,80,0.5) transparent;
 }
+#bag-slots::-webkit-scrollbar { width:4px; }
+#bag-slots::-webkit-scrollbar-thumb { background:rgba(120,170,80,0.5); border-radius:2px; }
 #bag-divider {
   position:relative; z-index:2;
   width:100%; height:1px;
@@ -524,7 +528,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.75</div>
+<div id="splash-version">版本号：v0.0.3.76</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -763,6 +767,33 @@ canvas { display:block; }
           <div class="sitem-name">桃子</div><div class="sitem-price">🪙30</div>
         </div>
       </div>
+      <div class="shop-section-label shop-grid-label">── 背包 ──</div>
+      <div class="shop-grid">
+        <div class="sitem-wrap" onclick="buyBag('bag_large')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="1" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%)"></canvas></div>
+          <div class="sitem-name">大格背包</div><div class="sitem-price">🪙50</div>
+        </div>
+        <div class="sitem-wrap" onclick="buyBag('bag_adv_b')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="2" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%)"></canvas></div>
+          <div class="sitem-name">高级背包(蓝)</div><div class="sitem-price">🪙120</div>
+        </div>
+        <div class="sitem-wrap" onclick="buyBag('bag_lux_p')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="3" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%)"></canvas></div>
+          <div class="sitem-name">豪华背包(粉)</div><div class="sitem-price">🪙300</div>
+        </div>
+        <div class="sitem-wrap" onclick="buyBag('bag_adv_p')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="4" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%)"></canvas></div>
+          <div class="sitem-name">高级背包(粉)</div><div class="sitem-price">🪙200</div>
+        </div>
+        <div class="sitem-wrap" onclick="buyBag('bag_lux_w')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="5" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%)"></canvas></div>
+          <div class="sitem-name">豪华背包(白)</div><div class="sitem-price">🪙400</div>
+        </div>
+        <div class="sitem-wrap" onclick="buyBag('bag_mystery')">
+          <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="6" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%)"></canvas></div>
+          <div class="sitem-name">神秘背包</div><div class="sitem-price">🪙999</div>
+        </div>
+      </div>
       <div class="shop-section-label shop-grid-label">── 出售农产品 ──</div>
       <div class="shop-grid" id="sellGrid"></div>
     </div>
@@ -982,7 +1013,7 @@ const CROPS = {
 // ============================================================
 // 游戏状态
 // ============================================================
-let coins=80, day=1, seasonIdx=0;
+let coins=99999, day=1, seasonIdx=0;
 // 弹出动画表: key='r_c', {startMs, r, c, type}
 const harvestAnims = {};
 let harvestBag={};
@@ -2055,9 +2086,10 @@ function nextDay(){
 // ============================================================
 // 背包系统
 // ============================================================
-// bagItems: 11个格子 [0-8]=3×3基础格, [9-10]=扩展格
+// bagItems: [0-7]=4×2基础格(8格), [9-13]=扩展格(5格)
 // 每格存 {id, count} 或 null
 let bagItems = new Array(14).fill(null);
+let equippedBag = null; // 当前装备的背包道具id
 let bagUnlocked = [true, true, false, false, false]; // 扩展格解锁状态（前2解锁，后3锁定）
 
 // 初始道具：背包（占位）
@@ -2075,6 +2107,7 @@ function _bagPackIcon() {
 
 // 初始化：塞一个背包道具
 bagItems[9] = { id: 'bag_normal', count: 1 }; // 普通背包放扩展格[0]
+equippedBag = 'bag_normal'; // 默认装备普通背包（8格）
 
 // 背包面板 canvas 九宫格底板
 const _bagFrameImg = new Image();
@@ -2221,7 +2254,8 @@ function renderBagSlots() {
   const slotsEl = document.getElementById('bag-slots');
   if (!slotsEl) return;
   slotsEl.innerHTML = '';
-  for (let i = 0; i < 9; i++) {
+  const mainSlots = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots || 8) : 8;
+  for (let i = 0; i < mainSlots; i++) {
     const div = document.createElement('div');
     div.className = 'bag-slot';
     div.dataset.idx = i;
@@ -2511,7 +2545,7 @@ function applyDbg(key, val) {
   if (key === 'bagPad' || key === 'bagSlot' || key === 'bagGap') {
     // 重新计算格子grid
     const slots = document.getElementById('bag-slots');
-    if (slots) slots.style.gridTemplateColumns = `repeat(3,${dbgParams.bagSlot}px)`;
+    if (slots) slots.style.gridTemplateColumns = `repeat(4,${dbgParams.bagSlot}px)`;
     document.querySelectorAll('.bag-slot').forEach(s => {
       s.style.width = dbgParams.bagSlot+'px';
       s.style.height = dbgParams.bagSlot+'px';
@@ -2605,6 +2639,11 @@ function openShop(){
     drawBagBg();
     drawPanelCloseBtn('bag-close-btn');
     document.querySelectorAll('.sitem-bg').forEach(cv => drawSlotCanvas(cv, 41, 41, 1));
+    // 渲染商店里的背包图标
+    document.querySelectorAll('.sitem-bag-icon').forEach(cv => {
+      const idx = parseInt(cv.dataset.idx);
+      if (!isNaN(idx)) drawBagIcon(cv, idx, 28);
+    });
   }, 80);
 }
 function closeShop(){
@@ -2619,6 +2658,40 @@ function closeShop(){
   bagOpen = false;
   bagPanel.style.display='none';
   selectedBagSlot = null;
+}
+
+function buyBag(bagId) {
+  const def = ITEM_DEF[bagId];
+  if (!def) return;
+  const prices = { bag_large:50, bag_adv_b:120, bag_lux_p:300, bag_adv_p:200, bag_lux_w:400, bag_mystery:999 };
+  const cost = prices[bagId] || 99;
+  if (coins < cost) { showToast('铜钱不够！'); return; }
+  coins -= cost;
+  // 放入扩展格第一个空位
+  let placed = false;
+  for (let i = 9; i < 14; i++) {
+    if (!bagItems[i]) { bagItems[i] = { id: bagId, count: 1 }; placed = true; break; }
+  }
+  if (!placed) { showToast('扩展格已满！'); coins += cost; return; }
+  updateHUD(); renderBagSlots();
+  showToast(`购入${def.name} -${cost}枚`);
+}
+
+// 装备/卸下背包（点击扩展格中的背包道具）
+function equipBag(bagId) {
+  const def = ITEM_DEF[bagId];
+  if (!def || def.bagImg === undefined) return;
+  if (equippedBag === bagId) {
+    equippedBag = null;
+    showToast('已卸下背包');
+  } else {
+    equippedBag = bagId;
+    // 扩展更多格子（bagItems 自动扩容）
+    const slots = def.bagSlots || 8;
+    while (bagItems.length < slots + 9) bagItems.push(null);
+    showToast(`已装备${def.name}，背包扩展至${slots}格`);
+  }
+  renderBagSlots(); drawBagBg();
 }
 
 function buySeed(type){
