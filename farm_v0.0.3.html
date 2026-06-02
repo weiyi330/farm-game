@@ -237,6 +237,10 @@ canvas { display:block; }
   cursor:pointer; position:relative;
   transition:all 0.15s;
 }
+.tool-btn.bag-select {
+  outline: 2px solid #60c8f5;
+  outline-offset: 1px;
+}
 .tool-btn.active {
   outline: 2px solid #f5c842;
   outline-offset: 1px;
@@ -453,7 +457,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.64</div>
+<div id="splash-version">版本号：v0.0.3.65</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1621,7 +1625,7 @@ function renderHotbar() {
   hotbar.forEach((itemId, idx) => {
     const item = itemId ? ITEM_DEF[itemId] : null;
     const slot = document.createElement('div');
-    slot.className = 'tool-btn' + (idx === selectedSlot ? ' active' : '');
+    slot.className = 'tool-btn' + (idx === selectedSlot ? ' active' : '') + (idx === selectedHotbarForBag ? ' bag-select' : '');
     slot.dataset.idx = idx;
     if (item) {
       // 数量（种子用 seedCount，可堆叠道具用 harvestBag）
@@ -1674,8 +1678,31 @@ function onSlotPointerDown(e, idx) {
 }
 
 function selectSlot(idx) {
-  // 背包开着且有选中格子 → 互换而不是选中
-  if (trySwapWithHotbar(idx)) return;
+  if (bagOpen) {
+    // 背包开着
+    if (selectedBagSlot !== null) {
+      // 有背包格子已选中 → 互换
+      doSwapHotbarBag(idx, selectedBagSlot);
+      return;
+    }
+    if (selectedHotbarForBag === idx) {
+      // 点同一格 → 取消选中
+      selectedHotbarForBag = null;
+      renderHotbar();
+      return;
+    }
+    if (hotbar[idx]) {
+      // 选中工具栏道具（等待点背包格子）
+      selectedHotbarForBag = idx;
+      renderHotbar();
+      return;
+    }
+    // 工具栏空格子 + 背包有道具等待 → 当做目标
+    if (selectedHotbarForBag !== null) {
+      doSwapHotbarBag(selectedHotbarForBag, idx);
+      return;
+    }
+  }
   selectedSlot = idx;
   renderHotbar();
 }
@@ -1693,21 +1720,6 @@ function startDrag(idx, x, y) {
   dragState = { source:'hotbar', idx, itemId: hotbar[idx], startX:x, startY:y, ghost };
 }
 
-// 从背包格子开始拖拽
-function startBagDrag(bagIdx, x, y) {
-  const bagItem = bagItems[bagIdx];
-  if (!bagItem) return;
-  const itemDef = ITEM_DEF[bagItem.id];
-  if (!itemDef) return;
-  const ghost = document.createElement('div');
-  ghost.className = 'drag-ghost';
-  ghost.innerHTML = buildIcon(itemDef);
-  ghost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.85;
-    transform:translate(-50%,-50%);transition:none;`;
-  ghost.style.left = x+'px'; ghost.style.top = y+'px';
-  document.body.appendChild(ghost);
-  dragState = { source:'bag', idx:bagIdx, itemId:bagItem.id, startX:x, startY:y, ghost };
-}
 
 function moveDrag(x, y) {
   if (!dragState) return;
@@ -1717,85 +1729,36 @@ function moveDrag(x, y) {
 
 function endDrag(e) {
   if (!dragState) return;
-  const { source, idx, itemId, ghost } = dragState;
+  const { idx, itemId, ghost } = dragState;
   dragState = null;
   ghost.remove();
 
   const x = e.clientX, y = e.clientY;
+  const W = window.innerWidth, H = window.innerHeight;
+  const tbWrap = document.getElementById('toolbar-wrap');
+  const tbRect = tbWrap ? tbWrap.getBoundingClientRect() : null;
+  const onToolbar = tbRect && x>=tbRect.left-20 && x<=tbRect.right+20 && y>=tbRect.top-20 && y<=tbRect.bottom+20;
+  const outOfScreen = x<30||x>W-30||y<30||y>H-30||!onToolbar;
 
-  // ── 检测落点：背包格子？ ──
-  const bagSlotEls = document.querySelectorAll('#bag-slots .bag-slot');
-  let targetBagIdx = -1;
-  bagSlotEls.forEach(s => {
-    const r = s.getBoundingClientRect();
-    if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
-      targetBagIdx = parseInt(s.dataset.idx);
-  });
-  // 检测扩展格
-  for (let ei=0; ei<2; ei++) {
-    const el = document.getElementById('bag-extra-'+ei);
-    if (!el) continue;
-    const r = el.getBoundingClientRect();
-    if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom && bagUnlocked[ei])
-      targetBagIdx = 9 + ei;
-  }
-
-  // ── 检测落点：工具栏格子？ ──
-  const toolSlots = document.querySelectorAll('.tool-btn');
-  let targetHotbarIdx = -1;
-  toolSlots.forEach(s => {
-    const r = s.getBoundingClientRect();
-    if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
-      targetHotbarIdx = parseInt(s.dataset.idx);
-  });
-
-  if (source === 'hotbar') {
-    if (targetBagIdx >= 0) {
-      // 工具栏 → 背包：互换
-      const bagItem = bagItems[targetBagIdx];
-      const hItem = hotbar[idx];
-      const count = ITEM_DEF[hItem]?.seedType ? (seedCount[ITEM_DEF[hItem].seedType]||0)
-                  : ITEM_DEF[hItem]?.stackMax  ? (harvestBag[hItem]||0) : 1;
-      bagItems[targetBagIdx] = hItem ? { id:hItem, count } : null;
-      hotbar[idx] = bagItem ? bagItem.id : null;
-      renderBagSlots(); renderHotbar();
-      return;
-    }
-    // 工具栏内互换或丢地上（原逻辑）
-    const W = window.innerWidth, H = window.innerHeight;
-    const tbWrap = document.getElementById('toolbar-wrap');
-    const tbRect = tbWrap ? tbWrap.getBoundingClientRect() : null;
-    const onToolbar = tbRect && x>=tbRect.left-20 && x<=tbRect.right+20 && y>=tbRect.top-20 && y<=tbRect.bottom+20;
-    const outOfScreen = x<30||x>W-30||y<30||y>H-30||!onToolbar;
-    if (outOfScreen) {
-      hotbar[idx] = null;
-      groundItems.push({ id:itemId, wx:player.wx+(Math.random()-0.5)*2, wy:player.wy+1 });
-      showToast(`${ITEM_DEF[itemId].name}掉到地上了`);
-    } else if (targetHotbarIdx >= 0 && targetHotbarIdx !== idx) {
-      [hotbar[idx], hotbar[targetHotbarIdx]] = [hotbar[targetHotbarIdx], hotbar[idx]];
-      if (selectedSlot===idx) selectedSlot=targetHotbarIdx;
-      else if (selectedSlot===targetHotbarIdx) selectedSlot=idx;
-    }
-    renderHotbar();
-
-  } else if (source === 'bag') {
-    if (targetHotbarIdx >= 0) {
-      // 背包 → 工具栏：互换
-      const hotbarId = hotbar[targetHotbarIdx];
-      const bagItem = bagItems[idx];
-      const count = ITEM_DEF[hotbarId]?.seedType ? (seedCount[ITEM_DEF[hotbarId].seedType]||0)
-                  : ITEM_DEF[hotbarId]?.stackMax  ? (harvestBag[hotbarId]||0) : 1;
-      hotbar[targetHotbarIdx] = bagItem ? bagItem.id : null;
-      bagItems[idx] = hotbarId ? { id:hotbarId, count } : null;
-      renderBagSlots(); renderHotbar();
-      return;
-    }
-    if (targetBagIdx >= 0 && targetBagIdx !== idx) {
-      // 背包内互换
-      [bagItems[idx], bagItems[targetBagIdx]] = [bagItems[targetBagIdx], bagItems[idx]];
-      renderBagSlots();
+  if (outOfScreen) {
+    hotbar[idx] = null;
+    groundItems.push({ id:itemId, wx:player.wx+(Math.random()-0.5)*2, wy:player.wy+1 });
+    showToast(`${ITEM_DEF[itemId].name}掉到地上了`);
+  } else {
+    const slots = document.querySelectorAll('.tool-btn');
+    let targetIdx = -1;
+    slots.forEach(s => {
+      const r = s.getBoundingClientRect();
+      if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
+        targetIdx = parseInt(s.dataset.idx);
+    });
+    if (targetIdx >= 0 && targetIdx !== idx) {
+      [hotbar[idx], hotbar[targetIdx]] = [hotbar[targetIdx], hotbar[idx]];
+      if (selectedSlot===idx) selectedSlot=targetIdx;
+      else if (selectedSlot===targetIdx) selectedSlot=idx;
     }
   }
+  renderHotbar();
 }
 
 // 地上道具跳进检测（在 loop 里调用）
@@ -1986,7 +1949,7 @@ function renderBagSlots() {
     const div = document.createElement('div');
     div.className = 'bag-slot';
     div.dataset.idx = i;
-    div.addEventListener('pointerdown', e => onBagSlotPointerDown(e, i));
+    div.onclick = () => onBagSlotClick(i);
     const cv = document.createElement('canvas');
     div.appendChild(cv);
     _bagSlotImg.onload = () => drawSlotCanvas(cv, 41, 41, 1);
@@ -2094,52 +2057,28 @@ function drawShopBg() {
 
 // 背包格子与工具栏互换
 // selectedBagSlot: 当前选中的背包格子索引（null=无选中）
-// 背包格子长按拖拽
-function onBagSlotPointerDown(e, idx) {
-  e.preventDefault();
-  const startX = e.clientX, startY = e.clientY;
-  let pressTimer = setTimeout(() => {
-    // 长按 → 拖拽
-    startBagDrag(idx, startX, startY);
-  }, LONG_PRESS_MS);
-  const onMove = (ev) => {
-    const dx = ev.clientX-startX, dy = ev.clientY-startY;
-    if (Math.sqrt(dx*dx+dy*dy) > 8) clearTimeout(pressTimer);
-    if (dragState) moveDrag(ev.clientX, ev.clientY);
-  };
-  const onUp = (ev) => {
-    clearTimeout(pressTimer);
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
-    if (dragState) {
-      endDrag(ev);
-    } else {
-      // 短按 → 选中/取消
-      onBagSlotClick(idx);
-    }
-  };
-  window.addEventListener('pointermove', onMove);
-  window.addEventListener('pointerup', onUp);
-}
-
 let selectedBagSlot = null;
+let selectedHotbarForBag = null; // 工具栏被选中的格子（等待放入背包）
 function onBagSlotClick(idx) {
-  if (selectedBagSlot === null) {
-    // 第一次点击：选中背包格子
+  if (selectedBagSlot === null && selectedHotbarForBag === null) {
+    // 无选中 → 选中背包格子（只有有道具才能选中）
+    if (!bagItems[idx]) return;
     selectedBagSlot = idx;
     renderBagSlots();
-    highlightBagSlot(idx, true);
   } else if (selectedBagSlot === idx) {
-    // 再次点击同一格：取消选中
+    // 点同一格 → 取消
     selectedBagSlot = null;
     renderBagSlots();
-  } else {
-    // 点击另一格：背包内互换
+  } else if (selectedBagSlot !== null) {
+    // 已选背包格子 → 点另一背包格子：互换/移动
     const tmp = bagItems[selectedBagSlot];
     bagItems[selectedBagSlot] = bagItems[idx];
     bagItems[idx] = tmp;
     selectedBagSlot = null;
     renderBagSlots();
+  } else if (selectedHotbarForBag !== null) {
+    // 已选工具栏道具 → 点背包格子：移动/互换
+    doSwapHotbarBag(selectedHotbarForBag, idx);
   }
 }
 function highlightBagSlot(idx, on) {
@@ -2153,28 +2092,37 @@ function highlightBagSlot(idx, on) {
 
 // 背包格子与工具栏互换：长按工具栏格子触发
 // 点击工具栏格子时，如果背包面板开着且有选中格子，互换
-function trySwapWithHotbar(hotbarIdx) {
-  if (!bagOpen || selectedBagSlot === null) return false;
-  const bagItem = bagItems[selectedBagSlot];   // {id, count} 或 null
-  const hotbarId = hotbar[hotbarIdx];           // 字符串 id 或 null
-
-  // hotbar → 背包：将 hotbarId 封装成 {id, count}
-  if (hotbarId) {
-    const count = ITEM_DEF[hotbarId]?.seedType ? (seedCount[ITEM_DEF[hotbarId].seedType] || 0)
-                : ITEM_DEF[hotbarId]?.stackMax  ? (harvestBag[hotbarId] || 0)
-                : 1;
-    bagItems[selectedBagSlot] = { id: hotbarId, count };
-  } else {
-    bagItems[selectedBagSlot] = null;
-  }
-
-  // 背包 → hotbar：取 bagItem.id 字符串
+// 工具栏↔背包 互换/移动（统一入口）
+function doSwapHotbarBag(hotbarIdx, bagIdx) {
+  const hotbarId = hotbar[hotbarIdx];
+  const bagItem  = bagItems[bagIdx];
+  // 背包 → 工具栏
   hotbar[hotbarIdx] = bagItem ? bagItem.id : null;
-
+  // 工具栏 → 背包
+  if (hotbarId) {
+    const count = ITEM_DEF[hotbarId]?.seedType ? (seedCount[ITEM_DEF[hotbarId].seedType]||0)
+                : ITEM_DEF[hotbarId]?.stackMax  ? (harvestBag[hotbarId]||0) : 1;
+    bagItems[bagIdx] = { id:hotbarId, count };
+  } else {
+    bagItems[bagIdx] = null;
+  }
   selectedBagSlot = null;
+  selectedHotbarForBag = null;
   renderBagSlots();
   renderHotbar();
-  return true;
+}
+
+// 兼容旧调用（背包选中后点工具栏）
+function trySwapWithHotbar(hotbarIdx) {
+  if (!bagOpen) return false;
+  if (selectedBagSlot !== null) {
+    doSwapHotbarBag(hotbarIdx, selectedBagSlot);
+    return true;
+  }
+  if (selectedHotbarForBag !== null) {
+    doSwapHotbarBag(selectedHotbarForBag, -1); // 不会到这里
+  }
+  return false;
 }
 
 let bagOpen = false;
@@ -2190,6 +2138,8 @@ function toggleBag() {
   if (bagInner && bagInner.parentElement !== panel) panel.appendChild(bagInner);
   panel.style.display = bagOpen ? 'flex' : 'none';
   selectedBagSlot = null;
+  selectedHotbarForBag = null;
+  renderHotbar();
   if (bagOpen) {
     renderBagSlots();
     setTimeout(() => {
