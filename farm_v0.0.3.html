@@ -321,7 +321,7 @@ canvas { display:block; }
 #bag-title-wrap {
   position:relative; z-index:2;
   display:flex; align-items:center; justify-content:center;
-  width:100%; margin-bottom:4px; margin-top:-25px;
+  width:100%; margin-bottom:4px; margin-top:-33px;
 }
 #bag-title-canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
@@ -334,7 +334,7 @@ canvas { display:block; }
 }
 #bag-slots {
   position:relative; z-index:2;
-  display:grid; grid-template-columns:repeat(3,41px); gap:4px;
+  display:grid; grid-template-columns:repeat(3,41px); gap:4px; margin:0 4px;
 }
 #bag-extra-slots {
   position:relative; z-index:2;
@@ -434,7 +434,7 @@ canvas { display:block; }
 
 /* 关闭按钮（共用，背包+商店右上角） */
 .panel-close-btn {
-  position:absolute; top:-14px; right:-34px; z-index:10;
+  position:absolute; top:-31px; right:-54px; z-index:10;
   width:36px; height:36px;
   cursor:pointer; image-rendering:pixelated;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));
@@ -518,7 +518,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.69</div>
+<div id="splash-version">版本号：v0.0.3.70</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -548,7 +548,7 @@ canvas { display:block; }
       <span class="dbg-label">内边距</span>
       <input class="dbg-slider" type="range" min="4" max="30" value="14"
         oninput="applyDbg('bagPad',this.value)" onchange="applyDbg('bagPad',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagPad" value="14"
+      <input class="dbg-val" type="number" id="dv-bagPad" value="4"
         onchange="applyDbg('bagPad',this.value)">
     </div>
     <div class="dbg-row">
@@ -567,9 +567,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">标题上移</span>
-      <input class="dbg-slider" type="range" min="-40" max="10" value="-25"
+      <input class="dbg-slider" type="range" min="-40" max="10" value="-33"
         oninput="applyDbg('bagTitleMT',this.value)" onchange="applyDbg('bagTitleMT',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-25"
+      <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-33"
         onchange="applyDbg('bagTitleMT',this.value)">
     </div>
     <div class="dbg-row">
@@ -587,16 +587,16 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">关闭按钮右</span>
-      <input class="dbg-slider" type="range" min="-60" max="0" value="-34"
+      <input class="dbg-slider" type="range" min="-60" max="0" value="-54"
         oninput="applyDbg('bagCloseRight',this.value)" onchange="applyDbg('bagCloseRight',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-34"
+      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-54"
         onchange="applyDbg('bagCloseRight',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">关闭按钮顶</span>
-      <input class="dbg-slider" type="range" min="-40" max="10" value="-14"
+      <input class="dbg-slider" type="range" min="-40" max="10" value="-31"
         oninput="applyDbg('bagCloseTop',this.value)" onchange="applyDbg('bagCloseTop',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-14"
+      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-31"
         onchange="applyDbg('bagCloseTop',this.value)">
     </div>
 
@@ -2371,9 +2371,9 @@ const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYA
 
 // 调试参数（与CSS/JS变量对应）
 const dbgParams = {
-  bagPad: 14, bagSlot: 41, bagGap: 4,
-  bagTitleMT: -25, bagTitleFS: 16, bagTitleColor: '#3a1a08',
-  bagCloseRight: -34, bagCloseTop: -14,
+  bagPad: 4, bagSlot: 41, bagGap: 4,
+  bagTitleMT: -33, bagTitleFS: 16, bagTitleColor: '#3a1a08',
+  bagCloseRight: -54, bagCloseTop: -31,
   tbHeight: 60, tbMarginBottom: -10,
   iconSize: 30, iconYOff: 19,
 };
