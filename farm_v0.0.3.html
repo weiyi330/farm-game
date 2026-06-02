@@ -335,8 +335,7 @@ canvas { display:block; }
 #bag-slots {
   position:relative; z-index:2;
   display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
-  max-height:calc(3.5 * 41px + 3 * 4px); overflow-y:scroll;
-  height:calc(3.5 * 41px + 3 * 4px);
+  max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
   scrollbar-width:thin; scrollbar-color:rgba(120,170,80,0.5) transparent;
 }
 #bag-slots::-webkit-scrollbar { width:4px; }
@@ -356,7 +355,7 @@ canvas { display:block; }
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; image-rendering:pixelated;
 }
-.bag-slot.selected canvas:first-child { outline:2px solid #f5e642; outline-offset:-2px; }
+.bag-slot.selected { outline:2px solid #f5c842; outline-offset:1px; box-shadow:0 0 0 1px #8b5e00, inset 0 0 0 1px rgba(255,220,100,0.3); border-radius:2px; }
 .bag-slot-extra {
   width:32px; height:32px; position:relative;
   display:flex; align-items:center; justify-content:center;
@@ -369,7 +368,7 @@ canvas { display:block; }
   border-radius:2px;
 }
 .bag-slot-extra.locked { cursor:default; filter:grayscale(1) brightness(0.5); }
-.bag-slot-extra.selected canvas:first-child { outline:2px solid #f5e642; outline-offset:-2px; }
+.bag-slot-extra.selected { outline:2px solid #f5c842; outline-offset:1px; box-shadow:0 0 0 1px #8b5e00; border-radius:2px; }
 .bag-slot canvas, .bag-slot-extra canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
   image-rendering:pixelated; pointer-events:none;
@@ -532,7 +531,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.85</div>
+<div id="splash-version">版本号：v0.0.3.86</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2368,7 +2367,9 @@ function renderBagSlots() {
   slotsEl.querySelectorAll('canvas.bag-icon-cv').forEach(c=>delete c.dataset.rendered);
   flushBagIcons(slotsEl);
   // 扩展格（5个），索引从mainSlots开始
-  const extOffset = mainSlots; // 扩展格起始index
+  // 扩展格起始index：用当前equippedBag重新算（placeBagIntoExtSlot可能已经改变了equippedBag）
+  const curSlots = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots || 8) : 8;
+  const extOffset = curSlots;
   for (let i = 0; i < 5; i++) {
     const el = document.getElementById('bag-extra-'+i);
     if (!el) continue;
@@ -2390,7 +2391,8 @@ function renderBagSlots() {
     // ── 绑定点击事件 ──
     el.onclick = ((slotI) => () => {
       if (!bagUnlocked[slotI]) { showToast('扩展格未解锁'); return; }
-      const extItem = bagItems[extOffset + slotI];
+      const extBase = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots||8) : 8;
+      const extItem = bagItems[extBase + slotI];
 
       // ── 情况1：当前有选中的扩展格 ──
       if (selectedExtSlot !== null) {
@@ -2401,14 +2403,14 @@ function renderBagSlots() {
         }
         if (extItem) {
           // 目标格有背包 → 互换两个扩展格（直接swap，不改格子数）
-          const tmp = bagItems[extOffset + selectedExtSlot];
-          bagItems[extOffset + selectedExtSlot] = bagItems[extOffset + slotI];
-          bagItems[extOffset + slotI] = tmp;
+          const tmp = bagItems[extBase + selectedExtSlot];
+          bagItems[extOffset + selectedExtSlot] = bagItems[extBase + slotI];
+          bagItems[extBase + slotI] = tmp;
           selectedExtSlot = null;
           renderBagSlots(); return;
         } else {
           // 目标格为空 → 移动扩展格背包到此格（触发格子数变化）
-          placeBagIntoExtSlot(extOffset + selectedExtSlot, extOffset + slotI);
+          placeBagIntoExtSlot(extBase + selectedExtSlot, extBase + slotI);
           selectedExtSlot = null;
           return;
         }
@@ -2427,7 +2429,7 @@ function renderBagSlots() {
           showToast('扩展格只能放背包道具');
           selectedBagSlot = null; renderBagSlots(); return;
         }
-        placeBagIntoExtSlot(selectedBagSlot, extOffset + slotI);
+        placeBagIntoExtSlot(selectedBagSlot, extBase + slotI);
         selectedBagSlot = null;
         return;
       }
@@ -2579,9 +2581,12 @@ function toggleBag() {
       const titleWrap = document.getElementById('bag-title-wrap');
       const titleCv = document.getElementById('bag-title-canvas');
       if (titleWrap && titleCv) {
-        const tw = titleWrap.offsetWidth || 131;
-        const th = titleWrap.offsetHeight || 26;
-        drawBagTitle(titleCv, tw, th);
+        // 延迟一帧确保DOM渲染完
+        requestAnimationFrame(() => {
+          const tw = titleWrap.offsetWidth || 131;
+          const th = titleWrap.offsetHeight || 26;
+          drawBagTitle(titleCv, tw, th);
+        });
       }
     }, 50);
   }
