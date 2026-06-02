@@ -367,6 +367,7 @@ canvas { display:block; }
   border-radius:2px;
 }
 .bag-slot-extra.locked { cursor:default; filter:grayscale(1) brightness(0.5); }
+.bag-slot-extra.selected canvas:first-child { outline:2px solid #f5e642; outline-offset:-2px; }
 .bag-slot canvas, .bag-slot-extra canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
   image-rendering:pixelated; pointer-events:none;
@@ -529,7 +530,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.83</div>
+<div id="splash-version">版本号：v0.0.3.84</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2369,7 +2370,7 @@ function renderBagSlots() {
     if (!el) continue;
     const cv = el.querySelector('canvas');
     const unlocked = bagUnlocked[i];
-    el.className = 'bag-slot-extra' + (unlocked ? '' : ' locked');
+    el.className = 'bag-slot-extra' + (unlocked ? '' : ' locked') + (selectedExtSlot === i ? ' selected' : '');
     if (cv) drawSlotCanvas(cv, 32, 32, unlocked ? 1 : 0.4);
     el.querySelectorAll('.bag-item-icon,.bag-item-count,canvas:not(:first-child)').forEach(e=>e.remove());
     const item = bagItems[extOffset+i];
@@ -2383,32 +2384,38 @@ function renderBagSlots() {
       }
     }
     // ── 绑定点击事件 ──
-    el.onclick = ((slotI, extI) => () => {
+    el.onclick = ((slotI) => () => {
       if (!bagUnlocked[slotI]) { showToast('扩展格未解锁'); return; }
       const extItem = bagItems[extOffset + slotI];
 
-      if (extItem) {
-        // 扩展格有背包：可以取出（放入基础格空位），但必须保证至少1个扩展格有背包
-        const extBagCount = bagUnlocked.filter((u,k) => u && bagItems[extOffset+k]?.id && ITEM_DEF[bagItems[extOffset+k].id]?.bagImg !== undefined).length;
-        if (extBagCount <= 1) { showToast('至少保留一个背包在扩展格'); return; }
-        // 取出：找基础格空位
-        const ms = equippedBag ? (ITEM_DEF[equippedBag]?.bagSlots||8) : 8;
-        const emptyIdx = bagItems.slice(0, ms).findIndex(x => x === null);
-        if (emptyIdx < 0) { showToast('背包已满，无法取出'); return; }
-        bagItems[emptyIdx] = extItem;
-        bagItems[extOffset + slotI] = null;
-        // 如果取出的是当前装备，重新找一个扩展格背包作为当前装备
-        if (extItem.id === equippedBag) {
-          const nextBag = bagUnlocked.map((u,k) => u && bagItems[extOffset+k] && ITEM_DEF[bagItems[extOffset+k].id]?.bagImg !== undefined ? bagItems[extOffset+k].id : null).find(x=>x);
-          equipByBagId(nextBag || null);
+      // ── 情况1：当前有选中的扩展格 ──
+      if (selectedExtSlot !== null) {
+        if (selectedExtSlot === slotI) {
+          // 点同一个 → 取消选中
+          selectedExtSlot = null;
+          renderBagSlots(); return;
         }
-        showToast(`${ITEM_DEF[extItem.id]?.name}已取出`);
-        renderBagSlots(); drawBagBg();
-        return;
+        if (extItem) {
+          // 目标格有背包 → 互换两个扩展格（直接swap，不改格子数）
+          const tmp = bagItems[extOffset + selectedExtSlot];
+          bagItems[extOffset + selectedExtSlot] = bagItems[extOffset + slotI];
+          bagItems[extOffset + slotI] = tmp;
+          selectedExtSlot = null;
+          renderBagSlots(); return;
+        } else {
+          // 目标格为空 → 移动扩展格背包到此格（触发格子数变化）
+          placeBagIntoExtSlot(extOffset + selectedExtSlot, extOffset + slotI);
+          selectedExtSlot = null;
+          return;
+        }
       }
 
-      // 扩展格为空：若有选中的基础格背包，放入
+      // ── 情况2：有选中的基础格背包 → 放入扩展格 ──
       if (selectedBagSlot !== null) {
+        if (extItem) {
+          showToast('扩展格已有背包，请先选中它再互换');
+          selectedBagSlot = null; renderBagSlots(); return;
+        }
         const srcItem = bagItems[selectedBagSlot];
         if (!srcItem) { selectedBagSlot = null; renderBagSlots(); return; }
         const srcDef = ITEM_DEF[srcItem.id];
@@ -2418,10 +2425,18 @@ function renderBagSlots() {
         }
         placeBagIntoExtSlot(selectedBagSlot, extOffset + slotI);
         selectedBagSlot = null;
-      } else {
-        showToast('请先在背包里选中一个背包道具');
+        return;
       }
-    })(i, i);
+
+      // ── 情况3：点有背包的扩展格 → 选中（高亮） ──
+      if (extItem) {
+        selectedExtSlot = slotI;
+        renderBagSlots(); return;
+      }
+
+      // ── 情况4：扩展格为空且无选中 → 提示 ──
+      showToast('请先选中背包道具再放入');
+    })(i);
   }
 }
 
@@ -2467,6 +2482,7 @@ function drawShopBg() {
 // 背包格子与工具栏互换
 // selectedBagSlot: 当前选中的背包格子索引（null=无选中）
 let selectedBagSlot = null;
+let selectedExtSlot = null; // 当前选中的扩展格索引（0-4）
 let selectedHotbarForBag = null; // 工具栏被选中的格子（等待放入背包）
 function onBagSlotClick(idx) {
   if (selectedBagSlot === null && selectedHotbarForBag === null) {
@@ -2517,6 +2533,7 @@ function doSwapHotbarBag(hotbarIdx, bagIdx) {
   }
   selectedBagSlot = null;
   selectedHotbarForBag = null;
+  selectedExtSlot = null;
   renderBagSlots();
   renderHotbar();
 }
@@ -2786,6 +2803,8 @@ function equipByBagId(bagId) {
 }
 
 // 将背包道具放入扩展格，触发格子数量变化
+// srcIdx：来源格索引（基础格 or 另一个扩展格）
+// extIdx：目标扩展格索引
 function placeBagIntoExtSlot(srcIdx, extIdx) {
   const srcItem = bagItems[srcIdx];
   if (!srcItem) return;
@@ -2793,32 +2812,33 @@ function placeBagIntoExtSlot(srcIdx, extIdx) {
   if (!newDef || newDef.bagImg === undefined) return;
   const newSlots = newDef.bagSlots || 8;
 
-  // 当前已装备的背包
-  const oldExtItem = bagItems[extIdx]; // 扩展格里原有的背包
+  // 当前装备的背包格子数
   const oldId = equippedBag;
   const oldDef = oldId ? ITEM_DEF[oldId] : null;
   const oldSlots = oldDef ? (oldDef.bagSlots || 8) : 8;
 
-  // 如果是缩小（新背包格子 < 旧背包格子），检查是否有足够空余
+  // 目标扩展格原有内容（一般是null）
+  const oldExtItem = bagItems[extIdx];
+
+  // 格子缩小：检查末尾格子是否全空
   if (newSlots < oldSlots) {
     const diff = oldSlots - newSlots;
-    // 检查后diff格是否全为空
     const tailItems = bagItems.slice(newSlots, oldSlots).filter(x => x !== null);
     if (tailItems.length > 0) {
       showToast(`背包有物品，无法缩小！请先清空后${diff}格`);
       return;
     }
-    // 裁掉多余格子
     bagItems.splice(newSlots, diff);
   } else if (newSlots > oldSlots) {
-    // 扩大：补充空格子
     const diff = newSlots - oldSlots;
-    for (let k = 0; k < diff; k++) bagItems.splice(oldSlots + k, 0, null);
+    for (let k = 0; k < diff; k++) bagItems.push(null);
   }
 
-  // 交换：扩展格放新背包，原位置放旧背包（如有）
-  bagItems[srcIdx] = oldExtItem; // 旧背包退回原格（可能是null）
-  bagItems[extIdx] = srcItem;     // 新背包放入扩展格
+  // 重新计算 extIdx（splice可能改变了数组长度）
+  // 扩展格起始始终是 equippedBag对应newSlots
+  // 移动：src清空，extIdx放入
+  bagItems[srcIdx] = oldExtItem; // null或原内容退回
+  bagItems[extIdx] = srcItem;
   equippedBag = srcItem.id;
 
   showToast(`已装备${newDef.name}，背包容量${newSlots}格`);
