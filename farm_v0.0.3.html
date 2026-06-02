@@ -213,7 +213,7 @@ canvas { display:block; }
 /* 工具栏整体底板 */
 #toolbar-wrap {
   position:relative;
-  width:558px; height:60px;
+  width:470px; height:60px;
   pointer-events:all;
   flex-shrink:0;
   margin-bottom:-10px;
@@ -590,7 +590,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.96</div>
+<div id="splash-version">版本号：v0.0.3.97</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3309,7 +3309,7 @@ renderHotbar();
   const keys = ['bagBgPadW','bagBgPadH','bagBgTop','bagTitleW','bagTitleH',
     'bagTitleLeft','bagTitleTop','bagTitleTextLeft','bagTitleTextTop',
     'bagOffX','bagOffY','bagScale',
-    'bagTitleMT','bagTitleFS','bagCloseRight','bagCloseTop','tbHeight','tbMarginBottom'];
+    'bagTitleMT','bagTitleFS','bagCloseRight','bagCloseTop','tbWidth','tbHeight','tbMarginBottom'];
   keys.forEach(k => { try { applyDbg(k, dbgParams[k]); } catch(e){} });
   applyDbg('bagTitleColor', dbgParams.bagTitleColor);
 })();
