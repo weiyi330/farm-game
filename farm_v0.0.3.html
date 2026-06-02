@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.104</div>
+<div id="splash-version">版本号：v0.0.3.103</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2771,15 +2771,19 @@ function toggleBag() {
   if (bagOpen) {
     renderBagSlots();
     setTimeout(() => {
-      // 重新应用所有定版参数（确保背包打开时位置/大小正确）
-      ['bagOffX','bagOffY','bagScale','bagBgPadW','bagBgPadH','bagBgTop',
-       'bagTitleW','bagTitleH','bagTitleLeft','bagTitleTop',
-       'bagTitleTextLeft','bagTitleTextTop','bagTitleMT','bagTitleFS',
-       'bagCloseRight','bagCloseTop'].forEach(k => { try { applyDbg(k, dbgParams[k]); } catch(e){} });
-      applyDbg('bagTitleColor', dbgParams.bagTitleColor);
       drawBagBg();
       drawBagBtnIcon();
       drawPanelCloseBtn('bag-close-btn');
+      const titleWrap = document.getElementById('bag-title-wrap');
+      const titleCv = document.getElementById('bag-title-canvas');
+      if (titleWrap && titleCv) {
+        // 延迟一帧确保DOM渲染完
+        requestAnimationFrame(() => {
+          const tw = titleWrap.offsetWidth || 131;
+          const th = titleWrap.offsetHeight || 26;
+          drawBagTitle(titleCv, tw, th);
+        });
+      }
     }, 50);
   }
 }
@@ -2998,12 +3002,6 @@ function openShop(){
     });
     // 应用 shopDbg 初始参数
     Object.keys(shopDbg).forEach(k => applyShopDbg(k, shopDbg[k]));
-    // 重新应用背包定版参数（商店打开时背包位置/大小也要正确）
-    ['bagOffX','bagOffY','bagScale','bagBgPadW','bagBgPadH','bagBgTop',
-     'bagTitleW','bagTitleH','bagTitleLeft','bagTitleTop',
-     'bagTitleTextLeft','bagTitleTextTop','bagTitleMT','bagTitleFS',
-     'bagCloseRight','bagCloseTop'].forEach(k => { try { applyDbg(k, dbgParams[k]); } catch(e){} });
-    applyDbg('bagTitleColor', dbgParams.bagTitleColor);
     // 应用背包在商店中的右边距
     const bagPanelEl = document.getElementById('bag-panel');
     if (bagPanelEl && bagPanelEl.classList.contains('with-shop')) {
