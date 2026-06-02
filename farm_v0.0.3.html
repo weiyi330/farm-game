@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.118</div>
+<div id="splash-version">版本号：v0.0.3.119</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -869,7 +869,7 @@ canvas { display:block; }
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="openTrade('buy','seed_potato',8)" data-item="seed_potato">
           <div class="sitem"><canvas class="sitem-bg"></canvas>
-            <span class="sitem-icon" style="background:url('assets/images/Crops/Spring/Crops_Spring_Potato.png') no-repeat 0 0 / auto 100%;width:28px;height:28px;display:inline-block;image-rendering:pixelated;"></span>
+            <span class="sitem-icon" style="display:inline-block;width:32px;height:32px;overflow:hidden;background:url('assets/images/Crops/Crops_All Crops.png') no-repeat 0px -128px / 832px 576px;image-rendering:pixelated;"></span>
           </div>
           <div class="sitem-name">土豆种子</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -72px -90px / 468px 108px;width:18px;height:18px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
         </div>
@@ -2588,8 +2588,12 @@ function drawPanelCloseBtn(canvasId) {
 function drawShopTitle() {
   const cv = document.getElementById('shop-title-canvas');
   if (!cv) return;
-  const W = shopDbg.shopTitleW || 83, H = shopDbg.shopTitleH || 30;
+  const W = shopDbg.shopTitleW > 0 ? shopDbg.shopTitleW : 83;
+  const H = shopDbg.shopTitleH > 0 ? shopDbg.shopTitleH : 30;
   drawBagTitle(cv, W, H);
+  // 位置在 drawBagTitle 之后设，防止被覆盖
+  cv.style.left = shopDbg.shopTitleLeft + 'px';
+  cv.style.top  = shopDbg.shopTitleTop  + 'px';
 }
 
 // 商店底板绘制
@@ -3359,14 +3363,8 @@ function applyShopDbg(key, val) {
     const panel = document.getElementById('shop-panel');
     if (panel) panel.style.paddingLeft = shopDbg.shopOffX+'px';
   }
-  if (key === 'shopTitleW' || key === 'shopTitleH') { setTimeout(drawShopTitle,10); }
-  if (key === 'shopTitleLeft') {
-    const tc = document.getElementById('shop-title-canvas');
-    if (tc) tc.style.left = shopDbg.shopTitleLeft+'px';
-  }
-  if (key === 'shopTitleTop') {
-    const tc = document.getElementById('shop-title-canvas');
-    if (tc) tc.style.top = shopDbg.shopTitleTop+'px';
+  if (key === 'shopTitleW' || key === 'shopTitleH' || key === 'shopTitleLeft' || key === 'shopTitleTop') {
+    setTimeout(drawShopTitle, 10);
   }
   if (key === 'shopTitleTextLeft') {
     const tt = document.getElementById('shop-title-text');
