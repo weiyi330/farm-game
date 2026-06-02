@@ -496,7 +496,7 @@ canvas { display:block; }
   overflow-y:auto; overflow-x:hidden;
   scrollbar-width:none;
   padding:0 4px 4px;
-  max-height:calc(100vh - 160px);
+  /* max-height 由 drawShopBg 动态设置 */
 }
 #shop-scroll::-webkit-scrollbar { display:none; }
 .shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.110</div>
+<div id="splash-version">版本号：v0.0.3.111</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -609,7 +609,7 @@ canvas { display:block; }
   <div id="hud">
     <div class="hud-left">
       <div class="hud-coin" id="hud-coin-wrap">
-        <span id="coin-icon-hud" style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -288px -160px / 832px 192px; width:32px; height:32px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;"></span>
+        <span id="coin-icon-hud" style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -288px -160px / 832px 192px; width:24px; height:24px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;"></span>
         <span id="coinVal">99999</span> 枚
       </div>
       <div class="hud-day">第<span id="dayVal">1</span>天 &nbsp;<span id="seasonVal">🌸春</span></div>
@@ -871,38 +871,38 @@ canvas { display:block; }
           <div class="sitem"><canvas class="sitem-bg"></canvas>
             <span class="sitem-icon" style="background:url('assets/images/Crops/Spring/Crops_Spring_Potato.png') no-repeat 0 0 / auto 100%;width:28px;height:28px;display:inline-block;image-rendering:pixelated;"></span>
           </div>
-          <div class="sitem-name">土豆种子</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
+          <div class="sitem-name">土豆种子</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -128px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8</div>
         </div>
       </div>
       <div class="shop-section-label shop-grid-label">背包</div>
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="openTrade('buy','bag_normal',1000)" data-item="bag_normal">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="0" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">普通背包</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>1000</div>
+          <div class="sitem-name">普通背包</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>1000</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_large',2000)" data-item="bag_large">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="1" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">大格背包</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>2000</div>
+          <div class="sitem-name">大格背包</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>2000</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_adv_b',4000)" data-item="bag_adv_b">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="2" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">高级背包(蓝)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>4000</div>
+          <div class="sitem-name">高级背包(蓝)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>4000</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_adv_p',4000)" data-item="bag_adv_p">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="4" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">高级背包(粉)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>4000</div>
+          <div class="sitem-name">高级背包(粉)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>4000</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_lux_p',8000)" data-item="bag_lux_p">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="3" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">豪华背包(粉)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8000</div>
+          <div class="sitem-name">豪华背包(粉)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8000</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_lux_w',8000)" data-item="bag_lux_w">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="5" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">豪华背包(白)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8000</div>
+          <div class="sitem-name">豪华背包(白)</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -192px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>8000</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_mystery',16000)" data-item="bag_mystery">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="6" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
-          <div class="sitem-name">神秘背包</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -224px -160px / 832px 192px;width:32px;height:32px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>16000</div>
+          <div class="sitem-name">神秘背包</div><div class="sitem-price"><span style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -224px -160px / 832px 192px;width:24px;height:24px;display:inline-block;image-rendering:pixelated;vertical-align:middle;"></span>16000</div>
         </div>
       </div>
       <div class="shop-section-label shop-grid-label">出售农产品</div>
@@ -2590,6 +2590,8 @@ function drawShopTitle() {
   if (!cv) return;
   const W = shopDbg.shopTitleW || 83, H = shopDbg.shopTitleH || 30;
   drawBagTitle(cv, W, H);
+  cv.style.left = shopDbg.shopTitleLeft + 'px';
+  cv.style.top  = shopDbg.shopTitleTop  + 'px';
 }
 
 // 商店底板绘制
@@ -2603,9 +2605,10 @@ function drawShopBg() {
   const PAD_W = shopDbg.shopBgPadW !== undefined ? shopDbg.shopBgPadW : 48;
   const PAD_H = shopDbg.shopBgPadH !== undefined ? shopDbg.shopBgPadH : 80;
   const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
-  // 用 scrollHeight 获取实际内容高度（不受 max-height 截断）
-  const scrollH = Math.min(scroll.scrollHeight, window.innerHeight - 160);
-  const H = title.offsetHeight + scrollH + PAD_H;
+  // 底板高固定：可视区高度的60%，scroll在内部滚动
+  const maxScrollH = Math.floor(window.innerHeight * 0.6);
+  scroll.style.maxHeight = maxScrollH + 'px';
+  const H = title.offsetHeight + maxScrollH + PAD_H;
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(W * dpr);
   cv.height = Math.round(H * dpr);
@@ -2614,13 +2617,7 @@ function drawShopBg() {
   cv.style.top  = '-24px';
   cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
   // 同步重绘标题底板
-  const tCv = document.getElementById('shop-title-canvas');
-  const tWrap = document.getElementById('shop-title-wrap');
-  if (tWrap && tCv && tWrap.offsetWidth > 0) {
-    drawBagTitle(tCv, shopDbg.shopTitleW || tWrap.offsetWidth, shopDbg.shopTitleH || tWrap.offsetHeight || 26);
-    tCv.style.left = shopDbg.shopTitleLeft + 'px';
-    tCv.style.top  = shopDbg.shopTitleTop  + 'px';
-  }
+  drawShopTitle();
   const c = cv.getContext('2d');
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
