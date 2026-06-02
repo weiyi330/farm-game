@@ -380,6 +380,58 @@ canvas { display:block; }
   cursor:pointer; font-family:inherit; letter-spacing:2px;
 }
 
+
+/* ── UI调试面板 ── */
+#ui-debug-btn {
+  position:absolute; right:10px; top:50%; transform:translateY(-50%);
+  z-index:100; width:32px; height:32px;
+  cursor:pointer; pointer-events:all;
+  background:rgba(20,12,4,0.7); border:1px solid #6a4a20;
+  border-radius:6px; display:flex; align-items:center; justify-content:center;
+  transition:background 0.15s;
+}
+#ui-debug-btn:hover { background:rgba(80,50,15,0.9); }
+#ui-debug-btn canvas { image-rendering:pixelated; }
+
+#ui-debug-panel {
+  position:absolute; right:50px; top:50%; transform:translateY(-50%);
+  z-index:100; width:260px; max-height:80vh; overflow-y:auto;
+  background:rgba(20,12,4,0.95); border:1px solid #8a6030;
+  border-radius:10px; padding:10px 12px;
+  display:none; flex-direction:column; gap:8px;
+  pointer-events:all; color:#f0c870; font-size:11px;
+  font-family:'Noto Sans SC',sans-serif;
+}
+#ui-debug-panel.open { display:flex; }
+.dbg-group-title {
+  font-size:12px; color:#f5d78e; letter-spacing:2px;
+  border-bottom:1px solid #6a4020; padding-bottom:4px; margin-top:4px;
+}
+.dbg-row {
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+}
+.dbg-label { min-width:80px; color:#c8a060; font-size:10px; }
+.dbg-slider {
+  flex:1; min-width:80px; height:4px;
+  accent-color:#f5c842; cursor:pointer;
+}
+.dbg-val {
+  width:38px; text-align:right; background:rgba(0,0,0,0.3);
+  border:1px solid #6a4020; border-radius:3px;
+  color:#f5d78e; font-size:10px; padding:1px 3px;
+}
+.dbg-color {
+  width:28px; height:18px; cursor:pointer;
+  border:1px solid #6a4020; border-radius:3px;
+}
+.dbg-apply-btn {
+  margin-top:6px; padding:5px; background:rgba(120,70,10,0.5);
+  border:1px solid #a07030; border-radius:6px; color:#f5d78e;
+  font-size:11px; cursor:pointer; text-align:center; letter-spacing:1px;
+  font-family:inherit;
+}
+.dbg-apply-btn:active { background:rgba(180,110,20,0.6); }
+
 /* 关闭按钮（共用，背包+商店右上角） */
 .panel-close-btn {
   position:absolute; top:-14px; right:-34px; z-index:10;
@@ -466,7 +518,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.68</div>
+<div id="splash-version">版本号：v0.0.3.69</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -483,6 +535,105 @@ canvas { display:block; }
         <canvas id="bag-btn-canvas" width="48" height="48" style="image-rendering:pixelated;"></canvas>
       </div>
     </div>
+  </div>
+
+  <!-- UI调试按钮 -->
+  <div id="ui-debug-btn" onclick="toggleDebugPanel()" title="UI调试(D)">
+    <canvas id="ui-debug-icon" width="24" height="24"></canvas>
+  </div>
+  <!-- UI调试面板 -->
+  <div id="ui-debug-panel">
+    <div class="dbg-group-title">🎒 背包面板</div>
+    <div class="dbg-row">
+      <span class="dbg-label">内边距</span>
+      <input class="dbg-slider" type="range" min="4" max="30" value="14"
+        oninput="applyDbg('bagPad',this.value)" onchange="applyDbg('bagPad',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagPad" value="14"
+        onchange="applyDbg('bagPad',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">格子大小</span>
+      <input class="dbg-slider" type="range" min="28" max="60" value="41"
+        oninput="applyDbg('bagSlot',this.value)" onchange="applyDbg('bagSlot',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagSlot" value="41"
+        onchange="applyDbg('bagSlot',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">格子间距</span>
+      <input class="dbg-slider" type="range" min="0" max="12" value="4"
+        oninput="applyDbg('bagGap',this.value)" onchange="applyDbg('bagGap',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagGap" value="4"
+        onchange="applyDbg('bagGap',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题上移</span>
+      <input class="dbg-slider" type="range" min="-40" max="10" value="-25"
+        oninput="applyDbg('bagTitleMT',this.value)" onchange="applyDbg('bagTitleMT',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-25"
+        onchange="applyDbg('bagTitleMT',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题字号</span>
+      <input class="dbg-slider" type="range" min="10" max="28" value="16"
+        oninput="applyDbg('bagTitleFS',this.value)" onchange="applyDbg('bagTitleFS',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleFS" value="16"
+        onchange="applyDbg('bagTitleFS',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题字色</span>
+      <input class="dbg-color" type="color" value="#3a1a08"
+        oninput="applyDbg('bagTitleColor',this.value)">
+      <span id="dv-bagTitleColor" style="font-size:10px;color:#aaa">#3a1a08</span>
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">关闭按钮右</span>
+      <input class="dbg-slider" type="range" min="-60" max="0" value="-34"
+        oninput="applyDbg('bagCloseRight',this.value)" onchange="applyDbg('bagCloseRight',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-34"
+        onchange="applyDbg('bagCloseRight',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">关闭按钮顶</span>
+      <input class="dbg-slider" type="range" min="-40" max="10" value="-14"
+        oninput="applyDbg('bagCloseTop',this.value)" onchange="applyDbg('bagCloseTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-14"
+        onchange="applyDbg('bagCloseTop',this.value)">
+    </div>
+
+    <div class="dbg-group-title">🧰 工具栏</div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板高度</span>
+      <input class="dbg-slider" type="range" min="40" max="100" value="60"
+        oninput="applyDbg('tbHeight',this.value)" onchange="applyDbg('tbHeight',this.value)">
+      <input class="dbg-val" type="number" id="dv-tbHeight" value="60"
+        onchange="applyDbg('tbHeight',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板下移</span>
+      <input class="dbg-slider" type="range" min="-40" max="20" value="-10"
+        oninput="applyDbg('tbMarginBottom',this.value)" onchange="applyDbg('tbMarginBottom',this.value)">
+      <input class="dbg-val" type="number" id="dv-tbMarginBottom" value="-10"
+        onchange="applyDbg('tbMarginBottom',this.value)">
+    </div>
+
+    <div class="dbg-group-title">👤 角色头顶图标</div>
+    <div class="dbg-row">
+      <span class="dbg-label">图标大小</span>
+      <input class="dbg-slider" type="range" min="16" max="56" value="30"
+        oninput="applyDbg('iconSize',this.value)" onchange="applyDbg('iconSize',this.value)">
+      <input class="dbg-val" type="number" id="dv-iconSize" value="30"
+        onchange="applyDbg('iconSize',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">图标Y偏移</span>
+      <input class="dbg-slider" type="range" min="-20" max="20" value="19"
+        oninput="applyDbg('iconYOff',this.value)" onchange="applyDbg('iconYOff',this.value)">
+      <input class="dbg-val" type="number" id="dv-iconYOff" value="19"
+        onchange="applyDbg('iconYOff',this.value)">
+    </div>
+
+    <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
+    <div id="dbg-export-out" style="font-size:9px;color:#aaa;word-break:break-all;display:none;"></div>
   </div>
 
   <!-- 底部UI -->
@@ -1209,9 +1360,9 @@ function drawPlayer(x, y) {
     const _hItem = currentItem();
     const _id = currentItemId();
     if (_hItem && _id) {
-      const iconSize = 30;
+      const iconSize = window._dbgIconSize || 30;
       const iconX = x - iconSize / 2;
-      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize + 19;
+      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize + (window._dbgIconYOff || 19);
       const _cropSheetEntry = getImg(CROPS_SHEET);
       if (_hItem.iconEl && _cropSheetEntry && _cropSheetEntry.loaded) {
         // 图集类图标，直接画到 canvas
@@ -2212,6 +2363,127 @@ function unlockBagSlot(idx) {
 
 // 页面加载后绘制背包图标
 window.addEventListener('load', () => { setTimeout(drawBagBtnIcon, 200); });
+
+// ============================================================
+// UI 调试面板
+// ============================================================
+const DBG_ICON_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAbElEQVR4nGNgYGBgCDDiOvH/Tsr//3dS/gcYcZ1goCZANpwWljDBGIFhy04Ghi07SS2DYYAFxli/Ksqc2obDAS2DiRHZEhgb5pvAsGUnN5z7ZkENi1AATVPVqCWjloxaMmoJDS2hmeGjYPADAI4Lptop35kmAAAAAElFTkSuQmCC';
+
+// 调试参数（与CSS/JS变量对应）
+const dbgParams = {
+  bagPad: 14, bagSlot: 41, bagGap: 4,
+  bagTitleMT: -25, bagTitleFS: 16, bagTitleColor: '#3a1a08',
+  bagCloseRight: -34, bagCloseTop: -14,
+  tbHeight: 60, tbMarginBottom: -10,
+  iconSize: 30, iconYOff: 19,
+};
+
+function initDebugIcon() {
+  const cv = document.getElementById('ui-debug-icon');
+  if (!cv) return;
+  const img = new Image(); img.src = DBG_ICON_B64;
+  img.onload = () => {
+    const c = cv.getContext('2d');
+    c.imageSmoothingEnabled = false;
+    c.drawImage(img, 0, 0, 24, 24);
+  };
+}
+
+function toggleDebugPanel() {
+  const panel = document.getElementById('ui-debug-panel');
+  panel.classList.toggle('open');
+}
+
+// 按 D 键开关调试面板
+document.addEventListener('keydown', e => {
+  if (e.key === 'd' || e.key === 'D') toggleDebugPanel();
+});
+
+// 同步 slider↔input 的值显示
+function syncVal(key, val) {
+  const numVal = parseFloat(val);
+  const el = document.getElementById('dv-'+key);
+  if (el) el.value = numVal;
+  // 同步同组slider
+  const panel = document.getElementById('ui-debug-panel');
+  if (!panel) return;
+  panel.querySelectorAll('input[type=range]').forEach(s => {
+    if (s.getAttribute('oninput') && s.getAttribute('oninput').includes("'"+key+"'"))
+      s.value = numVal;
+  });
+}
+
+function applyDbg(key, val) {
+  const v = parseFloat(val);
+  dbgParams[key] = v;
+  syncVal(key, v);
+
+  if (key === 'bagPad' || key === 'bagSlot' || key === 'bagGap') {
+    // 重新计算格子grid
+    const slots = document.getElementById('bag-slots');
+    if (slots) slots.style.gridTemplateColumns = `repeat(3,${dbgParams.bagSlot}px)`;
+    document.querySelectorAll('.bag-slot').forEach(s => {
+      s.style.width = dbgParams.bagSlot+'px';
+      s.style.height = dbgParams.bagSlot+'px';
+    });
+    const inner = document.getElementById('bag-inner');
+    if (inner) inner.style.gap = dbgParams.bagGap+'px';
+    setTimeout(drawBagBg, 30);
+  }
+  if (key === 'bagTitleMT') {
+    const tw = document.getElementById('bag-title-wrap');
+    if (tw) tw.style.marginTop = v+'px';
+    setTimeout(drawBagBg, 30);
+  }
+  if (key === 'bagTitleFS') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) tt.style.fontSize = v+'px';
+    setTimeout(drawBagBg, 30);
+  }
+  if (key === 'bagTitleColor') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) tt.style.color = val;
+    const dv = document.getElementById('dv-bagTitleColor');
+    if (dv) dv.textContent = val;
+  }
+  if (key === 'bagCloseRight') {
+    const btn = document.getElementById('bag-close-btn');
+    if (btn) btn.style.right = v+'px';
+  }
+  if (key === 'bagCloseTop') {
+    const btn = document.getElementById('bag-close-btn');
+    if (btn) btn.style.top = v+'px';
+  }
+  if (key === 'tbHeight') {
+    const tw = document.getElementById('toolbar-wrap');
+    if (tw) tw.style.height = v+'px';
+    setTimeout(drawToolbarBg, 30);
+  }
+  if (key === 'tbMarginBottom') {
+    const tw = document.getElementById('toolbar-wrap');
+    if (tw) tw.style.marginBottom = v+'px';
+  }
+  if (key === 'iconSize' || key === 'iconYOff') {
+    // 头顶图标通过全局变量控制
+    window._dbgIconSize = dbgParams.iconSize;
+    window._dbgIconYOff = dbgParams.iconYOff;
+  }
+}
+
+function exportDbgValues() {
+  const out = document.getElementById('dbg-export-out');
+  if (!out) return;
+  const lines = Object.entries(dbgParams).map(([k,v]) => `${k}: ${v}`).join('\n');
+  out.textContent = lines;
+  out.style.display = 'block';
+  // 复制到剪贴板
+  navigator.clipboard?.writeText(lines).then(() => {
+    out.textContent = '✅ 已复制到剪贴板\n' + lines;
+  }).catch(()=>{});
+}
+
+window.addEventListener('load', () => { setTimeout(initDebugIcon, 300); });
+
 
 function openShop(){
   updateSellGrid();
