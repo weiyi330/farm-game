@@ -332,13 +332,19 @@ canvas { display:block; }
   font-size:16px; color:#3a1a08; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
 }
-#bag-slots {
+/* 外层负责滚动，内层 grid overflow:visible 让选中框不被裁 */
+#bag-slots-wrap {
   position:relative; z-index:2;
-  display:grid; grid-template-columns:repeat(4,41px); gap:4px; margin:0 4px;
   max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
   scrollbar-width:none;
+  margin:0 4px;
+  padding:2px; box-sizing:content-box;
 }
-#bag-slots::-webkit-scrollbar { display:none; }
+#bag-slots-wrap::-webkit-scrollbar { display:none; }
+#bag-slots {
+  display:grid; grid-template-columns:repeat(4,41px); gap:4px;
+  overflow:visible;
+}
 #bag-divider {
   position:relative; z-index:2;
   width:100%; height:1px;
@@ -599,7 +605,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.123</div>
+<div id="splash-version">版本号：v0.0.3.124</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -851,7 +857,7 @@ canvas { display:block; }
         <canvas id="bag-title-canvas"></canvas>
         <span id="bag-title-text">背包</span>
       </div>
-      <div id="bag-slots"></div>
+      <div id="bag-slots-wrap"><div id="bag-slots"></div></div>
       <div id="bag-divider"></div>
       <div id="bag-extra-slots">
         <div class="bag-slot-extra" id="bag-extra-0"><canvas></canvas></div>
