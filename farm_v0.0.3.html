@@ -453,7 +453,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.63</div>
+<div id="splash-version">版本号：v0.0.3.64</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1682,14 +1682,31 @@ function selectSlot(idx) {
 
 function startDrag(idx, x, y) {
   const item = ITEM_DEF[hotbar[idx]];
+  if (!item) return;
   const ghost = document.createElement('div');
   ghost.className = 'drag-ghost';
   ghost.innerHTML = buildIcon(item);
-  ghost.style.cssText = `position:fixed;pointer-events:none;z-index:999;opacity:0.85;
+  ghost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.85;
     transform:translate(-50%,-50%);transition:none;`;
   ghost.style.left = x+'px'; ghost.style.top = y+'px';
   document.body.appendChild(ghost);
-  dragState = { idx, itemId: hotbar[idx], startX:x, startY:y, ghost };
+  dragState = { source:'hotbar', idx, itemId: hotbar[idx], startX:x, startY:y, ghost };
+}
+
+// 从背包格子开始拖拽
+function startBagDrag(bagIdx, x, y) {
+  const bagItem = bagItems[bagIdx];
+  if (!bagItem) return;
+  const itemDef = ITEM_DEF[bagItem.id];
+  if (!itemDef) return;
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.innerHTML = buildIcon(itemDef);
+  ghost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.85;
+    transform:translate(-50%,-50%);transition:none;`;
+  ghost.style.left = x+'px'; ghost.style.top = y+'px';
+  document.body.appendChild(ghost);
+  dragState = { source:'bag', idx:bagIdx, itemId:bagItem.id, startX:x, startY:y, ghost };
 }
 
 function moveDrag(x, y) {
@@ -1700,40 +1717,85 @@ function moveDrag(x, y) {
 
 function endDrag(e) {
   if (!dragState) return;
-  const { idx, itemId, ghost } = dragState;
+  const { source, idx, itemId, ghost } = dragState;
   dragState = null;
   ghost.remove();
 
   const x = e.clientX, y = e.clientY;
-  const W = window.innerWidth, H = window.innerHeight;
-  // 拖到屏幕边缘30px内，或拖到工具栏以外区域
-  const tbWrap = document.getElementById('toolbar-wrap');
-  const tbRect = tbWrap ? tbWrap.getBoundingClientRect() : null;
-  const onToolbar = tbRect && x>=tbRect.left-20 && x<=tbRect.right+20 && y>=tbRect.top-20 && y<=tbRect.bottom+20;
-  const outOfScreen = x < 30 || x > W-30 || y < 30 || y > H-30 || !onToolbar;
 
-  if (outOfScreen) {
-    // 抓到屏幕外 → 丢到地上
-    hotbar[idx] = null;
-    // 地图坐标取玩家当前位置附近
-    groundItems.push({ id: itemId, wx: player.wx + (Math.random()-0.5)*2, wy: player.wy + 1 });
-    showToast(`${ITEM_DEF[itemId].name}掉到地上了`);
-  } else {
-    // 检测是否拖到另一个格子上（交换）
-    const slots = document.querySelectorAll('.tool-btn');
-    let targetIdx = -1;
-    slots.forEach(s => {
-      const r = s.getBoundingClientRect();
-      if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
-        targetIdx = parseInt(s.dataset.idx);
-    });
-    if (targetIdx >= 0 && targetIdx !== idx) {
-      [hotbar[idx], hotbar[targetIdx]] = [hotbar[targetIdx], hotbar[idx]];
-      if (selectedSlot === idx) selectedSlot = targetIdx;
-      else if (selectedSlot === targetIdx) selectedSlot = idx;
+  // ── 检测落点：背包格子？ ──
+  const bagSlotEls = document.querySelectorAll('#bag-slots .bag-slot');
+  let targetBagIdx = -1;
+  bagSlotEls.forEach(s => {
+    const r = s.getBoundingClientRect();
+    if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
+      targetBagIdx = parseInt(s.dataset.idx);
+  });
+  // 检测扩展格
+  for (let ei=0; ei<2; ei++) {
+    const el = document.getElementById('bag-extra-'+ei);
+    if (!el) continue;
+    const r = el.getBoundingClientRect();
+    if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom && bagUnlocked[ei])
+      targetBagIdx = 9 + ei;
+  }
+
+  // ── 检测落点：工具栏格子？ ──
+  const toolSlots = document.querySelectorAll('.tool-btn');
+  let targetHotbarIdx = -1;
+  toolSlots.forEach(s => {
+    const r = s.getBoundingClientRect();
+    if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
+      targetHotbarIdx = parseInt(s.dataset.idx);
+  });
+
+  if (source === 'hotbar') {
+    if (targetBagIdx >= 0) {
+      // 工具栏 → 背包：互换
+      const bagItem = bagItems[targetBagIdx];
+      const hItem = hotbar[idx];
+      const count = ITEM_DEF[hItem]?.seedType ? (seedCount[ITEM_DEF[hItem].seedType]||0)
+                  : ITEM_DEF[hItem]?.stackMax  ? (harvestBag[hItem]||0) : 1;
+      bagItems[targetBagIdx] = hItem ? { id:hItem, count } : null;
+      hotbar[idx] = bagItem ? bagItem.id : null;
+      renderBagSlots(); renderHotbar();
+      return;
+    }
+    // 工具栏内互换或丢地上（原逻辑）
+    const W = window.innerWidth, H = window.innerHeight;
+    const tbWrap = document.getElementById('toolbar-wrap');
+    const tbRect = tbWrap ? tbWrap.getBoundingClientRect() : null;
+    const onToolbar = tbRect && x>=tbRect.left-20 && x<=tbRect.right+20 && y>=tbRect.top-20 && y<=tbRect.bottom+20;
+    const outOfScreen = x<30||x>W-30||y<30||y>H-30||!onToolbar;
+    if (outOfScreen) {
+      hotbar[idx] = null;
+      groundItems.push({ id:itemId, wx:player.wx+(Math.random()-0.5)*2, wy:player.wy+1 });
+      showToast(`${ITEM_DEF[itemId].name}掉到地上了`);
+    } else if (targetHotbarIdx >= 0 && targetHotbarIdx !== idx) {
+      [hotbar[idx], hotbar[targetHotbarIdx]] = [hotbar[targetHotbarIdx], hotbar[idx]];
+      if (selectedSlot===idx) selectedSlot=targetHotbarIdx;
+      else if (selectedSlot===targetHotbarIdx) selectedSlot=idx;
+    }
+    renderHotbar();
+
+  } else if (source === 'bag') {
+    if (targetHotbarIdx >= 0) {
+      // 背包 → 工具栏：互换
+      const hotbarId = hotbar[targetHotbarIdx];
+      const bagItem = bagItems[idx];
+      const count = ITEM_DEF[hotbarId]?.seedType ? (seedCount[ITEM_DEF[hotbarId].seedType]||0)
+                  : ITEM_DEF[hotbarId]?.stackMax  ? (harvestBag[hotbarId]||0) : 1;
+      hotbar[targetHotbarIdx] = bagItem ? bagItem.id : null;
+      bagItems[idx] = hotbarId ? { id:hotbarId, count } : null;
+      renderBagSlots(); renderHotbar();
+      return;
+    }
+    if (targetBagIdx >= 0 && targetBagIdx !== idx) {
+      // 背包内互换
+      [bagItems[idx], bagItems[targetBagIdx]] = [bagItems[targetBagIdx], bagItems[idx]];
+      renderBagSlots();
     }
   }
-  renderHotbar();
 }
 
 // 地上道具跳进检测（在 loop 里调用）
@@ -1924,7 +1986,7 @@ function renderBagSlots() {
     const div = document.createElement('div');
     div.className = 'bag-slot';
     div.dataset.idx = i;
-    div.onclick = () => onBagSlotClick(i);
+    div.addEventListener('pointerdown', e => onBagSlotPointerDown(e, i));
     const cv = document.createElement('canvas');
     div.appendChild(cv);
     _bagSlotImg.onload = () => drawSlotCanvas(cv, 41, 41, 1);
@@ -2032,6 +2094,34 @@ function drawShopBg() {
 
 // 背包格子与工具栏互换
 // selectedBagSlot: 当前选中的背包格子索引（null=无选中）
+// 背包格子长按拖拽
+function onBagSlotPointerDown(e, idx) {
+  e.preventDefault();
+  const startX = e.clientX, startY = e.clientY;
+  let pressTimer = setTimeout(() => {
+    // 长按 → 拖拽
+    startBagDrag(idx, startX, startY);
+  }, LONG_PRESS_MS);
+  const onMove = (ev) => {
+    const dx = ev.clientX-startX, dy = ev.clientY-startY;
+    if (Math.sqrt(dx*dx+dy*dy) > 8) clearTimeout(pressTimer);
+    if (dragState) moveDrag(ev.clientX, ev.clientY);
+  };
+  const onUp = (ev) => {
+    clearTimeout(pressTimer);
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    if (dragState) {
+      endDrag(ev);
+    } else {
+      // 短按 → 选中/取消
+      onBagSlotClick(idx);
+    }
+  };
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+}
+
 let selectedBagSlot = null;
 function onBagSlotClick(idx) {
   if (selectedBagSlot === null) {
