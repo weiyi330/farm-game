@@ -544,7 +544,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.92</div>
+<div id="splash-version">版本号：v0.0.3.93</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -569,137 +569,6 @@ canvas { display:block; }
   </div>
   <!-- UI调试面板 -->
   <div id="ui-debug-panel">
-    <div class="dbg-group-title">🎒 背包面板</div>
-    <div class="dbg-row">
-      <span class="dbg-label">内边距</span>
-      <input class="dbg-slider" type="range" min="4" max="30" value="14"
-        oninput="applyDbg('bagPad',this.value)" onchange="applyDbg('bagPad',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagPad" value="4"
-        onchange="applyDbg('bagPad',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">格子大小</span>
-      <input class="dbg-slider" type="range" min="28" max="60" value="41"
-        oninput="applyDbg('bagSlot',this.value)" onchange="applyDbg('bagSlot',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagSlot" value="41"
-        onchange="applyDbg('bagSlot',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">格子间距</span>
-      <input class="dbg-slider" type="range" min="0" max="12" value="4"
-        oninput="applyDbg('bagGap',this.value)" onchange="applyDbg('bagGap',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagGap" value="4"
-        onchange="applyDbg('bagGap',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题上移</span>
-      <input class="dbg-slider" type="range" min="-40" max="10" value="-33"
-        oninput="applyDbg('bagTitleMT',this.value)" onchange="applyDbg('bagTitleMT',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-33"
-        onchange="applyDbg('bagTitleMT',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题底板宽</span>
-      <input class="dbg-slider" type="range" min="0" max="300" value="0"
-        oninput="applyDbg('bagTitleW',this.value)" onchange="applyDbg('bagTitleW',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleW" value="0"
-        onchange="applyDbg('bagTitleW',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题底板高</span>
-      <input class="dbg-slider" type="range" min="0" max="80" value="0"
-        oninput="applyDbg('bagTitleH',this.value)" onchange="applyDbg('bagTitleH',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleH" value="0"
-        onchange="applyDbg('bagTitleH',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题字号</span>
-      <input class="dbg-slider" type="range" min="10" max="28" value="16"
-        oninput="applyDbg('bagTitleFS',this.value)" onchange="applyDbg('bagTitleFS',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleFS" value="16"
-        onchange="applyDbg('bagTitleFS',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题字色</span>
-      <input class="dbg-color" type="color" value="#3a1a08"
-        oninput="applyDbg('bagTitleColor',this.value)">
-      <span id="dv-bagTitleColor" style="font-size:10px;color:#aaa">#3a1a08</span>
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题左移</span>
-      <input class="dbg-slider" type="range" min="-100" max="100" value="0"
-        oninput="applyDbg('bagTitleLeft',this.value)" onchange="applyDbg('bagTitleLeft',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleLeft" value="0"
-        onchange="applyDbg('bagTitleLeft',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">标题上移</span>
-      <input class="dbg-slider" type="range" min="-50" max="50" value="0"
-        oninput="applyDbg('bagTitleTop',this.value)" onchange="applyDbg('bagTitleTop',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleTop" value="0"
-        onchange="applyDbg('bagTitleTop',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">文字左移</span>
-      <input class="dbg-slider" type="range" min="-100" max="100" value="0"
-        oninput="applyDbg('bagTitleTextLeft',this.value)" onchange="applyDbg('bagTitleTextLeft',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleTextLeft" value="0"
-        onchange="applyDbg('bagTitleTextLeft',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">文字上移</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
-        oninput="applyDbg('bagTitleTextTop',this.value)" onchange="applyDbg('bagTitleTextTop',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleTextTop" value="0"
-        onchange="applyDbg('bagTitleTextTop',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">关闭按钮右</span>
-      <input class="dbg-slider" type="range" min="-60" max="0" value="-54"
-        oninput="applyDbg('bagCloseRight',this.value)" onchange="applyDbg('bagCloseRight',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-54"
-        onchange="applyDbg('bagCloseRight',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">关闭按钮顶</span>
-      <input class="dbg-slider" type="range" min="-40" max="10" value="-31"
-        oninput="applyDbg('bagCloseTop',this.value)" onchange="applyDbg('bagCloseTop',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-31"
-        onchange="applyDbg('bagCloseTop',this.value)">
-    </div>
-
-    <div class="dbg-group-title">🧰 工具栏</div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板高度</span>
-      <input class="dbg-slider" type="range" min="40" max="100" value="60"
-        oninput="applyDbg('tbHeight',this.value)" onchange="applyDbg('tbHeight',this.value)">
-      <input class="dbg-val" type="number" id="dv-tbHeight" value="60"
-        onchange="applyDbg('tbHeight',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板下移</span>
-      <input class="dbg-slider" type="range" min="-40" max="20" value="-10"
-        oninput="applyDbg('tbMarginBottom',this.value)" onchange="applyDbg('tbMarginBottom',this.value)">
-      <input class="dbg-val" type="number" id="dv-tbMarginBottom" value="-10"
-        onchange="applyDbg('tbMarginBottom',this.value)">
-    </div>
-
-    <div class="dbg-group-title">👤 角色头顶图标</div>
-    <div class="dbg-row">
-      <span class="dbg-label">图标大小</span>
-      <input class="dbg-slider" type="range" min="16" max="56" value="30"
-        oninput="applyDbg('iconSize',this.value)" onchange="applyDbg('iconSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-iconSize" value="30"
-        onchange="applyDbg('iconSize',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">图标Y偏移</span>
-      <input class="dbg-slider" type="range" min="-20" max="20" value="19"
-        oninput="applyDbg('iconYOff',this.value)" onchange="applyDbg('iconYOff',this.value)">
-      <input class="dbg-val" type="number" id="dv-iconYOff" value="19"
-        onchange="applyDbg('iconYOff',this.value)">
-    </div>
-
     <div class="dbg-group-title">📐 背包整体位置</div>
     <div class="dbg-row">
       <span class="dbg-label">整体左右</span>
@@ -745,6 +614,91 @@ canvas { display:block; }
         onchange="applyDbg('bagBgTop',this.value)">
     </div>
 
+    <div class="dbg-group-title">🏪 商店</div>
+    <div class="dbg-row">
+      <span class="dbg-label">整体左右</span>
+      <input class="dbg-slider" type="range" min="0" max="100" value="20"
+        oninput="applyShopDbg('shopOffX',this.value)" onchange="applyShopDbg('shopOffX',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopOffX" value="20"
+        onchange="applyShopDbg('shopOffX',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">整体上下</span>
+      <input class="dbg-slider" type="range" min="-200" max="200" value="0"
+        oninput="applyShopDbg('shopOffY',this.value)" onchange="applyShopDbg('shopOffY',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopOffY" value="0"
+        onchange="applyShopDbg('shopOffY',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题底板宽</span>
+      <input class="dbg-slider" type="range" min="0" max="300" value="120"
+        oninput="applyShopDbg('shopTitleW',this.value)" onchange="applyShopDbg('shopTitleW',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleW" value="120"
+        onchange="applyShopDbg('shopTitleW',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题底板高</span>
+      <input class="dbg-slider" type="range" min="0" max="80" value="30"
+        oninput="applyShopDbg('shopTitleH',this.value)" onchange="applyShopDbg('shopTitleH',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleH" value="30"
+        onchange="applyShopDbg('shopTitleH',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板左移</span>
+      <input class="dbg-slider" type="range" min="-150" max="150" value="50"
+        oninput="applyShopDbg('shopTitleLeft',this.value)" onchange="applyShopDbg('shopTitleLeft',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleLeft" value="50"
+        onchange="applyShopDbg('shopTitleLeft',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板上移</span>
+      <input class="dbg-slider" type="range" min="-50" max="50" value="-1"
+        oninput="applyShopDbg('shopTitleTop',this.value)" onchange="applyShopDbg('shopTitleTop',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleTop" value="-1"
+        onchange="applyShopDbg('shopTitleTop',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">文字左移</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="0"
+        oninput="applyShopDbg('shopTitleTextLeft',this.value)" onchange="applyShopDbg('shopTitleTextLeft',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleTextLeft" value="0"
+        onchange="applyShopDbg('shopTitleTextLeft',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">文字上移</span>
+      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+        oninput="applyShopDbg('shopTitleTextTop',this.value)" onchange="applyShopDbg('shopTitleTextTop',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleTextTop" value="0"
+        onchange="applyShopDbg('shopTitleTextTop',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题上移量</span>
+      <input class="dbg-slider" type="range" min="-50" max="10" value="-33"
+        oninput="applyShopDbg('shopTitleMT',this.value)" onchange="applyShopDbg('shopTitleMT',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleMT" value="-33"
+        onchange="applyShopDbg('shopTitleMT',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">标题字号</span>
+      <input class="dbg-slider" type="range" min="10" max="28" value="17"
+        oninput="applyShopDbg('shopTitleFS',this.value)" onchange="applyShopDbg('shopTitleFS',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopTitleFS" value="17"
+        onchange="applyShopDbg('shopTitleFS',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">关闭按钮右</span>
+      <input class="dbg-slider" type="range" min="-60" max="0" value="-22"
+        oninput="applyShopDbg('shopCloseRight',this.value)" onchange="applyShopDbg('shopCloseRight',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopCloseRight" value="-22"
+        onchange="applyShopDbg('shopCloseRight',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">关闭按钮上</span>
+      <input class="dbg-slider" type="range" min="-60" max="0" value="-31"
+        oninput="applyShopDbg('shopCloseTop',this.value)" onchange="applyShopDbg('shopCloseTop',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopCloseTop" value="-31"
+        onchange="applyShopDbg('shopCloseTop',this.value)">
+    </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
     <div id="dbg-export-out" style="font-size:9px;color:#aaa;word-break:break-all;display:none;"></div>
   </div>
@@ -2588,15 +2542,22 @@ let selectedBagSlot = null;
 let selectedExtSlot = null; // 当前选中的扩展格索引（0-4）
 let selectedHotbarForBag = null; // 工具栏被选中的格子（等待放入背包）
 function onBagSlotClick(idx) {
-  // 扩展格已选中 → 点基础格空位：把扩展格背包取出到基础格
+  // 扩展格已选中 → 点基础格：互换 or 取出
   if (selectedExtSlot !== null) {
     const extStart = bagItems.length - 5;
     const extItem = bagItems[extStart + selectedExtSlot];
     if (!extItem) { selectedExtSlot = null; renderBagSlots(); return; }
+    if (bagItems[idx]) {
+      // 基础格有背包道具 → 互换（调用 placeBagIntoExtSlot，处理格子增减）
+      const srcDef = ITEM_DEF[bagItems[idx]?.id];
+      if (!srcDef || srcDef.bagImg === undefined) { showToast('扩展格只能放背包道具'); selectedExtSlot = null; renderBagSlots(); return; }
+      placeBagIntoExtSlot(idx, extStart + selectedExtSlot);
+      selectedExtSlot = null; return;
+    }
+    // 基础格为空 → 取出逻辑
     // 至少保留1个背包
     const extBagCount = bagItems.slice(extStart).filter(x => x && ITEM_DEF[x.id]?.bagImg !== undefined).length;
     if (extBagCount <= 1) { showToast('至少保留一个背包在扩展格'); selectedExtSlot = null; renderBagSlots(); return; }
-    if (bagItems[idx]) { showToast('基础格已有道具'); return; }
     // 检查缩小后末尾格子是否全空
     const removedSlots = ITEM_DEF[extItem.id]?.bagSlots || 0;
     const newTotal = getTotalBagSlots() - removedSlots;
@@ -3304,49 +3265,7 @@ function applyShopDbg(key, val) {
 
 
 
-function applyShopDbg(key, val) {
-  const v = parseFloat(val);
-  shopDbg[key] = isNaN(v) ? val : v;
-  const dv = document.getElementById('sdv-'+key);
-  if (dv) dv.value = shopDbg[key];
-  const panel = document.getElementById('shop-panel');
-  const wrap = document.getElementById('shop-title-wrap');
-  if (key === 'shopOffX' || key === 'shopOffY') {
-    if (panel) panel.style.paddingLeft = shopDbg.shopOffX+'px';
-  }
-  if (key === 'shopTitleW' || key === 'shopTitleH') drawShopTitle();
-  if (key === 'shopTitleLeft') {
-    const tc = document.getElementById('shop-title-canvas');
-    if (tc) tc.style.left = shopDbg.shopTitleLeft+'px';
-  }
-  if (key === 'shopTitleTop') {
-    const tc = document.getElementById('shop-title-canvas');
-    if (tc) tc.style.top = shopDbg.shopTitleTop+'px';
-  }
-  if (key === 'shopTitleTextLeft') {
-    const tt = document.getElementById('shop-title-text');
-    if (tt) { tt.style.position='relative'; tt.style.left = shopDbg.shopTitleTextLeft+'px'; }
-  }
-  if (key === 'shopTitleTextTop') {
-    const tt = document.getElementById('shop-title-text');
-    if (tt) { tt.style.position='relative'; tt.style.top = shopDbg.shopTitleTextTop+'px'; }
-  }
-  if (key === 'shopTitleMT') {
-    if (wrap) wrap.style.marginTop = shopDbg.shopTitleMT+'px';
-  }
-  if (key === 'shopTitleFS') {
-    const tt = document.getElementById('shop-title-text');
-    if (tt) tt.style.fontSize = shopDbg.shopTitleFS+'px';
-  }
-  if (key === 'shopCloseRight') {
-    const btn = document.getElementById('shop-close-btn');
-    if (btn) btn.style.right = shopDbg.shopCloseRight+'px';
-  }
-  if (key === 'shopCloseTop') {
-    const btn = document.getElementById('shop-close-btn');
-    if (btn) btn.style.top = shopDbg.shopCloseTop+'px';
-  }
-}
+
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 </script>
 </body>
