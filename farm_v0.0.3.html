@@ -453,7 +453,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.62</div>
+<div id="splash-version">版本号：v0.0.3.63</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1953,7 +1953,12 @@ function renderBagSlots() {
         }
         iconEl.appendChild(icv);
       } else {
-        iconEl.innerHTML = ITEM_DEF[item.id]?.icon || '?';
+        const itemDef = ITEM_DEF[item.id];
+        if (itemDef) {
+          iconEl.innerHTML = buildIcon(itemDef);
+        } else {
+          iconEl.innerHTML = '?';
+        }
       }
       div.appendChild(iconEl);
       if (item.count > 1) {
@@ -2060,11 +2065,22 @@ function highlightBagSlot(idx, on) {
 // 点击工具栏格子时，如果背包面板开着且有选中格子，互换
 function trySwapWithHotbar(hotbarIdx) {
   if (!bagOpen || selectedBagSlot === null) return false;
-  const bagItem = bagItems[selectedBagSlot];
-  const hotbarItemId = hotbar[hotbarIdx];
-  // 互换
-  bagItems[selectedBagSlot] = hotbarItemId ? { id: hotbarItemId, count: seedCount[hotbarItemId] || (harvestBag[hotbarItemId]||0) || 1 } : null;
+  const bagItem = bagItems[selectedBagSlot];   // {id, count} 或 null
+  const hotbarId = hotbar[hotbarIdx];           // 字符串 id 或 null
+
+  // hotbar → 背包：将 hotbarId 封装成 {id, count}
+  if (hotbarId) {
+    const count = ITEM_DEF[hotbarId]?.seedType ? (seedCount[ITEM_DEF[hotbarId].seedType] || 0)
+                : ITEM_DEF[hotbarId]?.stackMax  ? (harvestBag[hotbarId] || 0)
+                : 1;
+    bagItems[selectedBagSlot] = { id: hotbarId, count };
+  } else {
+    bagItems[selectedBagSlot] = null;
+  }
+
+  // 背包 → hotbar：取 bagItem.id 字符串
   hotbar[hotbarIdx] = bagItem ? bagItem.id : null;
+
   selectedBagSlot = null;
   renderBagSlots();
   renderHotbar();
