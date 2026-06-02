@@ -493,10 +493,10 @@ canvas { display:block; }
 #shop-scroll {
   position:relative; z-index:2;
   display:flex; flex-direction:column; gap:10px;
-  max-height:calc(4 * 41px + 3 * 4px + 60px);
   overflow-y:auto; overflow-x:hidden;
   scrollbar-width:none;
   padding:0 4px 4px;
+  max-height:calc(100vh - 160px);
 }
 #shop-scroll::-webkit-scrollbar { display:none; }
 .shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.107</div>
+<div id="splash-version">版本号：v0.0.3.108</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2610,7 +2610,9 @@ function drawShopBg() {
   const PAD_W = shopDbg.shopBgPadW !== undefined ? shopDbg.shopBgPadW : 48;
   const PAD_H = shopDbg.shopBgPadH !== undefined ? shopDbg.shopBgPadH : 80;
   const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
-  const H = title.offsetHeight + scroll.offsetHeight + PAD_H;
+  // 用 scrollHeight 获取实际内容高度（不受 max-height 截断）
+  const scrollH = Math.min(scroll.scrollHeight, window.innerHeight - 160);
+  const H = title.offsetHeight + scrollH + PAD_H;
   const dpr = window.devicePixelRatio || 1;
   cv.width  = Math.round(W * dpr);
   cv.height = Math.round(H * dpr);
