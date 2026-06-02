@@ -153,7 +153,7 @@ canvas { display:block; }
 .splash-menu-btn .btn-label { color: #7a4500; text-shadow: 0 1px 2px rgba(255,210,80,0.5); }
 
 /* ── game-wrap：横屏后充满屏幕 ── */
-#game-wrap { width:100%; height:100%; position:relative; }
+#game-wrap { width:100%; height:100%; position:relative; visibility:hidden; }
 
 /* HUD */
 #hud {
@@ -590,7 +590,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.95</div>
+<div id="splash-version">版本号：v0.0.3.96</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -618,9 +618,9 @@ canvas { display:block; }
     <div class="dbg-group-title">🗂️ 工具栏</div>
     <div class="dbg-row">
       <span class="dbg-label">底板宽度</span>
-      <input class="dbg-slider" type="range" min="200" max="600" value="448"
+      <input class="dbg-slider" type="range" min="200" max="600" value="470"
         oninput="applyDbg('tbWidth',this.value)" onchange="applyDbg('tbWidth',this.value)">
-      <input class="dbg-val" type="number" id="dv-tbWidth" value="448"
+      <input class="dbg-val" type="number" id="dv-tbWidth" value="470"
         onchange="applyDbg('tbWidth',this.value)">
     </div>
     <div class="dbg-group-title">📐 背包整体位置</div>
@@ -2794,7 +2794,7 @@ const dbgParams = {
   bagOffX: 0, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#3a1a08',
   bagCloseRight: -19, bagCloseTop: -32,
-  tbWidth: 448, tbHeight: 60, tbMarginBottom: -10,
+  tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
 };
 
@@ -2959,16 +2959,17 @@ function openShop(){
   renderBagSlots();
   setTimeout(() => {
     drawShopBg();
+    drawShopTitle();
     drawPanelCloseBtn('shop-close-btn');
     drawBagBg();
     drawPanelCloseBtn('bag-close-btn');
     document.querySelectorAll('.sitem-bg').forEach(cv => drawSlotCanvas(cv, 41, 41, 1));
-    // 渲染商店里的背包图标
-    // 商店背包图标
     document.querySelectorAll('.sitem-bag-icon').forEach(cv => {
       const idx = parseInt(cv.dataset.idx);
       if (!isNaN(idx)) drawBagIcon(cv, idx, 28);
     });
+    // 应用 shopDbg 初始参数
+    Object.keys(shopDbg).forEach(k => applyShopDbg(k, shopDbg[k]));
     bindShopLongPress();
   }, 80);
 }
@@ -3287,6 +3288,7 @@ document.getElementById('splash-btn').addEventListener('click', () => {
   setTimeout(() => {
     splashScreen.style.display = 'none';
     document.getElementById('splash-version').style.display = 'none';
+    document.getElementById('game-wrap').style.visibility = 'visible';
     resize();
   }, 400);
 });
