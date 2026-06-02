@@ -318,10 +318,19 @@ canvas { display:block; }
   image-rendering:pixelated;
   pointer-events:none;
 }
-#bag-title {
+#bag-title-wrap {
   position:relative; z-index:2;
-  font-size:22px; color:#f5d78e; letter-spacing:3px;
-  margin-bottom:4px; text-align:center; width:100%;
+  display:flex; align-items:center; justify-content:center;
+  width:100%; margin-bottom:4px;
+}
+#bag-title-canvas {
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  image-rendering:pixelated; pointer-events:none;
+}
+#bag-title-text {
+  position:relative; z-index:1;
+  font-size:16px; color:#3a1a08; letter-spacing:3px;
+  padding:4px 16px; line-height:1;
 }
 #bag-slots {
   position:relative; z-index:2;
@@ -457,7 +466,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.65</div>
+<div id="splash-version">版本号：v0.0.3.67</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -496,7 +505,10 @@ canvas { display:block; }
     <div id="bag-inner">
       <canvas id="bag-canvas"></canvas>
       <canvas class="panel-close-btn" id="bag-close-btn" width="36" height="36" onclick="toggleBag()" style="image-rendering:pixelated;"></canvas>
-      <div id="bag-title">背包</div>
+      <div id="bag-title-wrap">
+        <canvas id="bag-title-canvas"></canvas>
+        <span id="bag-title-text">背包</span>
+      </div>
       <div id="bag-slots"></div>
       <div id="bag-extra-slots">
         <span style="font-size:11px;color:#a08040;letter-spacing:1px;">扩展格</span>
@@ -1851,6 +1863,13 @@ _bagFrameImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
 const _bagSlotImg = new Image();
 _bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
 
+// 背包标题底板（common_button02 第1行 col6-8，原图坐标 x:80~128, y:0~16，48×16px）
+const _bagTitleImg = new Image();
+_bagTitleImg.src = 'assets/images/ui/common/common_button02.png';
+// 九宫格参数：左右边缘3px(含2px透明+1px边框)，上下边缘1px(边框)，中间可拉伸
+const BTN_SX = 80, BTN_SY = 0, BTN_W = 48, BTN_H = 16;
+const BTN_SL = 4, BTN_SR = 4, BTN_ST = 1, BTN_SB = 1;
+
 // HUD 背包图标 canvas
 const _hudIconImg = new Image();
 _hudIconImg.src = 'assets/images/ui/common/common_HUD.png';
@@ -1873,6 +1892,37 @@ function drawBagBtnIcon() {
 }
 
 // 绘制背包底板（九宫格，和工具栏一样的图集）
+// 绘制背包标题底板（九宫格拉伸）
+function drawBagTitle(cv, displayW, displayH) {
+  if (!cv || !_bagTitleImg.complete || !_bagTitleImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = Math.round(displayW * dpr);
+  cv.height = Math.round(displayH * dpr);
+  cv.style.width  = displayW + 'px';
+  cv.style.height = displayH + 'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, cv.width, cv.height);
+  c.imageSmoothingEnabled = false;
+  const scale = dpr * 2; // ×2放大让像素感更清晰
+  const SL = BTN_SL, SR = BTN_SR, ST = BTN_ST, SB = BTN_SB;
+  const SMH = BTN_W - SL - SR, SMV = BTN_H - ST - SB;
+  const ew = SL * scale, eh = ST * scale;
+  const tw = cv.width, th = cv.height;
+  const DW = tw - ew*2, DH = th - eh*2;
+  const img = _bagTitleImg;
+  const ox = BTN_SX, oy = BTN_SY;
+  // 九宫格
+  c.drawImage(img,ox,          oy,          SL,  ST,  0,     0,     ew,  eh);
+  c.drawImage(img,ox+SL,       oy,          SMH, ST,  ew,    0,     DW,  eh);
+  c.drawImage(img,ox+SL+SMH,   oy,          SR,  ST,  tw-ew, 0,     ew,  eh);
+  c.drawImage(img,ox,          oy+ST,       SL,  SMV, 0,     eh,    ew,  DH);
+  c.drawImage(img,ox+SL,       oy+ST,       SMH, SMV, ew,    eh,    DW,  DH);
+  c.drawImage(img,ox+SL+SMH,   oy+ST,       SR,  SMV, tw-ew, eh,    ew,  DH);
+  c.drawImage(img,ox,          oy+ST+SMV,   SL,  SB,  0,     th-eh, ew,  eh);
+  c.drawImage(img,ox+SL,       oy+ST+SMV,   SMH, SB,  ew,    th-eh, DW,  eh);
+  c.drawImage(img,ox+SL+SMH,   oy+ST+SMV,   SR,  SB,  tw-ew, th-eh, ew,  eh);
+}
+
 function drawBagBg() {
   const inner = document.getElementById('bag-inner');
   const cv = document.getElementById('bag-canvas');
@@ -2146,6 +2196,9 @@ function toggleBag() {
       drawBagBg();
       drawBagBtnIcon();
       drawPanelCloseBtn('bag-close-btn');
+      const titleWrap = document.getElementById('bag-title-wrap');
+      const titleCv = document.getElementById('bag-title-canvas');
+      if (titleWrap && titleCv) drawBagTitle(titleCv, titleWrap.offsetWidth, titleWrap.offsetHeight);
     }, 50);
   }
 }
