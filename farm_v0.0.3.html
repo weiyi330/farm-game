@@ -335,7 +335,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.55</div>
+<div id="splash-version">版本号：v0.0.3.56</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -939,7 +939,7 @@ const SPRITE_CFG = {
   carry_idle:  { src: 'assets/images/player/6. Carrying - Idle/Skins/1.png',                               frames: 4,  frameMs: 200 },
   carry_walk:  { src: 'assets/images/player/6.1 Carrying - Walk/Skins/1.png',                              frames: 6,  frameMs: 140 },
   carry_run:   { src: 'assets/images/player/6.2 Carrying - Run/Skins/1.png',                               frames: 8,  frameMs: 100 },
-  carry_throw: { src: 'assets/images/player/6.4 Carrying - Throwing items/Skins/1.png',                   frames: 20, frameMs: 60  },
+  carry_throw: { src: 'assets/images/player/6.4 Carrying - Throwing items/Skins/1.png',                   frames: 5, frameMs: 80  },
   water:       { src: 'assets/images/player/5. Watering/Skins/1.png',                                      frames: 8,  frameMs: 120 },
   hoe:         { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Skins/1.png',             frames: 6,  frameMs: 110 },
   harvest:     { src: 'assets/images/player/8. Axe and Sickle/Skins/1.png',                                frames: 6,  frameMs: 110 },
@@ -1039,9 +1039,9 @@ function drawPlayer(x, y) {
     const _hItem = currentItem();
     const _id = currentItemId();
     if (_hItem && _id) {
-      const iconSize = 40;
+      const iconSize = 30;
       const iconX = x - iconSize / 2;
-      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize - 1;
+      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize + 9;
       const _cropSheetEntry = getImg(CROPS_SHEET);
       if (_hItem.iconEl && _cropSheetEntry && _cropSheetEntry.loaded) {
         // 图集类图标，直接画到 canvas
