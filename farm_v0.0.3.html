@@ -508,7 +508,7 @@ canvas { display:block; }
 .shop-section-label { position:relative; z-index:1; font-size:10px; color:#a08040; letter-spacing:2px; }
 .shop-grid-label { position:relative; z-index:1; }
 .shop-grid {
-  display:flex; flex-wrap:wrap; gap:10px;
+  display:grid; grid-template-columns:repeat(3, 52px); gap:10px;
 }
 .sitem-wrap {
   display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.101</div>
+<div id="splash-version">版本号：v0.0.3.102</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -691,6 +691,34 @@ canvas { display:block; }
         oninput="applyShopDbg('shopOffY',this.value)" onchange="applyShopDbg('shopOffY',this.value)">
       <input class="dbg-val" type="number" id="sdv-shopOffY" value="0"
         onchange="applyShopDbg('shopOffY',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板宽余量</span>
+      <input class="dbg-slider" type="range" min="0" max="200" value="48"
+        oninput="applyShopDbg('shopBgPadW',this.value)" onchange="applyShopDbg('shopBgPadW',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopBgPadW" value="48"
+        onchange="applyShopDbg('shopBgPadW',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板高余量</span>
+      <input class="dbg-slider" type="range" min="20" max="200" value="80"
+        oninput="applyShopDbg('shopBgPadH',this.value)" onchange="applyShopDbg('shopBgPadH',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopBgPadH" value="80"
+        onchange="applyShopDbg('shopBgPadH',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">图标每行列数</span>
+      <input class="dbg-slider" type="range" min="1" max="6" value="3"
+        oninput="applyShopDbg('shopCols',this.value)" onchange="applyShopDbg('shopCols',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopCols" value="3"
+        onchange="applyShopDbg('shopCols',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">背包右边距</span>
+      <input class="dbg-slider" type="range" min="0" max="200" value="20"
+        oninput="applyShopDbg('shopBagRight',this.value)" onchange="applyShopDbg('shopBagRight',this.value)">
+      <input class="dbg-val" type="number" id="sdv-shopBagRight" value="20"
+        onchange="applyShopDbg('shopBagRight',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">标题底板宽</span>
@@ -2580,7 +2608,8 @@ function drawShopBg() {
   const scroll = document.getElementById('shop-scroll');
   const title  = document.getElementById('shop-title-wrap');
   if (!scroll || !title) return;
-  const PAD_W = 48, PAD_H = 80;
+  const PAD_W = shopDbg.shopBgPadW !== undefined ? shopDbg.shopBgPadW : 48;
+  const PAD_H = shopDbg.shopBgPadH !== undefined ? shopDbg.shopBgPadH : 80;
   const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
   const H = title.offsetHeight + scroll.offsetHeight + PAD_H;
   const dpr = window.devicePixelRatio || 1;
@@ -2782,8 +2811,10 @@ const shopDbg = {
   shopTitleLeft: 50, shopTitleTop: -1,
   shopTitleTextLeft: 0, shopTitleTextTop: 0,
   shopTitleMT: -33, shopTitleFS: 17,
-  shopBgPadW: 0, shopBgPadH: 0,
+  shopBgPadW: 48, shopBgPadH: 80,
+  shopCols: 3,
   shopCloseRight: -22, shopCloseTop: -31,
+  shopBagRight: 20,
 };
 
 const dbgParams = {
@@ -2971,6 +3002,11 @@ function openShop(){
     });
     // 应用 shopDbg 初始参数
     Object.keys(shopDbg).forEach(k => applyShopDbg(k, shopDbg[k]));
+    // 应用背包在商店中的右边距
+    const bagPanelEl = document.getElementById('bag-panel');
+    if (bagPanelEl && bagPanelEl.classList.contains('with-shop')) {
+      bagPanelEl.style.paddingRight = shopDbg.shopBagRight + 'px';
+    }
     bindShopLongPress();
   }, 80);
 }
@@ -3356,6 +3392,27 @@ function applyShopDbg(key, val) {
   if (key === 'shopCloseTop') {
     const btn = document.getElementById('shop-close-btn');
     if (btn) btn.style.top = shopDbg.shopCloseTop+'px';
+  }
+  if (key === 'shopOffY') {
+    const panel = document.getElementById('shop-panel');
+    if (panel) panel.style.alignItems = 'center';
+    const inner = document.getElementById('shop-inner');
+    if (inner) inner.style.marginTop = shopDbg.shopOffY + 'px';
+  }
+  if (key === 'shopBgPadW' || key === 'shopBgPadH') {
+    setTimeout(drawShopBg, 10);
+  }
+  if (key === 'shopCols') {
+    const grids = document.querySelectorAll('.shop-grid');
+    const cols = Math.max(1, Math.round(shopDbg.shopCols));
+    grids.forEach(g => { g.style.gridTemplateColumns = `repeat(${cols}, 52px)`; });
+    setTimeout(drawShopBg, 30);
+  }
+  if (key === 'shopBagRight') {
+    const bagPanel = document.getElementById('bag-panel');
+    if (bagPanel && bagPanel.classList.contains('with-shop')) {
+      bagPanel.style.paddingRight = shopDbg.shopBagRight + 'px';
+    }
   }
 }
 
