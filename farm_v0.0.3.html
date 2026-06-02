@@ -307,8 +307,8 @@ canvas { display:block; }
 }
 #bag-title {
   position:relative; z-index:2;
-  font-size:15px; color:#f5d78e; letter-spacing:3px;
-  margin-bottom:4px; text-align:center;
+  font-size:22px; color:#f5d78e; letter-spacing:3px;
+  margin-bottom:4px; text-align:center; width:100%;
 }
 #bag-slots {
   position:relative; z-index:2;
@@ -414,7 +414,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.58</div>
+<div id="splash-version">版本号：v0.0.3.59</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -452,7 +452,7 @@ canvas { display:block; }
   <div id="bag-panel">
     <div id="bag-inner">
       <canvas id="bag-canvas"></canvas>
-      <div id="bag-title">🎒 背包</div>
+      <div id="bag-title">背包</div>
       <div id="bag-slots"></div>
       <div id="bag-extra-slots">
         <span style="font-size:11px;color:#a08040;letter-spacing:1px;">扩展格</span>
@@ -1741,7 +1741,7 @@ function nextDay(){
 // bagItems: 11个格子 [0-8]=3×3基础格, [9-10]=扩展格
 // 每格存 {id, count} 或 null
 let bagItems = new Array(11).fill(null);
-let bagUnlocked = [false, false]; // 扩展格解锁状态
+let bagUnlocked = [true, false]; // 扩展格解锁状态（第一个默认解锁）
 
 // 初始道具：背包（占位）
 const ITEM_DEF_BAG_PACK = 'bag_pack';
@@ -1757,7 +1757,7 @@ function _bagPackIcon() {
 }
 
 // 初始化：塞一个背包道具
-bagItems[0] = { id: ITEM_DEF_BAG_PACK, count: 1 };
+bagItems[9] = { id: ITEM_DEF_BAG_PACK, count: 1 }; // 背包道具放在第一个扩展格
 
 // 背包面板 canvas 九宫格底板
 const _bagFrameImg = new Image();
@@ -1787,7 +1787,6 @@ function drawBagBg() {
   const inner = document.getElementById('bag-inner');
   const cv = document.getElementById('bag-canvas');
   if (!cv || !inner) return;
-  // 计算内容尺寸
   const slots = document.getElementById('bag-slots');
   const extra = document.getElementById('bag-extra-slots');
   const title = document.getElementById('bag-title');
@@ -1795,8 +1794,8 @@ function drawBagBg() {
   const W = Math.max(slots.offsetWidth, extra.offsetWidth, 180) + 48;
   const H = title.offsetHeight + slots.offsetHeight + extra.offsetHeight + 100;
   const dpr = window.devicePixelRatio || 1;
-  cv.width  = W * dpr;
-  cv.height = H * dpr;
+  cv.width  = Math.round(W * dpr);
+  cv.height = Math.round(H * dpr);
   cv.style.width  = W + 'px';
   cv.style.height = H + 'px';
   cv.style.top  = '-24px';
@@ -1805,48 +1804,50 @@ function drawBagBg() {
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
   c.imageSmoothingEnabled = false;
-  // 用相同的工具栏九宫格参数
-  const SL=4,SR=4,ST=4,SB=4,SW=48,SH=64,SC=2;
-  const SMH=SW-SL-SR, SMV=SH-ST-SB;
-  const ew=SL*SC, eh=ST*SC;
-  const totalW=cv.width, totalH=cv.height;
-  const DW=totalW-ew*2, DH=totalH-eh*2;
-  const img=_bagFrameImg;
-  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
-  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
-  c.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
-  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
-  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
-  c.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
-  c.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
-  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
-  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
+  // 与工具栏完全相同的参数：边缘 4px × EDGE_SCALE=2 × dpr
+  const SL=4, SR=4, ST=4, SB=4, SW=48, SH=48;
+  const EDGE_SCALE = 2;
+  const SMH = SW - SL - SR, SMV = SH - ST - SB;
+  const ew = SL * EDGE_SCALE * dpr;
+  const eh = ST * EDGE_SCALE * dpr;
+  const totalW = cv.width, totalH = cv.height;
+  const DW = totalW - ew*2, DH = totalH - eh*2;
+  const img = _bagFrameImg;
+  c.drawImage(img, 0,         0,         SL,  ST,  0,          0,          ew,  eh);
+  c.drawImage(img, SL,        0,         SMH, ST,  ew,         0,          DW,  eh);
+  c.drawImage(img, SL+SMH,    0,         SR,  ST,  totalW-ew,  0,          ew,  eh);
+  c.drawImage(img, 0,         ST,        SL,  SMV, 0,          eh,         ew,  DH);
+  c.drawImage(img, SL,        ST,        SMH, SMV, ew,         eh,         DW,  DH);
+  c.drawImage(img, SL+SMH,    ST,        SR,  SMV, totalW-ew,  eh,         ew,  DH);
+  c.drawImage(img, 0,         ST+SMV,    SL,  SB,  0,          totalH-eh,  ew,  eh);
+  c.drawImage(img, SL,        ST+SMV,    SMH, SB,  ew,         totalH-eh,  DW,  eh);
+  c.drawImage(img, SL+SMH,    ST+SMV,    SR,  SB,  totalW-ew,  totalH-eh,  ew,  eh);
 }
 
-// 绘制格子九宫格到某个 canvas 元素
+// 绘制格子九宫格（与工具栏格子参数一致，边缘×2×dpr）
 function drawSlotCanvas(cv, w, h, alpha) {
   if (!cv || !_bagSlotImg.complete || !_bagSlotImg.naturalWidth) return;
   const dpr = window.devicePixelRatio || 1;
-  cv.width  = w * dpr; cv.height = h * dpr;
+  cv.width  = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   cv.style.width = w+'px'; cv.style.height = h+'px';
   const c = cv.getContext('2d');
-  c.clearRect(0,0,cv.width,cv.height);
+  c.clearRect(0, 0, cv.width, cv.height);
   c.globalAlpha = alpha || 1;
   c.imageSmoothingEnabled = false;
-  const SL=1,SR=1,ST=1,SB=1,SLOT_W=16,SLOT_H=48;
-  const SMH=SLOT_W-SL-SR, SMV=SLOT_H-ST-SB;
-  const ew=SL*2, eh=ST*2;
-  const DW=cv.width-ew*2, DH=cv.height-eh*2;
-  const img=_bagSlotImg;
-  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
-  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
-  c.drawImage(img,SL+SMH,0,SR,ST,cv.width-ew,0,ew,eh);
-  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
-  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
-  c.drawImage(img,SL+SMH,ST,SR,SMV,cv.width-ew,eh,ew,DH);
-  c.drawImage(img,0,ST+SMV,SL,SB,0,cv.height-eh,ew,eh);
-  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,cv.height-eh,DW,eh);
-  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,cv.width-ew,cv.height-eh,ew,eh);
+  const SL=1, SR=1, ST=1, SB=1, SLOT_W=16, SLOT_H=48;
+  const SMH = SLOT_W-SL-SR, SMV = SLOT_H-ST-SB;
+  const ew = SL * dpr * 2, eh = ST * dpr * 2;  // 边缘×2×dpr，与工具栏一致
+  const DW = cv.width - ew*2, DH = cv.height - eh*2;
+  const img = _bagSlotImg;
+  c.drawImage(img, 0,        0,        SL,  ST,  0,           0,           ew,  eh);
+  c.drawImage(img, SL,       0,        SMH, ST,  ew,          0,           DW,  eh);
+  c.drawImage(img, SL+SMH,   0,        SR,  ST,  cv.width-ew, 0,           ew,  eh);
+  c.drawImage(img, 0,        ST,       SL,  SMV, 0,           eh,          ew,  DH);
+  c.drawImage(img, SL,       ST,       SMH, SMV, ew,          eh,          DW,  DH);
+  c.drawImage(img, SL+SMH,   ST,       SR,  SMV, cv.width-ew, eh,          ew,  DH);
+  c.drawImage(img, 0,        ST+SMV,   SL,  SB,  0,           cv.height-eh,ew,  eh);
+  c.drawImage(img, SL,       ST+SMV,   SMH, SB,  ew,          cv.height-eh,DW,  eh);
+  c.drawImage(img, SL+SMH,   ST+SMV,   SR,  SB,  cv.width-ew, cv.height-eh,ew,  eh);
 }
 
 // 渲染背包格子内容
