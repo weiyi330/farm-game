@@ -482,6 +482,7 @@ canvas { display:block; }
 .sitem-wrap {
   display:flex; flex-direction:column; align-items:center; gap:3px;
   cursor:pointer; width:52px;
+  position:relative; z-index:2;
 }
 .sitem-wrap:active .sitem { transform:scale(0.93); }
 .sitem {
@@ -528,7 +529,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.79</div>
+<div id="splash-version">版本号：v0.0.3.80</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1052,6 +1053,16 @@ const ITEM_DEF = {
   seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach'   },
   // 收获物品
   potato:       { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:20 },
+  // 背包道具占位（原有）
+  'bag_pack': { name:'背包道具', icon:'🎒', desc:'可携带物品', type:'bag' },
+  // 7种背包（Bags.png图集，每格16×16，从左到右索引0-6）
+  'bag_normal':  { name:'普通背包',   bagSlots:8,  bagImg:0, desc:'容量8格' },
+  'bag_large':   { name:'大格背包',   bagSlots:12, bagImg:1, desc:'容量12格' },
+  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:16, bagImg:2, desc:'容量16格' },
+  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:24, bagImg:3, desc:'容量24格' },
+  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:16, bagImg:4, desc:'容量16格' },
+  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:24, bagImg:5, desc:'容量24格' },
+  'bag_mystery': { name:'神秘背包',   bagSlots:32, bagImg:6, desc:'容量32格' },
 };
 
 // 工具栏：12格，存 itemId 或 null
