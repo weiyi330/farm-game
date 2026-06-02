@@ -599,7 +599,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.116</div>
+<div id="splash-version">版本号：v0.0.3.117</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2902,9 +2902,10 @@ function applyDbg(key, val) {
     if (tt) tt.style.top = v+'px';
   }
   if (key === 'bagTitleW' || key === 'bagTitleH') {
-    const titleWrap = document.getElementById('bag-title-wrap');
     const titleCv = document.getElementById('bag-title-canvas');
-    if (titleWrap && titleCv) drawBagTitle(titleCv, titleWrap.offsetWidth, titleWrap.offsetHeight);
+    const W = dbgParams.bagTitleW > 0 ? dbgParams.bagTitleW : 83;
+    const H = dbgParams.bagTitleH > 0 ? dbgParams.bagTitleH : 30;
+    if (titleCv) drawBagTitle(titleCv, W, H);
   }
   if (key === 'bagTitleFS') {
     const tt = document.getElementById('bag-title-text');
