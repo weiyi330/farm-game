@@ -458,18 +458,21 @@ canvas { display:block; }
   position:absolute; inset:0; z-index:30;
   background:rgba(10,5,0,0.75);
   display:none; align-items:center; justify-content:flex-start;
-  padding-left:20px; gap:16px;
+  padding-left:var(--shop-off-x, 20px); gap:16px;
+}
+.shop-box-wrap {
+  position:relative; overflow:visible; flex-shrink:0;
 }
 .shop-box {
   position:relative;
   padding:20px 16px 16px;
-  width:360px; max-height:calc(100vh - 120px); overflow-y:auto; overflow-x:visible;
+  width:220px;
+  max-height:calc(100vh - 100px);
+  overflow-y:scroll; overflow-x:visible;
+  scrollbar-width:none;
   display:flex; flex-direction:column; gap:10px;
 }
-.shop-box-wrap {
-  position:relative;
-  overflow:visible;
-}
+.shop-box::-webkit-scrollbar { display:none; }
 #shop-canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
   image-rendering:pixelated; pointer-events:none; z-index:0;
@@ -488,6 +491,11 @@ canvas { display:block; }
   position:relative; z-index:1;
   font-size:17px; color:#f5d78e; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
+}
+#shop-close-btn {
+  position:absolute; z-index:10;
+  right:-22px; top:-31px;
+  cursor:pointer; image-rendering:pixelated;
 }
 .shop-section-label { position:relative; z-index:1; font-size:10px; color:#a08040; letter-spacing:2px; }
 .shop-grid-label { position:relative; z-index:1; }
@@ -519,6 +527,44 @@ canvas { display:block; }
   border-radius:10px; color:#f0a060; font-size:13px;
   cursor:pointer; font-family:inherit; letter-spacing:2px; text-align:center;
 }
+
+/* ── 购买/出售确认弹窗 ── */
+#trade-modal {
+  position:absolute; inset:0; z-index:50;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.6);
+}
+.trade-box {
+  background:linear-gradient(160deg,#2a1a08,#1a0e04);
+  border:2px solid #8b5e20;
+  border-radius:12px;
+  padding:20px 24px 16px;
+  min-width:220px; max-width:280px;
+  display:flex; flex-direction:column; gap:12px;
+  align-items:center;
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+}
+.trade-title { font-size:15px; color:#f5d78e; letter-spacing:1px; text-align:center; }
+.trade-item-name { font-size:18px; color:#fff; font-weight:bold; }
+.trade-price { font-size:13px; color:#aaa; }
+.trade-qty-row { display:flex; align-items:center; gap:8px; width:100%; }
+.trade-qty-row input[type=range] { flex:1; accent-color:#c8a040; }
+.trade-qty-label { font-size:14px; color:#f5d78e; min-width:32px; text-align:right; }
+.trade-qty-total { font-size:12px; color:#aaa; text-align:center; }
+.trade-btns { display:flex; gap:12px; margin-top:4px; }
+.trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:14px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
+.trade-btn.confirm { background:#c8a040; color:#1a0e04; font-weight:bold; }
+.trade-btn.cancel  { background:rgba(80,40,10,0.6); color:#c8a040; border:1px solid #8b5e20; }
+/* 道具说明弹窗 */
+#item-tooltip {
+  position:absolute; z-index:60;
+  background:rgba(20,10,4,0.95); border:1px solid #8b5e20;
+  border-radius:8px; padding:10px 14px;
+  max-width:200px; pointer-events:none;
+  display:none;
+}
+.tooltip-name { font-size:15px; color:#f5d78e; font-weight:bold; margin-bottom:4px; }
+.tooltip-desc { font-size:12px; color:#bbb; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -544,7 +590,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.94</div>
+<div id="splash-version">版本号：v0.0.3.95</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -569,6 +615,14 @@ canvas { display:block; }
   </div>
   <!-- UI调试面板 -->
   <div id="ui-debug-panel">
+    <div class="dbg-group-title">🗂️ 工具栏</div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板宽度</span>
+      <input class="dbg-slider" type="range" min="200" max="600" value="448"
+        oninput="applyDbg('tbWidth',this.value)" onchange="applyDbg('tbWidth',this.value)">
+      <input class="dbg-val" type="number" id="dv-tbWidth" value="448"
+        onchange="applyDbg('tbWidth',this.value)">
+    </div>
     <div class="dbg-group-title">📐 背包整体位置</div>
     <div class="dbg-row">
       <span class="dbg-label">整体左右</span>
@@ -716,6 +770,29 @@ canvas { display:block; }
     <div id="action-btn" onclick="doAction()"></div>
   </div>
 
+  <!-- 购买/出售确认弹窗 -->
+  <div id="trade-modal">
+    <div class="trade-box">
+      <div class="trade-title" id="trade-title">购买确认</div>
+      <div class="trade-item-name" id="trade-item-name">土豆种子</div>
+      <div class="trade-price" id="trade-price">单价：🪙8</div>
+      <div class="trade-qty-row">
+        <input type="range" id="trade-qty-slider" min="1" max="99" value="1"
+          oninput="document.getElementById('trade-qty-label').textContent=this.value; updateTradeTotal()">
+        <span class="trade-qty-label" id="trade-qty-label">1</span>
+      </div>
+      <div class="trade-qty-total" id="trade-qty-total">合计：🪙8</div>
+      <div class="trade-btns">
+        <button class="trade-btn confirm" onclick="confirmTrade()">确认</button>
+        <button class="trade-btn cancel"  onclick="closeTrade()">取消</button>
+      </div>
+    </div>
+  </div>
+  <!-- 道具说明 -->
+  <div id="item-tooltip">
+    <div class="tooltip-name" id="tt-name"></div>
+    <div class="tooltip-desc" id="tt-desc"></div>
+  </div>
   <div id="toast"></div>
 
   <!-- 背包面板 -->
@@ -751,50 +828,50 @@ canvas { display:block; }
       </div>
       <div class="shop-section-label shop-grid-label">── 种子 ──</div>
       <div class="shop-grid">
-        <div class="sitem-wrap" onclick="buySeed('potato')">
+        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_potato',8)\">
           <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥔</span></div>
           <div class="sitem-name">土豆</div><div class="sitem-price">🪙8</div>
         </div>
-        <div class="sitem-wrap" onclick="buySeed('carrot')">
+        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_carrot',8)\">
           <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥕</span></div>
           <div class="sitem-name">萝卜</div><div class="sitem-price">🪙8</div>
         </div>
-        <div class="sitem-wrap" onclick="buySeed('cabbage')">
+        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_cabbage',12)\">
           <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🥬</span></div>
           <div class="sitem-name">白菜</div><div class="sitem-price">🪙12</div>
         </div>
-        <div class="sitem-wrap" onclick="buySeed('peach')">
+        <div class="sitem-wrap" onclick=\"openTrade('buy','seed_peach',30)\">
           <div class="sitem"><canvas class="sitem-bg"></canvas><span class="sitem-icon">🍑</span></div>
           <div class="sitem-name">桃子</div><div class="sitem-price">🪙30</div>
         </div>
       </div>
       <div class="shop-section-label shop-grid-label">── 背包 ──</div>
       <div class="shop-grid">
-        <div class="sitem-wrap" onclick="buyBag('bag_normal')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_normal',20)" data-item="bag_normal">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="0" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">普通背包</div><div class="sitem-price">🪙20</div>
         </div>
-        <div class="sitem-wrap" onclick="buyBag('bag_large')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_large',50)" data-item="bag_large">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="1" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">大格背包</div><div class="sitem-price">🪙50</div>
         </div>
-        <div class="sitem-wrap" onclick="buyBag('bag_adv_b')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_adv_b',120)" data-item="bag_adv_b">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="2" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">高级背包(蓝)</div><div class="sitem-price">🪙120</div>
         </div>
-        <div class="sitem-wrap" onclick="buyBag('bag_lux_p')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_lux_p',300)" data-item="bag_lux_p">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="3" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">豪华背包(粉)</div><div class="sitem-price">🪙300</div>
         </div>
-        <div class="sitem-wrap" onclick="buyBag('bag_adv_p')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_adv_p',200)" data-item="bag_adv_p">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="4" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">高级背包(粉)</div><div class="sitem-price">🪙200</div>
         </div>
-        <div class="sitem-wrap" onclick="buyBag('bag_lux_w')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_lux_w',400)" data-item="bag_lux_w">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="5" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">豪华背包(白)</div><div class="sitem-price">🪙400</div>
         </div>
-        <div class="sitem-wrap" onclick="buyBag('bag_mystery')">
+        <div class="sitem-wrap" onclick="openTrade('buy','bag_mystery',999)" data-item="bag_mystery">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="6" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">神秘背包</div><div class="sitem-price">🪙999</div>
         </div>
@@ -1065,12 +1142,12 @@ const ITEM_DEF = {
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
-  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20 },
-  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot'  },
-  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage' },
-  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach'   },
+  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'种在耕地上，等待收获。' },
+  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot', desc:'种在耕地上，等待收获。' },
+  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage', desc:'种在耕地上，等待收获。' },
+  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach', desc:'种在耕地上，等待收获。' },
   // 收获物品
-  potato:       { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:20 },
+  potato:       { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:20, desc:'收获的土豆，可以出售。' },
   // 背包道具占位（原有）
   'bag_pack': { name:'背包道具', icon:'🎒', desc:'可携带物品', type:'bag' },
   // 7种背包（Bags.png图集，每格16×16，从左到右索引0-6）
@@ -2382,6 +2459,7 @@ function renderBagSlots() {
   // 清除rendered标记，确保每次重绘
   slotsEl.querySelectorAll('canvas.bag-icon-cv').forEach(c=>delete c.dataset.rendered);
   flushBagIcons(slotsEl);
+  setTimeout(bindBagLongPress, 0);
   // 扩展格（5个），索引从mainSlots开始
   // 扩展格起始index：用当前equippedBag重新算（placeBagIntoExtSlot可能已经改变了equippedBag）
   const extOffset = getTotalBagSlots();
@@ -2578,6 +2656,13 @@ function onBagSlotClick(idx) {
 
   if (selectedBagSlot === null && selectedHotbarForBag === null) {
     if (!bagItems[idx]) return;
+    // 商店打开时：点击可出售道具 → 出售弹窗
+    const shopOpen = document.getElementById('shop-panel')?.style.display === 'flex';
+    if (shopOpen) {
+      const item = bagItems[idx];
+      const sellPrice = item && SELL_PRICES[item.id];
+      if (sellPrice) { openTrade('sell', item.id, sellPrice, idx); return; }
+    }
     selectedBagSlot = idx;
     renderBagSlots();
   } else if (selectedBagSlot === idx) {
@@ -2709,7 +2794,7 @@ const dbgParams = {
   bagOffX: 0, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#3a1a08',
   bagCloseRight: -19, bagCloseTop: -32,
-  tbHeight: 60, tbMarginBottom: -10,
+  tbWidth: 448, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
 };
 
@@ -2823,6 +2908,11 @@ function applyDbg(key, val) {
     const btn = document.getElementById('bag-close-btn');
     if (btn) btn.style.top = v+'px';
   }
+  if (key === 'tbWidth') {
+    const tw = document.getElementById('toolbar-wrap');
+    if (tw) tw.style.width = v+'px';
+    setTimeout(drawToolbarBg, 30);
+  }
   if (key === 'tbHeight') {
     const tw = document.getElementById('toolbar-wrap');
     if (tw) tw.style.height = v+'px';
@@ -2858,6 +2948,8 @@ function openShop(){
   updateSellGrid();
   const shopPanel = document.getElementById('shop-panel');
   shopPanel.style.display='flex';
+  // 应用商店位置
+  shopPanel.style.setProperty('--shop-off-x', shopDbg.shopOffX+'px');
   // 背包inner移入商店panel右侧（左商店右背包）
   const bagInner = document.getElementById('bag-inner');
   if (bagInner && bagInner.parentElement.id !== 'shop-panel') {
@@ -2877,6 +2969,7 @@ function openShop(){
       const idx = parseInt(cv.dataset.idx);
       if (!isNaN(idx)) drawBagIcon(cv, idx, 28);
     });
+    bindShopLongPress();
   }, 80);
 }
 function closeShop(){
@@ -3267,6 +3360,138 @@ function applyShopDbg(key, val) {
 
 
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
+
+// ── 交易弹窗逻辑 ──
+let _tradeMode = null;  // 'buy' | 'sell'
+let _tradeId   = null;  // item id
+let _tradeUnitPrice = 0;
+let _tradeBagIdx = null; // 出售时背包格子索引
+
+const SELL_PRICES = {
+  potato:8, carrot:8, cabbage:12, peach:25,
+};
+const BUY_PRICES = {
+  seed_potato:8, seed_carrot:8, seed_cabbage:12, seed_peach:30,
+  bag_normal:20, bag_large:50, bag_adv_b:120, bag_lux_p:300, bag_adv_p:200, bag_lux_w:400, bag_mystery:999,
+};
+const STACKABLE = { // 最大数量
+  seed_potato:99, seed_carrot:99, seed_cabbage:99, seed_peach:99,
+  potato:99, carrot:99, cabbage:99, peach:99,
+};
+
+function openTrade(mode, itemId, unitPrice, bagIdx) {
+  _tradeMode = mode; _tradeId = itemId; _tradeUnitPrice = unitPrice;
+  _tradeBagIdx = bagIdx !== undefined ? bagIdx : null;
+  const def = ITEM_DEF[itemId];
+  const name = def?.name || itemId;
+  document.getElementById('trade-title').textContent = mode === 'buy' ? '购买确认' : '出售确认';
+  document.getElementById('trade-item-name').textContent = name;
+  document.getElementById('trade-price').textContent = `单价：🪙${unitPrice}`;
+  const maxQty = STACKABLE[itemId] ? 99 : 1;
+  const slider = document.getElementById('trade-qty-slider');
+  slider.max = maxQty;
+  slider.value = 1;
+  document.getElementById('trade-qty-label').textContent = '1';
+  updateTradeTotal();
+  document.getElementById('trade-modal').style.display = 'flex';
+}
+
+function updateTradeTotal() {
+  const qty = parseInt(document.getElementById('trade-qty-slider').value) || 1;
+  document.getElementById('trade-qty-total').textContent = `合计：🪙${qty * _tradeUnitPrice}`;
+}
+
+function closeTrade() {
+  document.getElementById('trade-modal').style.display = 'none';
+}
+
+function confirmTrade() {
+  const qty = parseInt(document.getElementById('trade-qty-slider').value) || 1;
+  const total = qty * _tradeUnitPrice;
+  if (_tradeMode === 'buy') {
+    if (coins < total) { showToast('金币不足！'); closeTrade(); return; }
+    coins -= total;
+    // 放入背包
+    if (_tradeId.startsWith('bag_')) {
+      // 背包道具：调用原有逻辑
+      const mainSlots2 = getTotalBagSlots();
+      let placed = false;
+      for (let i = 0; i < mainSlots2; i++) {
+        if (!bagItems[i]) { bagItems[i] = { id:_tradeId, count:1 }; placed = true; break; }
+      }
+      if (!placed) { showToast('背包已满！'); coins += total; closeTrade(); return; }
+    } else {
+      // 种子：加到 seedCount 或 harvestBag
+      const def = ITEM_DEF[_tradeId];
+      if (def?.seedType) {
+        seedCount[def.seedType] = (seedCount[def.seedType]||0) + qty;
+      } else if (def?.stackMax) {
+        harvestBag[_tradeId] = (harvestBag[_tradeId]||0) + qty;
+      }
+    }
+    updateHUD(); renderHotbar(); renderBagSlots();
+    showToast(`购买 x${qty}`);
+  } else if (_tradeMode === 'sell') {
+    coins += total;
+    if (_tradeBagIdx !== null) {
+      const item = bagItems[_tradeBagIdx];
+      if (item) {
+        item.count = (item.count||1) - qty;
+        if (item.count <= 0) bagItems[_tradeBagIdx] = null;
+      }
+    }
+    updateHUD(); renderBagSlots();
+    showToast(`出售 x${qty}，获得🪙${total}`);
+  }
+  closeTrade();
+}
+
+// 长按显示道具说明
+let _tooltipTimer = null;
+function showItemTooltip(itemId, x, y) {
+  const def = ITEM_DEF[itemId];
+  if (!def) return;
+  const tt = document.getElementById('item-tooltip');
+  document.getElementById('tt-name').textContent = def.name || itemId;
+  document.getElementById('tt-desc').textContent = def.desc || '暂无说明';
+  tt.style.display = 'block';
+  tt.style.left = Math.min(x, window.innerWidth - 220) + 'px';
+  tt.style.top  = Math.max(y - 80, 10) + 'px';
+}
+function hideItemTooltip() {
+  document.getElementById('item-tooltip').style.display = 'none';
+  if (_tooltipTimer) { clearTimeout(_tooltipTimer); _tooltipTimer = null; }
+}
+
+// 给所有 sitem-wrap 绑定长按
+function bindShopLongPress() {
+  document.querySelectorAll('.sitem-wrap').forEach(el => {
+    const itemId = el.getAttribute('data-item');
+    if (!itemId) return;
+    el.addEventListener('pointerdown', e => {
+      _tooltipTimer = setTimeout(() => showItemTooltip(itemId, e.clientX, e.clientY), 500);
+    });
+    el.addEventListener('pointerup', hideItemTooltip);
+    el.addEventListener('pointercancel', hideItemTooltip);
+  });
+}
+
+// 背包格子长按显示说明
+function bindBagLongPress() {
+  document.querySelectorAll('.bag-slot,.bag-slot-extra').forEach(el => {
+    el.addEventListener('pointerdown', e => {
+      const idx = parseInt(el.dataset.idx);
+      const item = isNaN(idx) ? null : bagItems[idx];
+      if (!item) return;
+      _tooltipTimer = setTimeout(() => showItemTooltip(item.id, e.clientX, e.clientY), 500);
+    });
+    el.addEventListener('pointerup', hideItemTooltip);
+    el.addEventListener('pointercancel', hideItemTooltip);
+  });
+}
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest('#item-tooltip,.sitem-wrap,.bag-slot,.bag-slot-extra')) hideItemTooltip();
+});
 </script>
 </body>
 </html>
