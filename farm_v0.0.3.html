@@ -606,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.132</div>
+<div id="splash-version">版本号：v0.0.3.133</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2838,8 +2838,7 @@ function applyDbg(key, val) {
 function exportDbgValues() {
   const out = document.getElementById('dbg-export-out');
   if (!out) return;
-  const bagTitleLine = 'bagTitleW: ' + dbgParams.bagTitleW + '\nbagTitleLeft: ' + dbgParams.bagTitleLeft;
-  const lines = bagTitleLine + '\n' + Object.entries(shopDbg).map(([k,v]) => `${k}: ${v}`).join('\n');
+  const lines = 'bagTitleW: ' + dbgParams.bagTitleW + '\nbagTitleLeft: ' + dbgParams.bagTitleLeft;
   out.textContent = lines;
   out.style.display = 'block';
   navigator.clipboard?.writeText(lines).then(() => {
