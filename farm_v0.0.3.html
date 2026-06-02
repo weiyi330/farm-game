@@ -335,7 +335,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.56</div>
+<div id="splash-version">版本号：v0.0.3.57</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1041,7 +1041,7 @@ function drawPlayer(x, y) {
     if (_hItem && _id) {
       const iconSize = 30;
       const iconX = x - iconSize / 2;
-      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize + 9;
+      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize + 19;
       const _cropSheetEntry = getImg(CROPS_SHEET);
       if (_hItem.iconEl && _cropSheetEntry && _cropSheetEntry.loaded) {
         // 图集类图标，直接画到 canvas
