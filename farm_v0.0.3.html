@@ -524,7 +524,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.74</div>
+<div id="splash-version">版本号：v0.0.3.75</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2074,7 +2074,7 @@ function _bagPackIcon() {
 }
 
 // 初始化：塞一个背包道具
-bagItems[9] = { id: ITEM_DEF_BAG_PACK, count: 1 }; // 背包道具放在第一个扩展格
+bagItems[9] = { id: 'bag_normal', count: 1 }; // 普通背包放扩展格[0]
 
 // 背包面板 canvas 九宫格底板
 const _bagFrameImg = new Image();
@@ -2083,6 +2083,10 @@ const _bagSlotImg = new Image();
 _bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
 
 // 背包标题底板（common_button02 第1行 col6-8，原图坐标 x:80~128, y:0~16，48×16px）
+// 背包道具图集（Bags.png, 112×16, 7格每格16×16）
+const _bagsIconImg = new Image();
+_bagsIconImg.src = 'assets/images/ui/icon/Extras/Bags.png';
+
 const _bagTitleImg = new Image();
 _bagTitleImg.src = 'assets/images/ui/common/common_button02.png';
 // 九宫格参数：左右边缘3px(含2px透明+1px边框)，上下边缘1px(边框)，中间可拉伸
@@ -2278,12 +2282,24 @@ function renderBagSlots() {
     el.querySelectorAll('.bag-item-icon,.bag-item-count').forEach(e=>e.remove());
     const item = bagItems[9+i];
     if (item && unlocked) {
-      const iconEl = document.createElement('div');
-      iconEl.className = 'bag-item-icon';
-      iconEl.style.cssText = 'width:22px;height:22px;';
       const itemDef = ITEM_DEF[item.id];
-      if (itemDef) iconEl.innerHTML = buildIcon(itemDef);
-      el.appendChild(iconEl);
+      if (itemDef) {
+        if (itemDef.bagImg !== undefined) {
+          const icv = document.createElement('canvas');
+          icv.style.imageRendering = 'pixelated';
+          icv.style.position = 'absolute';
+          icv.style.top = '50%'; icv.style.left = '50%';
+          icv.style.transform = 'translate(-50%,-50%)';
+          el.appendChild(icv);
+          setTimeout(() => drawBagIcon(icv, itemDef.bagImg, 22), 50);
+        } else {
+          const iconEl = document.createElement('div');
+          iconEl.className = 'bag-item-icon';
+          iconEl.style.cssText = 'width:22px;height:22px;';
+          iconEl.innerHTML = buildIcon(itemDef);
+          el.appendChild(iconEl);
+        }
+      }
     }
   }
 }
