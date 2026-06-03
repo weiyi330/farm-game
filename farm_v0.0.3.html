@@ -652,7 +652,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.150</div>
+<div id="splash-version">版本号：v0.0.3.151</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -668,7 +668,7 @@ canvas { display:block; }
         </span>
         <div class="hud-coin-outer" id="hud-coin-outer">
           <div class="hud-coin" id="hud-coin-wrap">
-            <span id="coinVal">99999</span> 枚
+            <span id="coinVal">9999999</span>
           </div>
         </div>
       </div>
@@ -701,52 +701,52 @@ canvas { display:block; }
     <div class="dbg-group-title">🪙 金币栏</div>
     <div class="dbg-row">
       <span class="dbg-label">图标大小</span>
-      <input class="dbg-slider" type="range" min="10" max="40" value="18"
+      <input class="dbg-slider" type="range" min="10" max="40" value="25"
         oninput="applyDbg('hudCoinIconSize',this.value)" onchange="applyDbg('hudCoinIconSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinIconSize" value="18"
+      <input class="dbg-val" type="number" id="dv-hudCoinIconSize" value="25"
         onchange="applyDbg('hudCoinIconSize',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">图标左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="21"
         oninput="applyDbg('hudCoinIconX',this.value)" onchange="applyDbg('hudCoinIconX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinIconX" value="0"
+      <input class="dbg-val" type="number" id="dv-hudCoinIconX" value="21"
         onchange="applyDbg('hudCoinIconX',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板宽度</span>
-      <input class="dbg-slider" type="range" min="40" max="200" value="80"
+      <input class="dbg-slider" type="range" min="40" max="200" value="90"
         oninput="applyDbg('hudCoinBoardW',this.value)" onchange="applyDbg('hudCoinBoardW',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinBoardW" value="80"
+      <input class="dbg-val" type="number" id="dv-hudCoinBoardW" value="90"
         onchange="applyDbg('hudCoinBoardW',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板高度</span>
-      <input class="dbg-slider" type="range" min="14" max="60" value="26"
+      <input class="dbg-slider" type="range" min="14" max="60" value="23"
         oninput="applyDbg('hudCoinBoardH',this.value)" onchange="applyDbg('hudCoinBoardH',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinBoardH" value="26"
+      <input class="dbg-val" type="number" id="dv-hudCoinBoardH" value="23"
         onchange="applyDbg('hudCoinBoardH',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">内容左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="12"
         oninput="applyDbg('hudCoinContentX',this.value)" onchange="applyDbg('hudCoinContentX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="0"
+      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="12"
         onchange="applyDbg('hudCoinContentX',this.value)">
     </div>
     <div class="dbg-group-title">☀️ 时间栏</div>
     <div class="dbg-row">
       <span class="dbg-label">图标大小</span>
-      <input class="dbg-slider" type="range" min="10" max="40" value="24"
+      <input class="dbg-slider" type="range" min="10" max="40" value="33"
         oninput="applyDbg('hudSeasonIconSize',this.value)" onchange="applyDbg('hudSeasonIconSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudSeasonIconSize" value="24"
+      <input class="dbg-val" type="number" id="dv-hudSeasonIconSize" value="33"
         onchange="applyDbg('hudSeasonIconSize',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">图标左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="22"
         oninput="applyDbg('hudSeasonIconX',this.value)" onchange="applyDbg('hudSeasonIconX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudSeasonIconX" value="0"
+      <input class="dbg-val" type="number" id="dv-hudSeasonIconX" value="22"
         onchange="applyDbg('hudSeasonIconX',this.value)">
     </div>
     <div class="dbg-row">
@@ -758,23 +758,23 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板高度</span>
-      <input class="dbg-slider" type="range" min="14" max="60" value="26"
+      <input class="dbg-slider" type="range" min="14" max="60" value="23"
         oninput="applyDbg('hudDayBoardH',this.value)" onchange="applyDbg('hudDayBoardH',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudDayBoardH" value="26"
+      <input class="dbg-val" type="number" id="dv-hudDayBoardH" value="23"
         onchange="applyDbg('hudDayBoardH',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">内容左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="9"
         oninput="applyDbg('hudDayContentX',this.value)" onchange="applyDbg('hudDayContentX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudDayContentX" value="0"
+      <input class="dbg-val" type="number" id="dv-hudDayContentX" value="9"
         onchange="applyDbg('hudDayContentX',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">两栏间距</span>
-      <input class="dbg-slider" type="range" min="-200" max="60" value="20"
+      <input class="dbg-slider" type="range" min="-200" max="60" value="-25"
         oninput="applyDbg('hudBarGap',this.value)" onchange="applyDbg('hudBarGap',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudBarGap" value="20"
+      <input class="dbg-val" type="number" id="dv-hudBarGap" value="-25"
         onchange="applyDbg('hudBarGap',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
@@ -1119,7 +1119,7 @@ const CROPS = {
 // ============================================================
 // 游戏状态
 // ============================================================
-let coins=99999, day=1, seasonIdx=0;
+let coins=9999999, day=1, seasonIdx=0;
 // 弹出动画表: key='r_c', {startMs, r, c, type}
 const harvestAnims = {};
 let harvestBag={};
@@ -2838,11 +2838,11 @@ const dbgParams = {
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
-  hudCoinIconX: 0, hudCoinIconSize: 18,
-  hudCoinBoardW: 80, hudCoinBoardH: 26, hudCoinContentX: 0,
-  hudSeasonIconSize: 24, hudSeasonIconX: 0,
-  hudDayBoardW: 100, hudDayBoardH: 26, hudDayContentX: 0,
-  hudBarGap: 20,
+  hudCoinIconX: 21, hudCoinIconSize: 25,
+  hudCoinBoardW: 90, hudCoinBoardH: 23, hudCoinContentX: 12,
+  hudSeasonIconSize: 33, hudSeasonIconX: 22,
+  hudDayBoardW: 100, hudDayBoardH: 23, hudDayContentX: 9,
+  hudBarGap: -25,
 };
 
 function initDebugIcon() {
