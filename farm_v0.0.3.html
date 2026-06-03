@@ -631,7 +631,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.141</div>
+<div id="splash-version">版本号：v0.0.3.142</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2924,7 +2924,21 @@ function applyDbg(key, val) {
 function exportDbgValues() {
   const out = document.getElementById('dbg-export-out');
   if (!out) return;
-  const lines = 'bagTitleW: ' + dbgParams.bagTitleW + '\nbagTitleLeft: ' + dbgParams.bagTitleLeft;
+  const lines = [
+    '=== 🎪 购买/出售金币图标 ===',
+    'tradeCoinSize: ' + dbgParams.tradeCoinSize,
+    'tradeCoinDX:   ' + dbgParams.tradeCoinDX,
+    'tradeCoinDY:   ' + dbgParams.tradeCoinDY,
+    '',
+    '=== 🛒 商店金币图标 ===',
+    'shopCoinSize:  ' + shopDbg.shopCoinSize,
+    'shopCoinDX:    ' + shopDbg.shopCoinDX,
+    'shopCoinDY:    ' + shopDbg.shopCoinDY,
+    '',
+    '=== 🎒 背包标题 ===',
+    'bagTitleW:     ' + dbgParams.bagTitleW,
+    'bagTitleLeft:  ' + dbgParams.bagTitleLeft,
+  ].join('\n');
   out.textContent = lines;
   out.style.display = 'block';
   navigator.clipboard?.writeText(lines).then(() => {
