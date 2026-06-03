@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.175</div>
+<div id="splash-version">版本号：v0.0.3.176</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1448,7 +1448,7 @@ const CROPS = {
     seedBuy:80, seedSell:40, cropSell:150,
     cropSell1:188, cropSell2:225,
     seedDropRate:0.05, extraMax:3,
-    harvestTool:'manual', frameH:16, sy16:true, desc:'春季作物，13天收获，收获更多蓝莓' },
+    harvestTool:'manual', frameH:32, desc:'春季作物，13天收获，收获更多蓝莓' },
   springonion: { name:'野葱', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Spring Onion.png',
     seedCol:0, seedRow:3, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1552,7 +1552,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:50,
     cropSell1:62, cropSell2:75,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', frameH:16, sy16:true, desc:'夏季作物，7天收获，富含营养的豆类' },
+    harvestTool:'manual', frameH:32, desc:'夏季作物，7天收获，富含营养的豆类' },
   pineapple: { name:'菠萝', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Pineapple.png',
     seedCol:9, seedRow:13, days:14, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 2, "7": 3, "8": 3, "9": 3, "10": 4, "11": 4, "12": 4, "13": 4}, isRegrow:true, regrowDays:5,
@@ -1908,11 +1908,8 @@ function drawTile(r, c) {
       }
       const _fh = cfg.frameH || 16;
       const _sx = frameIdx * 16;
-      // sy16图集：上行空，取下行；frameH32图集：sy=0取全帧；regrow用下行
-      let _sy;
-      if (cfg.sy16) _sy = 16;
-      else if (_fh === 32) _sy = 0;
-      else _sy = (crop.regrowPhase && cfg.regrowMap) ? 16 : 0;
+      // frameH32图集：sy=0取完整32px帧；16px图集：regrow时取下行(sy=16)
+      const _sy = (_fh === 32) ? 0 : ((crop.regrowPhase && cfg.regrowMap) ? 16 : 0);
       // 统一底部对齐：底部锚点在地块中心偏下(y + TILE*0.1)
       const _scale = TILE / 16;  // 每像素对应屏幕尺寸
       const drawW = 16 * _scale;
