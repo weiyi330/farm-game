@@ -191,9 +191,9 @@ canvas { display:block; }
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
-  background:rgba(40,25,8,0.7); border:1px solid #6a8a40;
-  border-radius:16px; padding:4px 12px;
-  font-size:13px; color:#c8e890;
+  background: transparent;
+  padding:2px 10px;
+  font-size:13px; color:#3a1a08;
 }
 
 /* 底部UI */
@@ -642,7 +642,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.143</div>
+<div id="splash-version">版本号：v0.0.3.144</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -661,7 +661,9 @@ canvas { display:block; }
           </div>
         </div>
       </div>
-      <div class="hud-day">第<span id="dayVal">1</span>天 &nbsp;<span id="seasonVal">🌸春</span></div>
+      <div class="hud-coin-outer">
+          <div class="hud-day">第<span id="dayVal">1</span>天 &nbsp;<span id="seasonVal">🌸春</span></div>
+        </div>
     </div>
     <div class="hud-right">
       <div id="bag-btn" onclick="toggleBag()">
