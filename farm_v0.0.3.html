@@ -655,7 +655,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.156</div>
+<div id="splash-version">版本号：v0.0.3.157</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3630,6 +3630,7 @@ function resetBagSoldToday() {
   Object.keys(bagSoldToday).forEach(k => delete bagSoldToday[k]);
   refreshShopItemStates();
 }
+const STACKABLE = { // 最大数量
   seed_potato:99, seed_carrot:99, seed_cabbage:99, seed_peach:99,
   potato:99, carrot:99, cabbage:99, peach:99,
 };
