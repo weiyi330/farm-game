@@ -587,6 +587,7 @@ canvas { display:block; }
   align-items:center;
   box-shadow:0 4px 20px rgba(0,0,0,0.6);
 }
+.sitem-wrap.sold-out { pointer-events:none; }
 .sitem-wrap.sold-out .sitem { filter:grayscale(1) opacity(0.5); }
 .sitem-wrap.sold-out .sitem-price { display:none; }
 .sitem-wrap.sold-out .sitem-soldout { display:block; }
@@ -652,7 +653,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.154</div>
+<div id="splash-version">版本号：v0.0.3.155</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -803,7 +804,7 @@ canvas { display:block; }
       <div class="trade-item-name" id="trade-item-name">土豆种子</div>
       <div class="trade-item-desc" id="trade-item-desc"></div>
       <div class="trade-price" id="trade-price">单价：<span id="trade-price-icon"></span><span id="trade-price-val">8</span></div>
-      <div class="trade-qty-row">
+      <div class="trade-qty-row" id="trade-qty-row">
         <input type="range" id="trade-qty-slider" min="1" max="99" value="1"
           oninput="updateTradeQtyLabel(this.value); updateTradeTotal()">
         <span class="trade-qty-label" id="trade-qty-label">数量：1</span>
@@ -2198,6 +2199,7 @@ function updateSeedSwitchUI() {}
 
 function nextDay(){
   day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
+  resetBagSoldToday();
   for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
     const crop=cropMap[r][c];
     if(crop){
@@ -3069,7 +3071,6 @@ window.addEventListener('load', () => { setTimeout(() => {
 
 
 function refreshShopItemStates() {
-  // 背包类：已拥有则显示“已持有”并置灰，种子类不限制
   document.querySelectorAll('.sitem-wrap[data-item]').forEach(wrap => {
     const itemId = wrap.dataset.item;
     if (!itemId) return;
@@ -3077,13 +3078,11 @@ function refreshShopItemStates() {
     if (!def) return;
     const isBag = def.bagImg !== undefined;
     if (isBag) {
-      // 已持有：在背包列表或工具栏中
-      const owned = bagItems.some(i => i && i.id === itemId) ||
-                    hotbar.some(i => i === itemId) ||
-                    equippedBag === itemId;
-      wrap.classList.toggle('sold-out', owned);
+      // 当天已购过则售罄
+      const soldOut = (bagSoldToday[itemId] || 0) >= 1;
+      wrap.classList.toggle('sold-out', soldOut);
       const soldoutEl = wrap.querySelector('.sitem-soldout');
-      if (soldoutEl) soldoutEl.textContent = '已持有';
+      if (soldoutEl) soldoutEl.textContent = '已售罄';
     }
   });
 }
@@ -3628,7 +3627,13 @@ const BUY_PRICES = {
   seed_potato:8, seed_carrot:8, seed_cabbage:12, seed_peach:30,
   bag_normal:1000, bag_large:2000, bag_adv_b:4000, bag_adv_p:4000, bag_lux_p:8000, bag_lux_w:8000, bag_mystery:16000,
 };
-const STACKABLE = { // 最大数量
+// 背包每天限购记录（key=itemId, value=当天已购数量）
+const bagSoldToday = {};
+
+function resetBagSoldToday() {
+  Object.keys(bagSoldToday).forEach(k => delete bagSoldToday[k]);
+  refreshShopItemStates();
+}
   seed_potato:99, seed_carrot:99, seed_cabbage:99, seed_peach:99,
   potato:99, carrot:99, cabbage:99, peach:99,
 };
@@ -3653,11 +3658,23 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   }
   document.getElementById('trade-price-icon').innerHTML = `<span style="${coinIconStyle(unitPrice, dbgParams.tradeCoinSize)}position:relative;left:${dbgParams.tradeCoinDX||0}px;top:${dbgParams.tradeCoinDY||0}px;"></span>`;
   document.getElementById('trade-price-val').textContent = unitPrice;
-  const maxQty = STACKABLE[itemId] ? 99 : 1;
+  const isBag = ITEM_DEF[itemId]?.bagImg !== undefined;
+  const maxQty = (STACKABLE[itemId] && !isBag) ? 99 : 1;
   const slider = document.getElementById('trade-qty-slider');
-  slider.max = maxQty;
-  slider.value = 1;
+  const qtyRow = document.getElementById('trade-qty-row');
+  const totalRow = document.getElementById('trade-qty-total');
+  slider.max = maxQty; slider.value = 1;
   document.getElementById('trade-qty-label').textContent = '数量：1';
+  // 背包类隐藏滚条和合计
+  const hideQty = isBag || maxQty === 1;
+  if (qtyRow)  qtyRow.style.display  = hideQty ? 'none' : '';
+  if (totalRow) totalRow.style.display = hideQty ? 'none' : '';
+  // 背包desc只显示出售价，不显示容量
+  if (descEl && isBag) {
+    const sellP = SELL_PRICES[itemId];
+    descEl.textContent = sellP ? '出售价：' + sellP + '枚' : '';
+    descEl.style.display = sellP ? '' : 'none';
+  }
   updateTradeTotal();
   document.getElementById('trade-modal').style.display = 'flex';
 }
@@ -3688,8 +3705,11 @@ function confirmTrade() {
         if (!bagItems[i]) { bagItems[i] = { id:_tradeId, count:1 }; placed = true; break; }
       }
       if (!placed) { showToast('背包已满！'); coins += total; closeTrade(); return; }
+      // 记录当天已售
+      bagSoldToday[_tradeId] = (bagSoldToday[_tradeId] || 0) + 1;
+      refreshShopItemStates();
     } else {
-      // 种子：加到 seedCount 或 harvestBag
+      // 种子：加到 seedCount
       const def = ITEM_DEF[_tradeId];
       if (def?.seedType) {
         seedCount[def.seedType] = (seedCount[def.seedType]||0) + qty;
