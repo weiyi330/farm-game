@@ -165,27 +165,20 @@ canvas { display:block; }
 .hud-left { display:flex; flex-direction:column; gap:4px; }
 /* HUD金币像素风wrap */
 .hud-coin-outer {
-  background:#000;
-  clip-path: polygon(
-    3px 0px,   calc(100% - 3px) 0px,
-    100% 3px,  100% calc(100% - 3px),
-    calc(100% - 3px) 100%, 3px 100%,
-    0px calc(100% - 3px), 0px 3px
-  );
-  padding:3px;
   display:inline-flex;
+  border-image: url('assets/images/ui/common/common_top_button.png') 4 4 4 4 fill / 4px 4px 4px 4px stretch;
+  border-style: solid;
+  border-width: 4px;
+  background: none;
+  padding: 0;
+  clip-path: none;
 }
 .hud-coin {
   display:flex; align-items:center; gap:5px;
-  background:#ffd2a1;
+  background: transparent;
   padding:2px 10px;
   font-size:14px; color:#3a1a08;
-  clip-path: polygon(
-    3px 0px,   calc(100% - 3px) 0px,
-    100% 3px,  100% calc(100% - 3px),
-    calc(100% - 3px) 100%, 3px 100%,
-    0px calc(100% - 3px), 0px 3px
-  );
+  clip-path: none;
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
@@ -638,7 +631,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.140</div>
+<div id="splash-version">版本号：v0.0.3.141</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
