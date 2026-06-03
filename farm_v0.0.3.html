@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.170</div>
+<div id="splash-version">版本号：v0.0.3.171</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1368,7 +1368,7 @@ const CROPS = {
     seedBuy:50, seedSell:25, cropSell:80,
     cropSell1:100, cropSell2:120,
     seedDropRate:0.05, extraMax:3,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，6天收获，偶尔一穴多个' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，6天收获，偶尔一穴多个' },
   parsnip: { name:'防风草', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Parsnip.png',
     seedCol:0, seedRow:8, days:5, harvestFrame:4,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3}, isRegrow:false, regrowDays:0,
@@ -1376,7 +1376,7 @@ const CROPS = {
     seedBuy:20, seedSell:10, cropSell:35,
     cropSell1:44, cropSell2:52,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，5天收获，快速收获' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，5天收获，快速收获' },
   cauliflower: { name:'花椰菜', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Cauliflower.png',
     seedCol:0, seedRow:10, days:11, harvestFrame:5,
     dayMap:{"1": 0, "2": 0, "3": 1, "4": 1, "5": 2, "6": 2, "7": 3, "8": 3, "9": 4, "10": 4}, isRegrow:false, regrowDays:0,
@@ -1384,7 +1384,7 @@ const CROPS = {
     seedBuy:80, seedSell:40, cropSell:175,
     cropSell1:219, cropSell2:262,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，11天收获，最高价值蔬菜' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，11天收获，最高价值蔬菜' },
   cabbage: { name:'白菜', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Cabbage.png',
     seedCol:0, seedRow:9, days:8, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5, "7": 5}, isRegrow:false, regrowDays:0,
@@ -1392,7 +1392,7 @@ const CROPS = {
     seedBuy:50, seedSell:25, cropSell:100,
     cropSell1:125, cropSell2:150,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，8天收获，常见蔬菜，产量稳定' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，8天收获，常见蔬菜，产量稳定' },
   carrot: { name:'胡萝卜', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Carrot.png',
     seedCol:0, seedRow:6, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1400,7 +1400,7 @@ const CROPS = {
     seedBuy:30, seedSell:15, cropSell:50,
     cropSell1:62, cropSell2:75,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，6天收获，鲜甜可口' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，6天收获，鲜甜可口' },
   onion: { name:'洋葱', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Onion.png',
     seedCol:0, seedRow:5, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1408,7 +1408,7 @@ const CROPS = {
     seedBuy:30, seedSell:15, cropSell:40,
     cropSell1:50, cropSell2:60,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，6天收获，调味必备' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，6天收获，调味必备' },
   asparagus: { name:'芦笋', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Asparagus.png',
     seedCol:0, seedRow:13, days:5, harvestFrame:4,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3}, isRegrow:true, regrowDays:4,
@@ -1416,7 +1416,7 @@ const CROPS = {
     seedBuy:100, seedSell:50, cropSell:120,
     cropSell1:150, cropSell2:180,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，5天收获，嫩芽可食，重复收割' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，5天收获，嫩芽可食，重复收割' },
   rice: { name:'大米', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Rice.png',
     seedCol:0, seedRow:11, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1424,7 +1424,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:60,
     cropSell1:75, cropSell2:90,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'sickle', twoRow:false, desc:'春季作物，6天收获，主食作物，产量高' },
+    harvestTool:'sickle', frameH:16, desc:'春季作物，6天收获，主食作物，产量高' },
   broccoli: { name:'西兰花', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Broccoli.png',
     seedCol:0, seedRow:12, days:9, harvestFrame:4,
     dayMap:{"1": 0, "2": 0, "3": 1, "4": 1, "5": 2, "6": 2, "7": 3, "8": 3}, isRegrow:false, regrowDays:0,
@@ -1432,7 +1432,7 @@ const CROPS = {
     seedBuy:70, seedSell:35, cropSell:130,
     cropSell1:162, cropSell2:195,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，9天收获，营养丰富' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，9天收获，营养丰富' },
   strawberry: { name:'草莓', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Strawberry.png',
     seedCol:0, seedRow:2, days:8, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 4, "7": 4}, isRegrow:true, regrowDays:4,
@@ -1440,7 +1440,7 @@ const CROPS = {
     seedBuy:100, seedSell:50, cropSell:120,
     cropSell1:150, cropSell2:180,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，8天收获，甜美浆果，重复结果' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，8天收获，甜美浆果，重复结果' },
   blueberry: { name:'蓝莓', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Blueberry.png',
     seedCol:0, seedRow:7, days:13, harvestFrame:5,
     dayMap:{"1": 0, "2": 0, "3": 1, "4": 1, "5": 2, "6": 2, "7": 3, "8": 3, "9": 3, "10": 4, "11": 4, "12": 4}, isRegrow:true, regrowDays:4,
@@ -1448,7 +1448,7 @@ const CROPS = {
     seedBuy:80, seedSell:40, cropSell:150,
     cropSell1:188, cropSell2:225,
     seedDropRate:0.05, extraMax:3,
-    harvestTool:'manual', twoRow:true, desc:'春季作物，13天收获，收获更多蓝莓' },
+    harvestTool:'manual', frameH:16, sy16:true, desc:'春季作物，13天收获，收获更多蓝莓' },
   springonion: { name:'野葱', season:'春季', imgPath:'assets/images/Crops/Spring/Crops_Spring_Spring Onion.png',
     seedCol:0, seedRow:3, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1456,7 +1456,7 @@ const CROPS = {
     seedBuy:15, seedSell:8, cropSell:30,
     cropSell1:38, cropSell2:45,
     seedDropRate:0.1, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'春季作物，6天收获，野外也能生长' },
+    harvestTool:'manual', frameH:16, desc:'春季作物，6天收获，野外也能生长' },
   tomato: { name:'番茄', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Tomato.png',
     seedCol:9, seedRow:4, days:11, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 3, "7": 3, "8": 4, "9": 4, "10": 5}, isRegrow:true, regrowDays:4,
@@ -1464,7 +1464,7 @@ const CROPS = {
     seedBuy:50, seedSell:25, cropSell:60,
     cropSell1:75, cropSell2:90,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，11天收获，常见蔬菜，重复结果' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，11天收获，常见蔬菜，重复结果' },
   blackberry: { name:'浆果', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Blackberry.png',
     seedCol:9, seedRow:16, days:13, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 3, "7": 3, "8": 4, "9": 4, "10": 5, "11": 5, "12": 5}, isRegrow:true, regrowDays:4,
@@ -1472,7 +1472,7 @@ const CROPS = {
     seedBuy:80, seedSell:40, cropSell:150,
     cropSell1:188, cropSell2:225,
     seedDropRate:0.05, extraMax:3,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，13天收获，也许有其他用途' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，13天收获，也许有其他用途' },
   watermelon: { name:'西瓜', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Watermelon.png',
     seedCol:9, seedRow:11, days:12, harvestFrame:7,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 3, "6": 4, "7": 4, "8": 5, "9": 5, "10": 6, "11": 6}, isRegrow:false, regrowDays:0,
@@ -1480,7 +1480,7 @@ const CROPS = {
     seedBuy:100, seedSell:50, cropSell:250,
     cropSell1:312, cropSell2:375,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，12天收获，巨型水果，夏季最爱' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，12天收获，巨型水果，夏季最爱' },
   melon: { name:'甜瓜', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Melon.png',
     seedCol:9, seedRow:10, days:11, harvestFrame:5,
     dayMap:{"1": 0, "2": 0, "3": 1, "4": 1, "5": 2, "6": 2, "7": 3, "8": 3, "9": 4, "10": 4}, isRegrow:false, regrowDays:0,
@@ -1488,7 +1488,7 @@ const CROPS = {
     seedBuy:80, seedSell:40, cropSell:250,
     cropSell1:312, cropSell2:375,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，11天收获，香甜多汁' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，11天收获，香甜多汁' },
   cucumber: { name:'黄瓜', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Cucumber.png',
     seedCol:9, seedRow:12, days:10, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 3, "7": 3, "8": 4, "9": 4}, isRegrow:true, regrowDays:4,
@@ -1496,7 +1496,7 @@ const CROPS = {
     seedBuy:60, seedSell:30, cropSell:80,
     cropSell1:100, cropSell2:120,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:true, desc:'夏季作物，10天收获，清爽蔬菜，重复收割' },
+    harvestTool:'manual', frameH:16, sy16:true, desc:'夏季作物，10天收获，清爽蔬菜，重复收割' },
   sunflower: { name:'向日葵', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Sunflower.png',
     seedCol:9, seedRow:5, days:8, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 3, "6": 4, "7": 4}, isRegrow:false, regrowDays:0,
@@ -1504,7 +1504,7 @@ const CROPS = {
     seedBuy:200, seedSell:100, cropSell:80,
     cropSell1:100, cropSell2:120,
     seedDropRate:0.2, extraMax:1,
-    harvestTool:'manual', twoRow:true, desc:'夏季作物，8天收获，可产出向日葵籽' },
+    harvestTool:'manual', frameH:32, desc:'夏季作物，8天收获，可产出向日葵籽' },
   hotpepper: { name:'辣椒', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Hot Pepper.png',
     seedCol:9, seedRow:6, days:7, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5}, isRegrow:true, regrowDays:3,
@@ -1512,7 +1512,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:40,
     cropSell1:50, cropSell2:60,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，7天收获，辛辣刺激，重复结果' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，7天收获，辛辣刺激，重复结果' },
   bellpepper_g: { name:'彩椒（绿）', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Bell Pepper.png',
     seedCol:9, seedRow:7, days:6, harvestFrame:7,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:true, regrowDays:3,
@@ -1520,7 +1520,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:40,
     cropSell1:50, cropSell2:60,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，6天收获，多色彩椒' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，6天收获，多色彩椒' },
   bellpepper_y: { name:'彩椒（黄）', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Bell Pepper.png',
     seedCol:9, seedRow:9, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:true, regrowDays:3,
@@ -1528,7 +1528,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:40,
     cropSell1:50, cropSell2:60,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，6天收获，多色彩椒' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，6天收获，多色彩椒' },
   bellpepper_r: { name:'彩椒（红）', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Bell Pepper.png',
     seedCol:9, seedRow:8, days:6, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:true, regrowDays:3,
@@ -1536,7 +1536,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:40,
     cropSell1:50, cropSell2:60,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'manual', twoRow:false, desc:'夏季作物，6天收获，多色彩椒' },
+    harvestTool:'manual', frameH:16, desc:'夏季作物，6天收获，多色彩椒' },
   greenbeans: { name:'豆角', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Green Beans.png',
     seedCol:9, seedRow:14, days:10, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 2, "5": 3, "6": 3, "7": 4, "8": 4, "9": 5}, isRegrow:true, regrowDays:3,
@@ -1544,7 +1544,7 @@ const CROPS = {
     seedBuy:60, seedSell:30, cropSell:40,
     cropSell1:50, cropSell2:60,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:true, desc:'夏季作物，10天收获，藤蔓作物，重复结果' },
+    harvestTool:'manual', frameH:32, desc:'夏季作物，10天收获，藤蔓作物，重复结果' },
   adzukibean: { name:'小豆', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Adzuki Bean.png',
     seedCol:9, seedRow:15, days:7, harvestFrame:6,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5}, isRegrow:true, regrowDays:2,
@@ -1552,7 +1552,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:50,
     cropSell1:62, cropSell2:75,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:true, desc:'夏季作物，7天收获，富含营养的豆类' },
+    harvestTool:'manual', frameH:16, sy16:true, desc:'夏季作物，7天收获，富含营养的豆类' },
   pineapple: { name:'菠萝', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Pineapple.png',
     seedCol:9, seedRow:13, days:14, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 2, "7": 3, "8": 3, "9": 3, "10": 4, "11": 4, "12": 4, "13": 4}, isRegrow:true, regrowDays:5,
@@ -1560,7 +1560,7 @@ const CROPS = {
     seedBuy:200, seedSell:100, cropSell:300,
     cropSell1:375, cropSell2:450,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:true, desc:'夏季作物，14天收获，热带水果，重复结果' },
+    harvestTool:'manual', frameH:16, sy16:true, desc:'夏季作物，14天收获，热带水果，重复结果' },
   wheat: { name:'小麦', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Wheat.png',
     seedCol:9, seedRow:17, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1568,7 +1568,7 @@ const CROPS = {
     seedBuy:10, seedSell:5, cropSell:25,
     cropSell1:31, cropSell2:38,
     seedDropRate:0.4, extraMax:1,
-    harvestTool:'sickle', twoRow:false, desc:'夏季作物，6天收获，可酿造啤酒' },
+    harvestTool:'sickle', frameH:16, desc:'夏季作物，6天收获，可酿造啤酒' },
   corn: { name:'玉米', season:'夏/秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Corn.png',
     seedCol:18, seedRow:4, days:14, harvestFrame:7,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 3, "7": 3, "8": 4, "9": 4, "10": 5, "11": 5, "12": 6, "13": 6}, isRegrow:true, regrowDays:4,
@@ -1576,7 +1576,7 @@ const CROPS = {
     seedBuy:150, seedSell:75, cropSell:150,
     cropSell1:188, cropSell2:225,
     seedDropRate:0.05, extraMax:3,
-    harvestTool:'manual', twoRow:true, desc:'夏/秋季作物，14天收获，夏秋通用，跨季作物' },
+    harvestTool:'manual', frameH:32, desc:'夏/秋季作物，14天收获，夏秋通用，跨季作物' },
   pumpkin: { name:'南瓜', season:'秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Pumpkin.png',
     seedCol:18, seedRow:2, days:13, harvestFrame:4,
     dayMap:{"1": 0, "2": 0, "3": 0, "4": 2, "5": 2, "6": 2, "7": 2, "8": 3, "9": 3, "10": 3, "11": 3, "12": 3}, isRegrow:false, regrowDays:0,
@@ -1584,7 +1584,7 @@ const CROPS = {
     seedBuy:100, seedSell:50, cropSell:320,
     cropSell1:400, cropSell2:480,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'秋季作物，13天收获，万圣节代表蔬菜' },
+    harvestTool:'manual', frameH:16, desc:'秋季作物，13天收获，万圣节代表蔬菜' },
   eggplant: { name:'茄子', season:'秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Eggplant.png',
     seedCol:18, seedRow:5, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:true, regrowDays:5,
@@ -1592,7 +1592,7 @@ const CROPS = {
     seedBuy:20, seedSell:10, cropSell:60,
     cropSell1:75, cropSell2:90,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'秋季作物，6天收获，紫色蔬菜，重复结果' },
+    harvestTool:'manual', frameH:16, desc:'秋季作物，6天收获，紫色蔬菜，重复结果' },
   beetroot: { name:'甜菜', season:'秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Beetroot.png',
     seedCol:18, seedRow:1, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1600,7 +1600,7 @@ const CROPS = {
     seedBuy:20, seedSell:10, cropSell:100,
     cropSell1:125, cropSell2:150,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'秋季作物，6天收获，鲜红根茎蔬菜' },
+    harvestTool:'manual', frameH:16, desc:'秋季作物，6天收获，鲜红根茎蔬菜' },
   grapes: { name:'葡萄', season:'秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Grapes.png',
     seedCol:18, seedRow:3, days:10, harvestFrame:5,
     dayMap:{"1": 0, "2": 0, "3": 2, "4": 2, "5": 3, "6": 3, "7": 3, "8": 4, "9": 4}, isRegrow:true, regrowDays:3,
@@ -1608,7 +1608,7 @@ const CROPS = {
     seedBuy:60, seedSell:30, cropSell:80,
     cropSell1:100, cropSell2:120,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'manual', twoRow:true, desc:'秋季作物，10天收获，可酿造葡萄酒' },
+    harvestTool:'manual', frameH:16, sy16:true, desc:'秋季作物，10天收获，可酿造葡萄酒' },
   aloe: { name:'芦荟', season:'秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Aloe.png',
     seedCol:18, seedRow:6, days:10, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 3, "7": 3, "8": 4, "9": 4}, isRegrow:false, regrowDays:0,
@@ -1616,7 +1616,7 @@ const CROPS = {
     seedBuy:40, seedSell:20, cropSell:60,
     cropSell1:75, cropSell2:90,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', twoRow:false, desc:'秋季作物，10天收获，药用植物' },
+    harvestTool:'manual', frameH:16, desc:'秋季作物，10天收获，药用植物' },
 };
 
 // ============================================================
@@ -1906,12 +1906,20 @@ function drawTile(r, c) {
           frameIdx = keys.length ? dm[Math.max(...keys)] : 0;
         }
       }
-      const sx = frameIdx * 16;
-      // twoRow图集：第1行空/种子，第2行才是生长帧；regrow也用第2行
-      const sy = cfg.twoRow ? 16 : ((crop.regrowPhase && cfg.regrowMap) ? 16 : 0);
-      const drawSize = TILE * 0.8;
+      const _fh = cfg.frameH || 16;
+      const _sx = frameIdx * 16;
+      // sy16图集：上行空，取下行；frameH32图集：sy=0取全帧；regrow用下行
+      let _sy;
+      if (cfg.sy16) _sy = 16;
+      else if (_fh === 32) _sy = 0;
+      else _sy = (crop.regrowPhase && cfg.regrowMap) ? 16 : 0;
+      const drawW = TILE * 0.8;
+      // frameH32的作物绘制高度是普通的2倍，向上延伸
+      const drawH = _fh === 32 ? drawW * 2 : drawW;
+      const drawX = x - drawW / 2;
+      const drawY = _fh === 32 ? y - drawH + TILE*0.5 : y - drawW/2 - TILE*0.15;
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(cropImg, sx, sy, 16, 16, x-drawSize/2, y-drawSize/2-TILE*0.15, drawSize, drawSize);
+      ctx.drawImage(cropImg, _sx, _sy, 16, _fh, drawX, drawY, drawW, drawH);
     } else {
       const sz = crop.ready ? 28 : 22;
       ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -1929,29 +1937,12 @@ function drawTile(r, c) {
   {
     const tr = Math.round(player.wy), tc = Math.round(player.wx);
     if (r === tr && c === tc) {
-      const _ci = currentItemId(), _cm = currentItem();
-      const _crop = cropMap[r] && cropMap[r][c];
-      let showBox = false;
-      if (_ci === 'hoe' || _ci === 'water') {
-        // 锄/水：在可操作地块上显示
-        showBox = true;
-      } else if (_ci === 'harvest') {
-        // 镰刀：只在成熟的镰刀作物上显示
-        showBox = _crop && _crop.ready && CROPS[_crop.type]?.harvestTool === 'sickle';
-      } else if (_cm?.seedType) {
-        // 种子：在翻好的土上显示
-        showBox = tileMap[r][c] === T.TILLED;
-      } else {
-        // 空格/收获物/其他：在成熟的手动作物上显示
-        showBox = !!(_crop && _crop.ready && CROPS[_crop.type]?.harvestTool === 'manual');
-      }
-      if (showBox) {
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255, 220, 40, 0.9)';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
-        ctx.restore();
-      }
+      // 黄框永远显示在玩家当前格，颜色根据操作意图变化
+      ctx.save();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(255, 220, 40, 0.75)';
+      ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
+      ctx.restore();
     }
   }
 
@@ -2557,9 +2548,8 @@ function doAction(){
   const type=tileMap[r][c];
   const itemId = currentItemId();
   const item   = currentItem();
-  if (!itemId || !item) return;
-
-  if (item.use === 'direct') {
+  // 空手也可以收获，不提前return
+  if (item?.use === 'direct') {
     if (itemId === 'sleep') { nextDay(); return; }
     if (itemId === 'shop')  { openShop(); return; }
     return;
@@ -2607,8 +2597,7 @@ function doAction(){
     const crop=cropMap[r][c];
     if(!crop){ showToast('这里没有作物'); return; }
     if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
-    const ht = CROPS[crop.type]?.harvestTool;
-    if(ht === 'manual') { showToast('这种作物手动采摘就行！直接点击即可'); return; }
+    if(CROPS[crop.type]?.harvestTool !== 'sickle'){ showToast('这种作物用手收就行'); return; }
     startActionAnim(ANIM_HARVEST, r, c);
     return;
   }
