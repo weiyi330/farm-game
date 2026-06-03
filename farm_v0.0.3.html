@@ -638,7 +638,7 @@ canvas { display:block; }
 
 /* ── 存档面板 ── */
 #save-overlay {
-  position:absolute; inset:0; z-index:50;
+  position:fixed; inset:0; z-index:200;
   display:none; align-items:center; justify-content:center;
   background:rgba(0,0,0,0.6);
 }
@@ -717,7 +717,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.179</div>
+<div id="splash-version">版本号：v0.0.3.180</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -4264,8 +4264,9 @@ document.getElementById('load-btn').addEventListener('click', () => {
   splashScreen.style.opacity = '0';
   setTimeout(() => {
     splashScreen.style.display = 'none';
-    document.getElementById('game-wrap').style.display = 'block';
+    document.getElementById('splash-version').style.display = 'none';
     document.getElementById('game-wrap').style.visibility = 'visible';
+    resize();
     openSavePanel();
   }, 600);
 });
