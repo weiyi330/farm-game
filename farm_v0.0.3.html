@@ -165,8 +165,11 @@ canvas { display:block; }
 .hud-left { display:flex; flex-direction:column; gap:4px; }
 .hud-coin {
   display:flex; align-items:center; gap:5px;
-  background:#ffd2a1; border:3px solid #4a2123;
-  border-radius:4px; padding:3px 12px;
+  background:#ffd2a1;
+  outline:3px solid #4a2123;
+  outline-offset:-3px;
+  clip-path:polygon(3px 0%,calc(100% - 3px) 0%,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0% calc(100% - 3px),0% 3px);
+  padding:3px 12px;
   font-size:14px; color:#3a1a08;
 }
 .hud-day {
@@ -550,22 +553,22 @@ canvas { display:block; }
   background:rgba(0,0,0,0.6);
 }
 .trade-box {
-  background:linear-gradient(160deg,#2a1a08,#1a0e04);
-  border:2px solid #8b5e20;
-  border-radius:12px;
+  background:#ffd2a1;
+  border:3px solid #4a2123;
+  border-radius:0;
   padding:20px 24px 16px;
   min-width:220px; max-width:280px;
   display:flex; flex-direction:column; gap:12px;
   align-items:center;
   box-shadow:0 4px 20px rgba(0,0,0,0.6);
 }
-.trade-title { font-size:15px; color:#f5d78e; letter-spacing:1px; text-align:center; }
-.trade-item-name { font-size:18px; color:#fff; font-weight:bold; }
-.trade-price { font-size:13px; color:#3a1a08; display:inline-block; background:#ffd2a1; border:3px solid #4a2123; border-radius:4px; padding:2px 12px; }
+.trade-title { font-size:15px; color:#4a2123; letter-spacing:1px; text-align:center; }
+.trade-item-name { font-size:18px; color:#3a1a08; font-weight:bold; }
+.trade-price { font-size:13px; color:#3a1a08; }
 .trade-qty-row { display:flex; align-items:center; gap:8px; width:100%; }
 .trade-qty-row input[type=range] { flex:1; accent-color:#c8a040; }
-.trade-qty-label { font-size:14px; color:#f5d78e; min-width:32px; text-align:right; }
-.trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; display:inline-block; background:#ffd2a1; border:3px solid #4a2123; border-radius:4px; padding:2px 12px; }
+.trade-qty-label { font-size:14px; color:#4a2123; min-width:32px; text-align:right; }
+.trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; }
 .trade-btns { display:flex; gap:12px; margin-top:4px; }
 .trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:14px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
 .trade-btn.confirm { background:#c8a040; color:#1a0e04; font-weight:bold; }
@@ -573,13 +576,13 @@ canvas { display:block; }
 /* 道具说明弹窗 */
 #item-tooltip {
   position:absolute; z-index:60;
-  background:#f5e8a0;
+  background:#ffe0bf;
   border-radius:0; border:none;
   padding:10px 14px;
   max-width:200px; pointer-events:none;
   display:none;
 }
-.tooltip-name { font-size:15px; color:#ffe0bf; font-weight:bold; margin-bottom:4px; }
+.tooltip-name { font-size:15px; color:#3a2a10; font-weight:bold; margin-bottom:4px; }
 .tooltip-desc { font-size:12px; color:#5a4a30; line-height:1.5; }
 </style>
 </head>
@@ -606,7 +609,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.134</div>
+<div id="splash-version">版本号：v0.0.3.135</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
