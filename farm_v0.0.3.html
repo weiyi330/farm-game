@@ -648,7 +648,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.145</div>
+<div id="splash-version">版本号：v0.0.3.146</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3207,15 +3207,14 @@ function updateSeasonIcon() {
   if (!el) return;
   const sz = dbgParams.hudSeasonIconSize || 24;
   const dx = dbgParams.hudSeasonIconX || 0;
-  const fw = 16, scale = 2;
+  const fw = 16; // 图集原始每格大小
   const col = seasonIdx; // 0=春 1=夏 2=秋 3=冬
   const row = 1;         // 第二排
-  const sx = col * fw * scale;
-  const sy = row * fw * scale;
-  const ratio = sz / (fw * scale);
-  const totalW = 10 * fw * scale * ratio;
-  const totalH = 3  * fw * scale * ratio;
-  const bsx = sx * ratio, bsy = sy * ratio;
+  const ratio = sz / fw; // 显示尺寸 / 原始尺寸
+  const totalW = 160 * ratio; // 图集实际宽160px
+  const totalH = 48  * ratio; // 图集实际高48px
+  const bsx = col * fw * ratio;
+  const bsy = row * fw * ratio;
   el.style.cssText = `background:url('assets/images/ui/icon/weather icons.png') no-repeat -${bsx}px -${bsy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle; position:relative; left:${dx}px;`;
 }
 
@@ -3383,6 +3382,7 @@ document.getElementById('splash-btn').addEventListener('click', () => {
     document.getElementById('splash-version').style.display = 'none';
     document.getElementById('game-wrap').style.visibility = 'visible';
     resize();
+    updateSeasonIcon();
   }, 400);
 });
 
