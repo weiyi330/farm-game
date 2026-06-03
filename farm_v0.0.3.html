@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.167</div>
+<div id="splash-version">版本号：v0.0.3.168</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1895,8 +1895,9 @@ function drawTile(r, c) {
       const dm = (crop.regrowPhase && cfg.regrowMap) ? cfg.regrowMap : cfg.dayMap;
       let frameIdx;
       if (crop.ready) {
-        const keys = Object.keys(dm).map(Number);
-        frameIdx = dm[Math.max(...keys)] ?? 0;
+        // 收获帧：直接用 harvestFrame（收获(N) 中的 N-1，0-based）
+        const hf = (crop.regrowPhase && cfg.regrowHarvestFrame != null) ? cfg.regrowHarvestFrame : cfg.harvestFrame;
+        frameIdx = hf ?? 0;
       } else {
         const d = crop.daysGrown;
         if (dm[d] !== undefined) frameIdx = dm[d];
@@ -2565,7 +2566,7 @@ function doAction(){
     // 不预先占位，动画播完后再写入 cropMap
     spAnim = ANIM_CARRY_THROW; spFrame = 0; spFrameTimer = 0;
     pendingActionTile = { r, c, action: 'sow', seedType };
-    showToast(`种下了${CROPS[seedType].icon}${CROPS[seedType].name}`);
+    // 种植无提示
     renderHotbar();
   }
   else if(itemId==='water'){
