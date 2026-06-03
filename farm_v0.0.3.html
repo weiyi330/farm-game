@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.171</div>
+<div id="splash-version">版本号：v0.0.3.172</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1913,11 +1913,12 @@ function drawTile(r, c) {
       if (cfg.sy16) _sy = 16;
       else if (_fh === 32) _sy = 0;
       else _sy = (crop.regrowPhase && cfg.regrowMap) ? 16 : 0;
-      const drawW = TILE * 0.8;
-      // frameH32的作物绘制高度是普通的2倍，向上延伸
-      const drawH = _fh === 32 ? drawW * 2 : drawW;
+      // 统一底部对齐：底部锚点在地块中心偏下(y + TILE*0.1)
+      const _scale = TILE / 16;  // 每像素对应屏幕尺寸
+      const drawW = 16 * _scale;
+      const drawH = _fh * _scale;
       const drawX = x - drawW / 2;
-      const drawY = _fh === 32 ? y - drawH + TILE*0.5 : y - drawW/2 - TILE*0.15;
+      const drawY = y + TILE * 0.1 - drawH;  // 底部对齐地块中心
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(cropImg, _sx, _sy, 16, _fh, drawX, drawY, drawW, drawH);
     } else {
@@ -2564,6 +2565,7 @@ function doAction(){
       else showToast('已翻过土啦～');
     }
     else showToast('这里不能翻土');
+    return;
   }
   else if(item.seedType){
     const seedType = item.seedType;
@@ -2581,6 +2583,7 @@ function doAction(){
     pendingActionTile = { r, c, action: 'sow', seedType };
     // 种植无提示
     renderHotbar();
+    return;
   }
   else if(itemId==='water'){
     if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
@@ -2592,6 +2595,7 @@ function doAction(){
     }
     // 先播动画，播完才实际浇水
     startWateringAnim(r, c);
+    return;
   }
   else if(itemId==='harvest'){
     const crop=cropMap[r][c];
