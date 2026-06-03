@@ -165,7 +165,7 @@ canvas { display:block; }
 .hud-left { display:flex; flex-direction:column; gap:4px; }
 /* HUD金币像素风wrap */
 .hud-coin-outer {
-  background:#4a2123;
+  background:#000;
   clip-path: polygon(
     3px 0px,   calc(100% - 3px) 0px,
     100% 3px,  100% calc(100% - 3px),
@@ -180,6 +180,12 @@ canvas { display:block; }
   background:#ffd2a1;
   padding:2px 10px;
   font-size:14px; color:#3a1a08;
+  clip-path: polygon(
+    3px 0px,   calc(100% - 3px) 0px,
+    100% 3px,  100% calc(100% - 3px),
+    calc(100% - 3px) 100%, 3px 100%,
+    0px calc(100% - 3px), 0px 3px
+  );
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
@@ -581,8 +587,8 @@ canvas { display:block; }
 .trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; }
 .trade-btns { display:flex; gap:12px; margin-top:4px; }
 .trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
-.trade-btn.confirm { background:#ae4924; color:#fff; font-weight:bold; }
-.trade-btn.cancel  { background:#8d5d4c; color:#fff; border:none; }
+.trade-btn.confirm { background:#ae4924; color:#000; font-weight:bold; }
+.trade-btn.cancel  { background:#8d5d4c; color:#000; border:none; }
 /* 道具说明弹窗 */
 #item-tooltip {
   position:absolute; z-index:60;
@@ -619,7 +625,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.138</div>
+<div id="splash-version">版本号：v0.0.3.139</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2894,7 +2900,6 @@ function applyDbg(key, val) {
     window._dbgIconYOff = dbgParams.iconYOff;
   }
   if (key === 'tradeCoinSize' || key === 'tradeCoinDX' || key === 'tradeCoinDY') {
-    // 刷新当前弹窗金币图标（如果弹窗开着）
     const modal = document.getElementById('trade-modal');
     if (modal && modal.style.display === 'flex') {
       const priceVal = parseInt(document.getElementById('trade-price-val')?.textContent) || 0;
@@ -2904,8 +2909,8 @@ function applyDbg(key, val) {
       const dy = dbgParams.tradeCoinDY || 0;
       const pi = document.getElementById('trade-price-icon');
       const ti = document.getElementById('trade-total-icon');
-      if (pi) pi.innerHTML = `<span style="${coinIconStyle(priceVal,sz)}margin-left:${dx}px;margin-top:${dy}px;"></span>`;
-      if (ti) ti.innerHTML = `<span style="${coinIconStyle(totalVal,sz)}margin-left:${dx}px;margin-top:${dy}px;"></span>`;
+      if (pi) pi.innerHTML = `<span style="${coinIconStyle(priceVal,sz)}position:relative;left:${dx}px;top:${dy}px;"></span>`;
+      if (ti) ti.innerHTML = `<span style="${coinIconStyle(totalVal,sz)}position:relative;left:${dx}px;top:${dy}px;"></span>`;
     }
   }
 }
@@ -3429,8 +3434,7 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   const name = def?.name || itemId;
   document.getElementById('trade-title').textContent = mode === 'buy' ? '购买确认' : '出售确认';
   document.getElementById('trade-item-name').textContent = name;
-  document.getElementById('trade-price-icon').innerHTML = coinIconEl(unitPrice, dbgParams.tradeCoinSize);
-  document.getElementById('trade-price-icon').style.cssText += `margin-left:${dbgParams.tradeCoinDX||0}px; margin-top:${dbgParams.tradeCoinDY||0}px;`;
+  document.getElementById('trade-price-icon').innerHTML = `<span style="${coinIconStyle(unitPrice, dbgParams.tradeCoinSize)}position:relative;left:${dbgParams.tradeCoinDX||0}px;top:${dbgParams.tradeCoinDY||0}px;"></span>`;
   document.getElementById('trade-price-val').textContent = unitPrice;
   const maxQty = STACKABLE[itemId] ? 99 : 1;
   const slider = document.getElementById('trade-qty-slider');
@@ -3444,8 +3448,7 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
 function updateTradeTotal() {
   const qty = parseInt(document.getElementById('trade-qty-slider').value) || 1;
   const total = qty * _tradeUnitPrice;
-  document.getElementById('trade-total-icon').innerHTML = coinIconEl(total, dbgParams.tradeCoinSize);
-  document.getElementById('trade-total-icon').style.cssText += `margin-left:${dbgParams.tradeCoinDX||0}px; margin-top:${dbgParams.tradeCoinDY||0}px;`;
+  document.getElementById('trade-total-icon').innerHTML = `<span style="${coinIconStyle(total, dbgParams.tradeCoinSize)}position:relative;left:${dbgParams.tradeCoinDX||0}px;top:${dbgParams.tradeCoinDY||0}px;"></span>`;
   document.getElementById('trade-total-val').textContent = total;
 }
 
