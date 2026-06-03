@@ -162,7 +162,7 @@ canvas { display:block; }
   padding:10px 14px;
   pointer-events:none; z-index:10;
 }
-.hud-left { display:flex; flex-direction:row; align-items:center; gap:var(--hud-bar-gap, 20px); }
+.hud-left { display:flex; flex-direction:row; align-items:center; }
 /* HUD金币栏 */
 .hud-coin-area {
   display:flex; align-items:center;
@@ -648,7 +648,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.148</div>
+<div id="splash-version">版本号：v0.0.3.149</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -669,7 +669,7 @@ canvas { display:block; }
         </div>
       </div>
       <!-- 时间栏 -->
-      <div class="hud-day-area">
+      <div class="hud-day-area" id="hud-day-area" style="margin-left:20px;">
         <span id="season-icon-hud-wrap" style="position:relative;">
           <span id="season-icon-hud" style="display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;"></span>
         </span>
@@ -768,7 +768,7 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">两栏间距</span>
-      <input class="dbg-slider" type="range" min="0" max="60" value="20"
+      <input class="dbg-slider" type="range" min="-200" max="60" value="20"
         oninput="applyDbg('hudBarGap',this.value)" onchange="applyDbg('hudBarGap',this.value)">
       <input class="dbg-val" type="number" id="dv-hudBarGap" value="20"
         onchange="applyDbg('hudBarGap',this.value)">
@@ -2977,7 +2977,7 @@ function applyDbg(key, val) {
     }
   }
   if (key === 'hudSeasonIconSize' || key === 'hudSeasonIconX') {
-    updateSeasonIcon(); updateTimeIcon();
+    updateSeasonIcon();
   }
   if (key === 'hudCoinBoardW' || key === 'hudCoinBoardH' || key === 'hudCoinContentX') {
     const inner = document.getElementById('hud-coin-wrap');
@@ -2998,7 +2998,8 @@ function applyDbg(key, val) {
     }
   }
   if (key === 'hudBarGap') {
-    document.documentElement.style.setProperty('--hud-bar-gap', (dbgParams.hudBarGap || 20) + 'px');
+    const area = document.getElementById('hud-day-area');
+    if (area) area.style.marginLeft = (dbgParams.hudBarGap ?? 20) + 'px';
   }
   if (key === 'tradeCoinSize' || key === 'tradeCoinDX' || key === 'tradeCoinDY') {
     const modal = document.getElementById('trade-modal');
@@ -3239,7 +3240,7 @@ function updateSellGrid(){
 function updateTimeIcon() {
   const el = document.getElementById('time-icon-hud');
   if (!el) return;
-  const sz = dbgParams.hudSeasonIconSize || 24; // 暴诉一用季节图标大小
+  const sz = dbgParams.hudSeasonIconSize || 24; // 时间图标大小与季节图标保持一致
   const fw = 16;
   const col = 9; // 第三排最右第一个
   const row = 2;
