@@ -652,7 +652,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.153</div>
+<div id="splash-version">版本号：v0.0.3.154</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -668,7 +668,7 @@ canvas { display:block; }
         </span>
         <div class="hud-coin-outer" id="hud-coin-outer">
           <div class="hud-coin" id="hud-coin-wrap">
-            <span id="coinVal">9999999</span>
+            <span id="coinVal">0</span>
           </div>
         </div>
       </div>
@@ -1166,10 +1166,10 @@ const ITEM_DEF = {
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
-  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'收获需要 5 天，加工后售出价：12枚' },
-  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot', desc:'种在耕地上，等待收获。' },
-  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage', desc:'种在耕地上，等待收获。' },
-  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach', desc:'种在耕地上，等待收获。' },
+  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'收获需要 5 天，种子售出价：4枚' },
+  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot', desc:'收获需要 4 天，种子售出价：4枚' },
+  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage', desc:'收获需要 5 天，种子售出价：6枚' },
+  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach', desc:'收获需要 7 天，种子售出价：15枚' },
   // 收获物品
   potato:       { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:20, desc:'收获的土豆，可以出售。' },
   // 背包道具占位（原有）
@@ -2995,8 +2995,9 @@ function applyDbg(key, val) {
   if (key === 'hudCoinBoardW' || key === 'hudCoinBoardH' || key === 'hudCoinContentX') {
     const inner = document.getElementById('hud-coin-wrap');
     if (inner) {
-      inner.style.minWidth = (dbgParams.hudCoinBoardW || 80) + 'px';
-      inner.style.height = (dbgParams.hudCoinBoardH || 26) + 'px';
+      const pad = Math.round((dbgParams.hudCoinBoardW || 80) / 8);
+      inner.style.padding = '0 ' + pad + 'px';
+      inner.style.height = (dbgParams.hudCoinBoardH || 23) + 'px';
       inner.style.position = 'relative';
       inner.style.left = (dbgParams.hudCoinContentX || 0) + 'px';
     }
@@ -3004,8 +3005,9 @@ function applyDbg(key, val) {
   if (key === 'hudDayBoardW' || key === 'hudDayBoardH' || key === 'hudDayContentX') {
     const inner = document.getElementById('hud-day-wrap');
     if (inner) {
-      inner.style.minWidth = (dbgParams.hudDayBoardW || 100) + 'px';
-      inner.style.height = (dbgParams.hudDayBoardH || 26) + 'px';
+      const pad = Math.round((dbgParams.hudDayBoardW || 100) / 8);
+      inner.style.padding = '0 ' + pad + 'px';
+      inner.style.height = (dbgParams.hudDayBoardH || 23) + 'px';
       inner.style.position = 'relative';
       inner.style.left = (dbgParams.hudDayContentX || 0) + 'px';
     }
@@ -3321,6 +3323,11 @@ function updateHUD(){
   document.getElementById('seasonVal').textContent=SEASONS[seasonIdx];
   updateSeasonIcon();
   updateTimeIcon();
+  // 底板宽度跟随内容动态变化
+  const coinWrap = document.getElementById('hud-coin-wrap');
+  const dayWrap  = document.getElementById('hud-day-wrap');
+  if (coinWrap) { coinWrap.style.minWidth = ''; coinWrap.style.width = 'max-content'; }
+  if (dayWrap)  { dayWrap.style.minWidth  = ''; dayWrap.style.width  = 'max-content'; }
 }
 
 let toastT=null;
@@ -3641,10 +3648,6 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   const descEl = document.getElementById('trade-item-desc');
   if (descEl) {
     let descText = def?.desc || '';
-    if (mode === 'buy' && SELL_PRICES[itemId]) {
-      // 购买模式：显示出售价（如果 desc 里没包含出售价信息则追加）
-      if (!descText.includes('出售')) descText += (descText ? '，' : '') + '出售价：' + SELL_PRICES[itemId] + '枚';
-    }
     descEl.textContent = descText;
     descEl.style.display = descText ? '' : 'none';
   }
