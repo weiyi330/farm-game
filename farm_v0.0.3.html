@@ -648,7 +648,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.147</div>
+<div id="splash-version">版本号：v0.0.3.148</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -716,6 +716,20 @@ canvas { display:block; }
       <input class="dbg-val" type="number" id="dv-hudCoinBoardW" value="80"
         onchange="applyDbg('hudCoinBoardW',this.value)">
     </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板高度</span>
+      <input class="dbg-slider" type="range" min="14" max="60" value="26"
+        oninput="applyDbg('hudCoinBoardH',this.value)" onchange="applyDbg('hudCoinBoardH',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudCoinBoardH" value="26"
+        onchange="applyDbg('hudCoinBoardH',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">内容左右</span>
+      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+        oninput="applyDbg('hudCoinContentX',this.value)" onchange="applyDbg('hudCoinContentX',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="0"
+        onchange="applyDbg('hudCoinContentX',this.value)">
+    </div>
     <div class="dbg-group-title">☀️ 时间栏</div>
     <div class="dbg-row">
       <span class="dbg-label">图标大小</span>
@@ -737,6 +751,20 @@ canvas { display:block; }
         oninput="applyDbg('hudDayBoardW',this.value)" onchange="applyDbg('hudDayBoardW',this.value)">
       <input class="dbg-val" type="number" id="dv-hudDayBoardW" value="100"
         onchange="applyDbg('hudDayBoardW',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">底板高度</span>
+      <input class="dbg-slider" type="range" min="14" max="60" value="26"
+        oninput="applyDbg('hudDayBoardH',this.value)" onchange="applyDbg('hudDayBoardH',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudDayBoardH" value="26"
+        onchange="applyDbg('hudDayBoardH',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">内容左右</span>
+      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+        oninput="applyDbg('hudDayContentX',this.value)" onchange="applyDbg('hudDayContentX',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudDayContentX" value="0"
+        onchange="applyDbg('hudDayContentX',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">两栏间距</span>
@@ -2798,9 +2826,9 @@ const dbgParams = {
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
   hudCoinIconX: 0, hudCoinIconSize: 18,
-  hudCoinBoardW: 80,
+  hudCoinBoardW: 80, hudCoinBoardH: 26, hudCoinContentX: 0,
   hudSeasonIconSize: 24, hudSeasonIconX: 0,
-  hudDayBoardW: 100,
+  hudDayBoardW: 100, hudDayBoardH: 26, hudDayContentX: 0,
   hudBarGap: 20,
 };
 
@@ -2948,16 +2976,26 @@ function applyDbg(key, val) {
       icon.style.cssText = `background:url('assets/images/ui/common/common_HUD.png') no-repeat -${sx}px -${sy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;`;
     }
   }
-  if (key === 'hudCoinBoardW') {
-    const inner = document.getElementById('hud-coin-wrap');
-    if (inner) inner.style.minWidth = (dbgParams.hudCoinBoardW || 80) + 'px';
-  }
   if (key === 'hudSeasonIconSize' || key === 'hudSeasonIconX') {
-    updateSeasonIcon();
+    updateSeasonIcon(); updateTimeIcon();
   }
-  if (key === 'hudDayBoardW') {
+  if (key === 'hudCoinBoardW' || key === 'hudCoinBoardH' || key === 'hudCoinContentX') {
+    const inner = document.getElementById('hud-coin-wrap');
+    if (inner) {
+      inner.style.minWidth = (dbgParams.hudCoinBoardW || 80) + 'px';
+      inner.style.height = (dbgParams.hudCoinBoardH || 26) + 'px';
+      inner.style.position = 'relative';
+      inner.style.left = (dbgParams.hudCoinContentX || 0) + 'px';
+    }
+  }
+  if (key === 'hudDayBoardW' || key === 'hudDayBoardH' || key === 'hudDayContentX') {
     const inner = document.getElementById('hud-day-wrap');
-    if (inner) inner.style.minWidth = (dbgParams.hudDayBoardW || 100) + 'px';
+    if (inner) {
+      inner.style.minWidth = (dbgParams.hudDayBoardW || 100) + 'px';
+      inner.style.height = (dbgParams.hudDayBoardH || 26) + 'px';
+      inner.style.position = 'relative';
+      inner.style.left = (dbgParams.hudDayContentX || 0) + 'px';
+    }
   }
   if (key === 'hudBarGap') {
     document.documentElement.style.setProperty('--hud-bar-gap', (dbgParams.hudBarGap || 20) + 'px');
@@ -2983,14 +3021,18 @@ function exportDbgValues() {
   if (!out) return;
   const lines = [
     '=== 🪙 金币栏 ===',
-    'hudCoinIconSize: ' + dbgParams.hudCoinIconSize,
-    'hudCoinIconX:    ' + dbgParams.hudCoinIconX,
-    'hudCoinBoardW:   ' + dbgParams.hudCoinBoardW,
+    'hudCoinIconSize:  ' + dbgParams.hudCoinIconSize,
+    'hudCoinIconX:     ' + dbgParams.hudCoinIconX,
+    'hudCoinBoardW:    ' + dbgParams.hudCoinBoardW,
+    'hudCoinBoardH:    ' + dbgParams.hudCoinBoardH,
+    'hudCoinContentX:  ' + dbgParams.hudCoinContentX,
     '',
     '=== ☀️ 时间栏 ===',
     'hudSeasonIconSize: ' + dbgParams.hudSeasonIconSize,
     'hudSeasonIconX:    ' + dbgParams.hudSeasonIconX,
     'hudDayBoardW:      ' + dbgParams.hudDayBoardW,
+    'hudDayBoardH:      ' + dbgParams.hudDayBoardH,
+    'hudDayContentX:    ' + dbgParams.hudDayContentX,
     '',
     'hudBarGap: ' + dbgParams.hudBarGap,
   ].join('\n');
