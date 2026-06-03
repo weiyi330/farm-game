@@ -655,7 +655,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.160</div>
+<div id="splash-version">版本号：v0.0.3.161</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1903,6 +1903,1210 @@ function worldToScreen(wx, wy) {
   return { x: Math.round(wx * TILE + TILE/2 - camX), y: Math.round(wy * TILE + TILE/2 - camY) };
 }
 
+function getImg(src) {
+  if (!imgCache[src]) {
+    const img = new Image();
+    img.src = src;
+    imgCache[src] = { img, loaded: false };
+    img.onload = () => { imgCache[src].loaded = true; };
+  }
+  return imgCache[src];
+}
+
+// 预加载地图用到的图片
+function preloadMapImages() {
+  const srcs = new Set();
+  for (let li = 0; li < mapLayers.length; li++) {
+    for (let r = 0; r < MAP_ROWS; r++) {
+      for (let c = 0; c < MAP_COLS; c++) {
+        const cell = mapLayers[li][r][c];
+        if (cell && cell.s) srcs.add(TILE_BASE_DIR + cell.s);
+      }
+    }
+  }
+  srcs.forEach(src => getImg(src));
+}
+preloadMapImages();
+
+// ============================================================
+// 绘制地块
+// ============================================================
+function drawCell(cell, x, y, highlight=false) {
+  if (!cell || !cell.s) return;
+  const entry = getImg(TILE_BASE_DIR + cell.s);
+  if (!entry.loaded) {
+    // 图片未加载时显示占位色（按tileId区分水/草）
+    ctx.fillStyle = cell.t === 9 ? '#5ab8e8' : '#5aaa3a';
+    ctx.fillRect(x - TILE/2, y - TILE/2, TILE, TILE);
+    return;
+  }
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(entry.img, cell.x, cell.y, TS, TS, x - TILE/2, y - TILE/2, TILE, TILE);
+  if (highlight) {
+    ctx.fillStyle = 'rgba(255,220,80,0.35)';
+    ctx.fillRect(x - TILE/2, y - TILE/2, TILE, TILE);
+    ctx.strokeStyle='rgba(255,220,80,0.9)'; ctx.lineWidth=2;
+    ctx.strokeRect(x - TILE/2, y - TILE/2, TILE, TILE);
+  }
+  ctx.restore();
+}
+
+function drawTile(r, c) {
+  const {x, y} = worldToScreen(c, r);
+  const W = canvas.width, H = canvas.height;
+  if (x < -TILE*2 || x > W+TILE*2 || y < -TILE*2 || y > H+TILE*2) return;
+
+  const pr = Math.round(player.wy), pc = Math.round(player.wx);
+  const type = tileMap[r][c];
+
+  // 层0：地面底层
+  drawCell(mapLayers[0][r][c], x, y, false);
+  // 层1：地面上层（边缘过渡等）
+  drawCell(mapLayers[1][r][c], x, y, false);
+
+  // 游戏逻辑叠加
+  // 锄地/作物：用 Tilled_Soil tileset 显示
+  if (type===T.TILLED || type===T.CROP) {
+    // 锄地底层（干土）
+    const tnum = getTilledTileNum(r, c);
+    const tp = tilledPos(tnum);
+    const tEntry = getImg('assets/images/map/tiles/map_tiles_' + TILLED_SRC);
+    if (tEntry.loaded) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(tEntry.img, tp.x, tp.y, TS_SIZE, TS_SIZE,
+        x - TILE/2, y - TILE/2, TILE, TILE);
+      ctx.restore();
+    }
+    // 浇水叠加层（湿土覆盖在干土上）
+    const isWatered = (tileMap[r][c] === T.TILLED || tileMap[r][c] === T.CROP)
+      && ((cropMap[r][c] && cropMap[r][c].watered) || (wateredMap[r] && wateredMap[r][c]));
+    if (isWatered) {
+      const wnum = getWetTileNum(r, c);
+      const wp = tilledPos(wnum);
+      if (tEntry.loaded) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tEntry.img, wp.x, wp.y, TS_SIZE, TS_SIZE,
+          x - TILE/2, y - TILE/2, TILE, TILE);
+        ctx.restore();
+      }
+    }
+  }
+
+  // 装饰层（decor = 层2）
+  drawCell(mapLayers[2][r][c], x, y, false);
+  // 叠加层（overlay = 层3）
+  drawCell(mapLayers[3][r][c], x, y, false);
+
+  // 作物
+  const crop = cropMap[r][c];
+  if (crop && crop.type) {
+    const cfg=CROPS[crop.type];
+    if (cfg.spritesheet && CROP_IMGS[cfg.spritesheet] && CROP_IMGS[cfg.spritesheet].complete) {
+      // 使用 spritesheet 渲染
+      const img = CROP_IMGS[cfg.spritesheet];
+      // 倒数第3帧=收获等待帧, 倒数第2帧=空帧, 最后帧=弹出帧
+      const readyFrame = cfg.totalFrames - 3;
+      const frameIdx = crop.ready ? readyFrame : Math.min(crop.daysGrown, cfg.days - 1);
+      const sx = frameIdx * cfg.frameW;
+      const drawSize = TILE * 0.8;
+      const drawX = x - drawSize/2;
+      const drawY = y - drawSize/2 - TILE * 0.15; // 上移到地块中心
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, sx, 0, cfg.frameW, cfg.frameH, drawX, drawY, drawSize, drawSize);
+    } else {
+      // fallback: emoji 渲染
+      const si=crop.ready?cfg.stages.length-1:Math.min(crop.daysGrown,cfg.stages.length-1);
+      const sz=crop.ready?28:22;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.font=`${sz}px serif`;
+      ctx.fillText(cfg.stages[si], x, y);
+    }
+    if(crop.ready) {
+      const a=(Math.sin(Date.now()*0.006)+1)*0.4+0.2;
+      ctx.strokeStyle=`rgba(255,220,60,${a})`; ctx.lineWidth=2;
+      ctx.strokeRect(x-TILE/2, y-TILE/2, TILE, TILE);
+    }
+  }
+
+  // 操作目标格黄框高亮（在锄地/作物之后，角色之前）
+  if (currentItem() && currentItem().use === 'tile') {
+    const tr = Math.round(player.wy), tc = Math.round(player.wx);
+    if (r === tr && c === tc) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 220, 40, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x - TILE/2 + 1, y - TILE/2 + 1, TILE - 2, TILE - 2);
+      ctx.restore();
+    }
+  }
+
+  // 遮挡层（above = 层4，渲染在角色上面，放后面处理）
+}
+
+function drawAbove(r, c) {
+  const {x, y} = worldToScreen(c, r);
+  const W = canvas.width, H = canvas.height;
+  if (x < -TILE*2 || x > W+TILE*2 || y < -TILE*2 || y > H+TILE*2) return;
+  drawCell(mapLayers[4][r][c], x, y, false);
+}
+
+// ============================================================
+// 工具栏底板九宫格（只左右拉伸，高度固定）
+// ============================================================
+const _tbImg = new Image();
+_tbImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
+const _slotImg = new Image();
+_slotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
+_slotImg.onload = drawToolbarBg;
+// 原图: 48×64，左固定4px，右固定4px，中间40px可拉伸，高度64px
+const TB_SL = 4, TB_SR = 4, TB_ST = 4, TB_SB = 4; // 左右上下边缘px
+const TB_SW = 48, TB_SH = 48; // 有效高度48px（行0-47，行48后透明）
+const TB_EDGE_SCALE = 2; // 边缘放大倍率
+const TB_SCALE = 1; // 高度1:1
+
+function drawToolbarBg() {
+  const toolbar = document.getElementById('toolbar');
+  const cv = document.getElementById('toolbar-bg-canvas');
+  if (!toolbar || !cv) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = toolbar.closest('#toolbar-wrap').clientWidth || 608;
+  const h = toolbar.closest('#toolbar-wrap').clientHeight || 64;
+  // 按 dpr 设置 canvas 真实像素，CSS 尺寸保持显示大小不变
+  cv.width  = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  cv.style.width  = w + 'px';
+  cv.style.height = h + 'px';
+  // 位置由CSS transform:translate(-50%,-50%)负责居中
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, cv.width, cv.height);
+  if (!_tbImg.complete || !_tbImg.naturalWidth) {
+    _tbImg.onload = drawToolbarBg;
+    return;
+  }
+  c.imageSmoothingEnabled = false;
+  const scale = TB_SCALE * dpr;
+  const totalW = w * dpr;
+  const SM_H = TB_SW - TB_SL - TB_SR; // 水平中间宽
+  const SM_V = TB_SH - TB_ST - TB_SB; // 垂直中间高
+  const edgeW = TB_SL * scale * TB_EDGE_SCALE; // 左右边缘显示宽
+  const edgeH = TB_ST * scale * TB_EDGE_SCALE; // 上下边缘显示高
+  const DW = totalW - edgeW * 2;               // 中间水平拉伸宽
+  const DH = cv.height - edgeH * 2;             // 中间垂直拉伸高
+
+  // 九宫格：3列×3行
+  // 左上
+  c.drawImage(_tbImg, 0,            0,     TB_SL, TB_ST, 0,              0,      edgeW, edgeH);
+  // 上中
+  c.drawImage(_tbImg, TB_SL,        0,     SM_H,  TB_ST, edgeW,          0,      DW,    edgeH);
+  // 右上
+  c.drawImage(_tbImg, TB_SL+SM_H,   0,     TB_SR, TB_ST, totalW-edgeW,   0,      edgeW, edgeH);
+  // 左中
+  c.drawImage(_tbImg, 0,            TB_ST, TB_SL, SM_V,  0,              edgeH,  edgeW, DH);
+  // 中中
+  c.drawImage(_tbImg, TB_SL,        TB_ST, SM_H,  SM_V,  edgeW,          edgeH,  DW,    DH);
+  // 右中
+  c.drawImage(_tbImg, TB_SL+SM_H,   TB_ST, TB_SR, SM_V,  totalW-edgeW,   edgeH,  edgeW, DH);
+  // 左下
+  c.drawImage(_tbImg, 0,            TB_ST+SM_V, TB_SL, TB_SB, 0,            cv.height-edgeH, edgeW, edgeH);
+  // 下中
+  c.drawImage(_tbImg, TB_SL,        TB_ST+SM_V, SM_H,  TB_SB, edgeW,        cv.height-edgeH, DW,    edgeH);
+  // 右下
+  c.drawImage(_tbImg, TB_SL+SM_H,   TB_ST+SM_V, TB_SR, TB_SB, totalW-edgeW, cv.height-edgeH, edgeW, edgeH);
+
+  // 在外框canvas上叠画格子（12个）
+  if (_slotImg.complete && _slotImg.naturalWidth) {
+    const SLOT_W = 16, SLOT_H = 48; // 用48行（去掉行48多余深色行，上下对称）
+    const SLOT_SL = 1, SLOT_SR = 1; // 左右边缘1px
+    const SLOT_ST = 1, SLOT_SB = 1; // 上下边缘1px（对称）
+    const SLOT_SM_H = SLOT_W - SLOT_SL - SLOT_SR; // 水平中间14px
+    const SLOT_SM_V = SLOT_H - SLOT_ST - SLOT_SB; // 垂直中间46px
+    const slotScale = dpr;
+    const SLOT_EDGE_H = 1 * dpr * 2; // 左右边缘×2
+    const SLOT_EDGE_V = 1 * dpr * 2; // 上下边缘×2（对称）
+    const slotDisplayW = 41 * dpr; // 显示宽41px
+    const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
+    const slotGroupW = (10 * 41 + 9 * 4) * dpr; // 格子组总宽
+    const startX = (cv.width - slotGroupW) / 2; // 水平居中
+    const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
+    for (let i = 0; i < 10; i++) {
+      const sx = startX + i * (slotDisplayW + 4 * dpr);
+      const sdw = slotDisplayW, sdh = slotDisplayH;
+      const ew = SLOT_EDGE_H, eh = SLOT_EDGE_V;
+      const dmW = sdw - ew*2, dmH = sdh - eh*2;
+      // 格子九宫格3×3
+      c.drawImage(_slotImg, 0,                 0,          SLOT_SL,   SLOT_ST,   sx,        startY,        ew,  eh);
+      c.drawImage(_slotImg, SLOT_SL,           0,          SLOT_SM_H, SLOT_ST,   sx+ew,     startY,        dmW, eh);
+      c.drawImage(_slotImg, SLOT_SL+SLOT_SM_H, 0,          SLOT_SR,   SLOT_ST,   sx+sdw-ew, startY,        ew,  eh);
+      c.drawImage(_slotImg, 0,                 SLOT_ST,    SLOT_SL,   SLOT_SM_V, sx,        startY+eh,     ew,  dmH);
+      c.drawImage(_slotImg, SLOT_SL,           SLOT_ST,    SLOT_SM_H, SLOT_SM_V, sx+ew,     startY+eh,     dmW, dmH);
+      c.drawImage(_slotImg, SLOT_SL+SLOT_SM_H, SLOT_ST,    SLOT_SR,   SLOT_SM_V, sx+sdw-ew, startY+eh,     ew,  dmH);
+      c.drawImage(_slotImg, 0,                 SLOT_ST+SLOT_SM_V, SLOT_SL, SLOT_SB, sx,    startY+sdh-eh, ew,  eh);
+      c.drawImage(_slotImg, SLOT_SL,           SLOT_ST+SLOT_SM_V, SLOT_SM_H, SLOT_SB, sx+ew, startY+sdh-eh, dmW, eh);
+      c.drawImage(_slotImg, SLOT_SL+SLOT_SM_H, SLOT_ST+SLOT_SM_V, SLOT_SR, SLOT_SB, sx+sdw-ew, startY+sdh-eh, ew, eh);
+    }
+  }
+}
+
+// 布局完成后调用
+window.addEventListener('load', () => { setTimeout(drawToolbarBg, 100); });
+window.addEventListener('resize', drawToolbarBg);
+
+
+// 动画状态枚举
+const ANIM_IDLE = 'idle', ANIM_WALK = 'walk', ANIM_RUN = 'run', ANIM_WATER = 'water', ANIM_HOE = 'hoe', ANIM_HARVEST = 'harvest';
+const ANIM_CARRY_IDLE = 'carry_idle', ANIM_CARRY_WALK = 'carry_walk', ANIM_CARRY_RUN = 'carry_run', ANIM_CARRY_THROW = 'carry_throw';
+
+// 各状态图集配置
+const SPRITE_CFG = {
+  idle:        { src: 'assets/images/player/1. Idle/Skins/1.png',                                           frames: 4,  frameMs: 200 },
+  walk:        { src: 'assets/images/player/2. Walk/Skins/1.png',                                           frames: 6,  frameMs: 140 },
+  run:         { src: 'assets/images/player/3. Run/Skins/1.png',                                            frames: 8,  frameMs: 100 },
+  carry_idle:  { src: 'assets/images/player/6. Carrying - Idle/Skins/1.png',                               frames: 4,  frameMs: 200 },
+  carry_walk:  { src: 'assets/images/player/6.1 Carrying - Walk/Skins/1.png',                              frames: 6,  frameMs: 140 },
+  carry_run:   { src: 'assets/images/player/6.2 Carrying - Run/Skins/1.png',                               frames: 8,  frameMs: 100 },
+  carry_throw: { src: 'assets/images/player/6.4 Carrying - Throwing items/Skins/1.png',                   frames: 5, frameMs: 80  },
+  water:       { src: 'assets/images/player/5. Watering/Skins/1.png',                                      frames: 8,  frameMs: 120 },
+  hoe:         { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Skins/1.png',             frames: 6,  frameMs: 110 },
+  harvest:     { src: 'assets/images/player/8. Axe and Sickle/Skins/1.png',                                frames: 6,  frameMs: 110 },
+};
+// 浇水武器图集（与角色动画叠加）
+const WEAPON_CFG = {
+  water:   { src: 'assets/images/player/5. Watering/Weapons/Watering/1.png',                           frames: 8, frameMs: 120 },
+  hoe:     { src: 'assets/images/player/7. Pickaxe, Hoe and Catching insects/Weapons/Hoe/1.png',   frames: 6, frameMs: 110 },
+  harvest: { src: 'assets/images/player/8. Axe and Sickle/Weapons/Sickle/1.png',                   frames: 6, frameMs: 110 },
+};
+
+// 预加载角色图集
+const sprites = {};
+let spritesReady = 0;
+Object.entries(SPRITE_CFG).forEach(([key, cfg]) => {
+  const img = new Image();
+  img.onload = () => { spritesReady++; };
+  img.src = cfg.src;
+  sprites[key] = img;
+});
+// 预加载武器图集
+const weaponSprites = {};
+Object.entries(WEAPON_CFG).forEach(([key, cfg]) => {
+  const img = new Image();
+  img.src = cfg.src;
+  weaponSprites[key] = img;
+});
+
+const SP_FRAME_W = 32, SP_FRAME_H = 32;
+const SP_DIRS = { down:0, up:1, right:2, left:3 };
+const SP_SCALE = 2.5;
+
+// 动画状态
+let spAnim = ANIM_IDLE;   // 当前播放状态
+let spFrame = 0;
+let spFrameTimer = 0;
+
+// 动作动画状态（浇水/锄地/收获统一管理）
+let actionAnimTimer = 0;
+let pendingActionTile = null; // { r, c, action: 'water'|'hoe'|'harvest' }
+// 向后兼容
+let wateringTimer = 0;
+let pendingWaterTile = null;
+const WATERING_DURATION = 8 * 120;
+
+// 跑步触发：摇杆顶到边界持续 > RUN_HOLD_MS 毫秒后切跑
+const RUN_HOLD_MS = 200;
+let runHoldTimer = 0;
+
+function drawPlayer(x, y) {
+  const footY = y + SP_FRAME_H * SP_SCALE * 0.3;
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.ellipse(x, footY, 14, 5, 0, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  if (spritesReady === 0) {
+    ctx.fillStyle = '#f0a040';
+    ctx.beginPath(); ctx.arc(x, y, 20, 0, Math.PI*2); ctx.fill();
+    return;
+  }
+  const cfg  = SPRITE_CFG[spAnim];
+  const img  = sprites[spAnim];
+  if (!img.complete || !img.naturalWidth) return;
+  const dirIdx   = SP_DIRS[player.dir] ?? 0;
+  const frameIdx = (spAnim === ANIM_IDLE) ? spFrame : spFrame;
+  const sx = (dirIdx * cfg.frames + frameIdx) * SP_FRAME_W;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(
+    img, sx, 0, SP_FRAME_W, SP_FRAME_H,
+    x - SP_FRAME_W * SP_SCALE / 2,
+    y - SP_FRAME_H * SP_SCALE / 2,
+    SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
+  );
+  // 动作武器叠加层（浇水/锄地/收获）
+  const ACTION_WEAPON_MAP = { [ANIM_WATER]:'water', [ANIM_HOE]:'hoe', [ANIM_HARVEST]:'harvest' };
+  if (ACTION_WEAPON_MAP[spAnim]) {
+    const wKey = ACTION_WEAPON_MAP[spAnim];
+    const wImg = weaponSprites[wKey];
+    if (wImg && wImg.complete && wImg.naturalWidth) {
+      ctx.drawImage(
+        wImg, sx, 0, SP_FRAME_W, SP_FRAME_H,
+        x - SP_FRAME_W * SP_SCALE / 2,
+        y - SP_FRAME_H * SP_SCALE / 2,
+        SP_FRAME_W * SP_SCALE, SP_FRAME_H * SP_SCALE
+      );
+    }
+  }
+
+  // 搜携状态时头顶道具图标
+  const CARRY_ANIMS = [ANIM_CARRY_IDLE, ANIM_CARRY_WALK, ANIM_CARRY_RUN, ANIM_CARRY_THROW];
+  if (CARRY_ANIMS.includes(spAnim)) {
+    const _hItem = currentItem();
+    const _id = currentItemId();
+    if (_hItem && _id) {
+      const iconSize = window._dbgIconSize || 30;
+      const iconX = x - iconSize / 2;
+      const iconY = y - SP_FRAME_H * SP_SCALE / 2 - iconSize + (window._dbgIconYOff || 19);
+      const _cropSheetEntry = getImg(CROPS_SHEET);
+      if (_hItem.iconEl && _cropSheetEntry && _cropSheetEntry.loaded) {
+        // 图集类图标，直接画到 canvas
+        const _cropIconMap = {
+          seed_potato: [0, 4], potato: [2, 4],
+          seed_carrot: [0, 3], carrot: [2, 3],
+          seed_cabbage:[0, 5], cabbage:[2, 5],
+          seed_peach:  [0, 2], peach:  [2, 2],
+        };
+        const _pos = _cropIconMap[_id];
+        if (_pos) {
+          const fw = 16;
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(_cropSheetEntry.img, _pos[0]*fw, _pos[1]*fw, fw, fw, iconX, iconY, iconSize, iconSize);
+          ctx.restore();
+        }
+      } else if (_hItem.icon) {
+        ctx.save();
+        ctx.font = `${iconSize}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(_hItem.icon, x, y - SP_FRAME_H * SP_SCALE / 2 - 1);
+        ctx.restore();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// ============================================================
+// 渲染
+// ============================================================
+function render() {
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#2d5a1b';
+  ctx.fillRect(0, 0, W, H);
+
+  // 地图（不含遮挡层）
+  for(let r=0;r<MAP_ROWS;r++)
+    for(let c=0;c<MAP_COLS;c++)
+      drawTile(r,c);
+
+  // 角色：以格子左上角为基准（和碰撞框坐标系一致）
+  const px = Math.round(player.wx * TILE - camX);
+  const py = Math.round(player.wy * TILE - camY);
+  drawPlayer(px, py);
+
+
+
+  // 遮挡层（在角色上面）
+  for(let r=0;r<MAP_ROWS;r++)
+    for(let c=0;c<MAP_COLS;c++)
+      drawAbove(r,c);
+
+  // 弹出动画层（最顶层，遗挡层之后）
+  const now = performance.now();
+  const ANIM_MS = 600;
+  for (const key in harvestAnims) {
+    const anim = harvestAnims[key];
+    const elapsed = now - anim.startMs;
+    if (elapsed > ANIM_MS) continue;
+    const t = elapsed / ANIM_MS; // 0→1
+    const cfg = CROP_IMGS[CROPS[anim.type].spritesheet];
+    const cropCfg = CROPS[anim.type];
+    const {x, y} = worldToScreen(anim.c, anim.r);
+    if (!cfg || !cfg.complete) continue;
+    const drawSize = TILE * 0.8;
+    // 抛物线：先向上弹起再落地
+    const PEAK = -TILE * 0.8;
+    const LAND = TILE * 0.7;        // 重力加大，落地更重
+    const scale = t < 0.4
+      ? 0.2 + t / 0.4 * 0.6
+      : 0.8 + (t - 0.4) / 0.6 * 0.2;
+    const scaledSize = drawSize * scale;
+    const offsetY = PEAK * Math.sin(t * Math.PI) + LAND * t * t;
+    const alpha = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
+
+    if (anim.isSeed) {
+      // 种子弹出：用帧0（生长第一帧），向左偏移
+      const sx = 0; // 第0帧=种子帧
+      const offsetX = (t - 0.5) * TILE * 0.4 - TILE * 0.35; // 偏左
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(cfg, sx, 0, cropCfg.frameW, cropCfg.frameH,
+        x - scaledSize/2 + offsetX, y - scaledSize/2 + offsetY, scaledSize, scaledSize);
+      ctx.restore();
+    } else {
+      // 收获物弹出：弹出帧 = totalFrames-1，向右偏移
+      const popFrame = cropCfg.totalFrames - 1;
+      const sx = popFrame * cropCfg.frameW;
+      const offsetX = (t - 0.5) * TILE * 0.4 + TILE * 0.35; // 偏右
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(cfg, sx, 0, cropCfg.frameW, cropCfg.frameH,
+        x - scaledSize/2 + offsetX, y - scaledSize/2 + offsetY, scaledSize, scaledSize);
+      ctx.restore();
+    }
+  }
+
+  // 地图上道具渲染
+  renderGroundItems();
+
+  // 提示文字
+  const _item = currentItem(), _id = currentItemId();
+  if (_item && _item.use === 'tile') {
+    const hintMap = {
+      hoe:'走到任意地块，按确认锄地',
+      water:'走到作物旁，按确认浇水',
+      harvest:'走到成熟作物旁，按确认收获',
+    };
+    let hint = _item.seedType
+      ? `播种:${CROPS[_item.seedType].icon}${CROPS[_item.seedType].name}(剩${seedCount[_item.seedType]||0}袋)`
+      : hintMap[_id];
+    if (hint) {
+      ctx.fillStyle='rgba(245,215,142,0.75)';
+      ctx.font='12px serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillText(hint, W/2, H-130);
+    }
+  }
+}
+
+// ============================================================
+// 摇杆
+// ============================================================
+const joyWrap=document.getElementById('joystick-wrap');
+const joyStick=document.getElementById('joy-stick');
+const JR=50, JSR=21;
+let joyActive=false, joyDX=0, joyDY=0, joyTid=null;
+let joyAtEdge=false; // 摇杆是否顶到边界
+
+joyWrap.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const t=e.changedTouches[0]; joyTid=t.identifier; joyActive=true; updateJoy(t);
+},{passive:false});
+window.addEventListener('touchmove',e=>{
+  if(!joyActive) return;
+  for(let t of e.changedTouches) if(t.identifier===joyTid){updateJoy(t);break;}
+},{passive:false});
+window.addEventListener('touchend',e=>{
+  for(let t of e.changedTouches) if(t.identifier===joyTid){
+    joyActive=false; joyDX=0; joyDY=0;
+    joyStick.style.transform='translate(0,0)'; break;
+  }
+});
+function updateJoy(touch){
+  const rect=joyWrap.getBoundingClientRect();
+  const cx=rect.left+JR, cy=rect.top+JR;
+  let dx=touch.clientX-cx, dy=touch.clientY-cy;
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  const maxD=JR-JSR;
+  // 记录是否顶到边界（超出范围仍在拖 = 用力推）
+  joyAtEdge = dist > maxD;
+  if(dist>maxD){dx=dx/dist*maxD; dy=dy/dist*maxD;}
+  joyDX=dx/maxD; joyDY=dy/maxD;
+  joyStick.style.transform=`translate(${dx}px,${dy}px)`;
+}
+
+// ============================================================
+// 游戏循环
+// ============================================================
+let lastT=0;
+const SPEED=3.5;
+const BLOCKED_TYPES = [T.WATER];
+// 脚点偏移：角色脱点在sprite中心下方，转换为格子单位
+// footY = y + SP_FRAME_H * SP_SCALE * 0.3 = 32*2.5*0.3 = 24px
+// 按TILE=48px: 24/48 = 0.5格
+const FOOT_OFFSET_Y = 0.5;  // 脚点在角色中心下方0.5格
+const FOOT_HALF_X = 0.45;   // 脚部左右碰撞半宽
+const FOOT_HALF_Y = 0.45;   // 脚部前后碰撞半宽
+
+function canWalk(wx, wy) {
+  // 脚点坐标
+  const fx = wx;
+  const fy = wy + FOOT_OFFSET_Y;
+  if (fx - FOOT_HALF_X < 0 || fx + FOOT_HALF_X > MAP_COLS - 1) return false;
+  if (fy - FOOT_HALF_Y < 0 || fy + FOOT_HALF_Y > MAP_ROWS - 1) return false;
+  // 四角检测：全部用floor，框边缘进入格子才停
+  const corners = [
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy - FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx - FOOT_HALF_X)],
+    [Math.floor(fy + FOOT_HALF_Y), Math.floor(fx + FOOT_HALF_X)],
+  ];
+  for (const [r, c] of corners) {
+    const rr = Math.max(0, Math.min(MAP_ROWS-1, r));
+    const cc = Math.max(0, Math.min(MAP_COLS-1, c));
+    if (BLOCKED_TYPES.includes(tileMap[rr][cc])) return false;
+  }
+  return true;
+}
+
+function loop(ts){
+  const dt=Math.min((ts-lastT)/1000,0.05); lastT=ts;
+
+  const moving = joyActive && (Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08);
+
+  // ---------- 跑步判定 ----------
+  // 摇杆顶到边界并持续超过 RUN_HOLD_MS → 跑；松开或缩回 → 走
+  if (moving && joyAtEdge) {
+    runHoldTimer += dt * 1000;
+  } else {
+    runHoldTimer = 0;
+  }
+  const isRunning = moving && runHoldTimer >= RUN_HOLD_MS;
+
+  // ---------- 移动 ----------
+  const RUN_SPEED = SPEED * 1.9;  // 跑步速度倍率
+  if (moving) {
+    const sp = (isRunning ? RUN_SPEED : SPEED) * dt;
+    const nx = player.wx + joyDX * sp;
+    const ny = player.wy + joyDY * sp;
+    if (canWalk(nx, ny)) {
+      player.wx = nx; player.wy = ny;
+    } else if (canWalk(nx, player.wy)) {
+      player.wx = nx;
+    } else if (canWalk(player.wx, ny)) {
+      player.wy = ny;
+    }
+    if(Math.abs(joyDX)>Math.abs(joyDY)) player.dir=joyDX>0?'right':'left';
+    else player.dir=joyDY>0?'down':'up';
+    player.moving = true;
+  } else {
+    player.moving = false;
+  }
+
+  // ---------- 动画状态切换 ----------
+  const ACTION_ANIMS = [ANIM_WATER, ANIM_HOE, ANIM_HARVEST, ANIM_CARRY_THROW];
+  if (ACTION_ANIMS.includes(spAnim)) {
+    if (player.moving) {
+      // 位移打断
+      const actionName = { water:'浇水', hoe:'锄地', harvest:'收获', carry_throw:'播种' }[spAnim] || '操作';
+      showToast(`${actionName}被打断`);
+      pendingActionTile = null;
+      const wasCarry = [ANIM_CARRY_THROW].includes(spAnim);
+      spAnim = wasCarry ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+    } else {
+      // 帧推进（不循环，播完执行操作）
+      spFrameTimer += dt * 1000;
+      const cfg = SPRITE_CFG[spAnim];
+      if (spFrameTimer >= cfg.frameMs) {
+        spFrameTimer = 0;
+        if (spFrame < cfg.frames - 1) {
+          spFrame++;
+        } else {
+          // 动画播完 → 执行对应操作
+          if (pendingActionTile) {
+            const {r, c, action} = pendingActionTile;
+            if (action === 'water') {
+              if (!wateredMap[r]) wateredMap[r] = {};
+              if (cropMap[r][c]) cropMap[r][c].watered = true;
+              else wateredMap[r][c] = true;
+            } else if (action === 'hoe') {
+              tileMap[r][c] = T.TILLED;
+            } else if (action === 'sow') {
+              // 播种动画播完 → 执行种植
+              const sowSeedType = pendingActionTile.seedType;
+              if (sowSeedType) {
+                const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
+                tileMap[r][c] = T.CROP;
+                cropMap[r][c] = {type:sowSeedType, daysGrown:0, watered:alreadyWatered, ready:false};
+              }
+            } else if (action === 'harvest') {
+              const crop = cropMap[r] && cropMap[r][c];
+              if (crop && crop.ready) {
+                const key = r+'_'+c;
+                // 1. 立即清除地块上的作物（让作物图消失）
+                tileMap[r][c] = T.TILLED;
+                cropMap[r][c] = null;
+                // 2. 启动收获物弹出动画（偏右）
+                harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type, isSeed: false };
+                setTimeout(() => { delete harvestAnims[key]; }, 600);
+                // 3. 50%概率额外获得种子，启动种子弹出动画（偏左）
+                const gotSeed = Math.random() < 0.5;
+                if (gotSeed) {
+                  const seedKey = r+'_'+c+'_seed';
+                  harvestAnims[seedKey] = { startMs: performance.now(), r, c, type: crop.type, isSeed: true };
+                  setTimeout(() => { delete harvestAnims[seedKey]; }, 600);
+                }
+                // 4. 计入背包
+                harvestBag[crop.type] = (harvestBag[crop.type]||0) + 1;
+                const seedItemId = 'seed_' + crop.type;
+                if (gotSeed && ITEM_DEF[seedItemId]) {
+                  seedCount[crop.type] = (seedCount[crop.type] || 0) + 1;
+                  const existSeedIdx = hotbar.indexOf(seedItemId);
+                  if (existSeedIdx < 0) {
+                    const emptyIdx = hotbar.indexOf(null);
+                    if (emptyIdx >= 0) hotbar[emptyIdx] = seedItemId;
+                  }
+                }
+                if (crop.type === 'potato') {
+                  const existIdx = hotbar.indexOf('potato');
+                  if (existIdx < 0) {
+                    const emptyIdx = hotbar.indexOf(null);
+                    if (emptyIdx >= 0) hotbar[emptyIdx] = 'potato';
+                  }
+                }
+                renderHotbar();
+                const seedMsg = gotSeed ? ` + 🌱${CROPS[crop.type]?.name||crop.type}种子×1` : '';
+                showToast(`收获了 ${CROPS[crop.type]?.icon||''}${CROPS[crop.type]?.name||crop.type}！${seedMsg}`);
+              }
+            }
+            pendingActionTile = null;
+          }
+          // 播种播完回搜携idle，其他动作回普通idle
+          const wasThrow = (spAnim === ANIM_CARRY_THROW);
+          spAnim = wasThrow ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+        }
+      }
+    }
+  } else {
+    // 判断是否搬运模式（当前选中种子类道具）
+    const _curItem = currentItem();
+    const isCarrying = _curItem && (_curItem.seedType || (_curItem.stackMax && _curItem.use === 'direct'));
+    let newAnim;
+    if (!player.moving) newAnim = isCarrying ? ANIM_CARRY_IDLE : ANIM_IDLE;
+    else if (isRunning)  newAnim = isCarrying ? ANIM_CARRY_RUN  : ANIM_RUN;
+    else                 newAnim = isCarrying ? ANIM_CARRY_WALK : ANIM_WALK;
+    if (newAnim !== spAnim) { spAnim = newAnim; spFrame = 0; spFrameTimer = 0; }
+    spFrameTimer += dt * 1000;
+    const cfg = SPRITE_CFG[spAnim] || SPRITE_CFG[ANIM_IDLE];
+    if (spFrameTimer >= cfg.frameMs) {
+      spFrameTimer = 0;
+      spFrame = (spFrame + 1) % cfg.frames;
+    }
+  }
+
+  checkPickup();
+
+  // 相机跟随
+  const targetX = player.wx * TILE - canvas.width/2;
+  const targetY = player.wy * TILE - canvas.height/2;
+  camX += (targetX - camX) * 0.12;
+  camY += (targetY - camY) * 0.12;
+  camX = Math.round(camX);
+  camY = Math.round(camY);
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ============================================================
+// 行动按钮
+// ============================================================
+// 通用动作动画启动：animKey='water'|'hoe'|'harvest'
+function startActionAnim(animKey, r, c) {
+  const cfg = SPRITE_CFG[animKey];
+  if (!cfg) return;
+  spAnim = animKey;
+  spFrame = 0;
+  spFrameTimer = 0;
+  pendingActionTile = { r, c, action: animKey };
+}
+// 向后兼容
+function startWateringAnim(r, c) { startActionAnim(ANIM_WATER, r, c); }
+
+function doAction(){
+  const r=Math.round(player.wy), c=Math.round(player.wx);
+  if(r<0||r>=MAP_ROWS||c<0||c>=MAP_COLS) return;
+  const type=tileMap[r][c];
+  const itemId = currentItemId();
+  const item   = currentItem();
+  if (!itemId || !item) return;
+
+  if (item.use === 'direct') {
+    if (itemId === 'sleep') { nextDay(); return; }
+    if (itemId === 'shop')  { openShop(); return; }
+    return;
+  }
+
+  if(itemId==='hoe'){
+    if(type===T.GRASS||type===T.PATH||type===T.SOIL){
+      startActionAnim(ANIM_HOE, r, c); // 播完再锄地
+    } else if(type===T.TILLED){ showToast('已翻过土啦～'); }
+    else showToast('这里不能翻土');
+  }
+  else if(item.seedType){
+    const seedType = item.seedType;
+    if(type!==T.TILLED){ showToast('请先锄地再播种'); return; }
+    if(!(seedCount[seedType]>0)){ showToast(`没有${CROPS[seedType].name}种子了！`); return; }
+    seedCount[seedType]--;
+    if(seedCount[seedType]<=0){
+      hotbar[selectedSlot]=null;
+      showToast(`${CROPS[seedType].icon}种子用尽！`);
+      const next = hotbar.findIndex((v,i) => i !== selectedSlot && v !== null);
+      if (next >= 0) selectedSlot = next;
+    }
+    // 不预先占位，动画播完后再写入 cropMap
+    spAnim = ANIM_CARRY_THROW; spFrame = 0; spFrameTimer = 0;
+    pendingActionTile = { r, c, action: 'sow', seedType };
+    showToast(`种下了${CROPS[seedType].icon}${CROPS[seedType].name}`);
+    renderHotbar();
+  }
+  else if(itemId==='water'){
+    if(type!==T.TILLED && type!==T.CROP){ showToast('请先锄地再浇水'); return; }
+    if(!wateredMap[r]) wateredMap[r] = {};
+    if(cropMap[r][c]) {
+      if(cropMap[r][c].watered){ showToast('今天已经浇过水啦 💧'); return; }
+    } else {
+      if(wateredMap[r][c]){ showToast('今天已经浇过水啦 💧'); return; }
+    }
+    // 先播动画，播完才实际浇水
+    startWateringAnim(r, c);
+  }
+  else if(itemId==='harvest'){
+    const crop=cropMap[r][c];
+    if(!crop){ showToast('这里没有作物'); return; }
+    if(!crop.ready){ showToast('还没成熟，再等等～'); return; }
+    startActionAnim(ANIM_HARVEST, r, c);
+    return; // 动画播完后在主循环里执行收获
+  }
+}
+
+// ============================================================
+// 工具栏渲染 + 交互
+// ============================================================
+function renderHotbar() {
+  const el = document.getElementById('toolbar');
+  el.innerHTML = '';
+  hotbar.forEach((itemId, idx) => {
+    const item = itemId ? ITEM_DEF[itemId] : null;
+    const slot = document.createElement('div');
+    slot.className = 'tool-btn' + (idx === selectedSlot ? ' active' : '') + (idx === selectedHotbarForBag ? ' bag-select' : '');
+    slot.dataset.idx = idx;
+    if (item) {
+      // 数量（种子用 seedCount，可堆叠道具用 harvestBag）
+      const stackCount = item.seedType ? (seedCount[item.seedType] || 0)
+                       : item.stackMax  ? (harvestBag[itemId] || 0)
+                       : null;
+      const cntHtml = stackCount > 0 ? `<span class="tool-count">${stackCount}</span>` : '';
+      slot.innerHTML = buildIcon(item) + cntHtml;
+    }
+    slot.addEventListener('pointerdown', e => onSlotPointerDown(e, idx));
+    el.appendChild(slot);
+  });
+  flushBagIcons(el);
+}
+
+// 长按拖动
+let dragState = null; // {idx, itemId, startX, startY, ghost, moved}
+const LONG_PRESS_MS = 400;
+
+function onSlotPointerDown(e, idx) {
+  if (!hotbar[idx]) {
+    // 空格子：如果背包有选中则放入
+    if (bagOpen && selectedBagSlot !== null) { trySwapWithHotbar(idx); return; }
+    selectSlot(idx); return;
+  }
+  e.preventDefault();
+  const startX = e.clientX, startY = e.clientY;
+  let dragging = false;
+  let pressTimer = setTimeout(() => {
+    dragging = true;
+    startDrag(idx, startX, startY);
+  }, LONG_PRESS_MS);
+
+  const onMove = (ev) => {
+    const dx = ev.clientX - startX, dy = ev.clientY - startY;
+    if (Math.sqrt(dx*dx+dy*dy) > 8) clearTimeout(pressTimer);
+    if (dragState) moveDrag(ev.clientX, ev.clientY);
+  };
+  const onUp = (ev) => {
+    clearTimeout(pressTimer);
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    if (dragState) {
+      endDrag(ev);
+    } else {
+      selectSlot(idx);
+    }
+  };
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+}
+
+function selectSlot(idx) {
+  if (bagOpen) {
+    // 背包开着
+    if (selectedBagSlot !== null) {
+      // 有背包格子已选中 → 互换
+      doSwapHotbarBag(idx, selectedBagSlot);
+      return;
+    }
+    if (selectedHotbarForBag === idx) {
+      // 点同一格 → 取消选中
+      selectedHotbarForBag = null;
+      renderHotbar();
+      return;
+    }
+    if (hotbar[idx]) {
+      // 选中工具栏道具（等待点背包格子）
+      selectedHotbarForBag = idx;
+      renderHotbar();
+      return;
+    }
+    // 工具栏空格子 + 背包有道具等待 → 当做目标
+    if (selectedHotbarForBag !== null) {
+      doSwapHotbarBag(selectedHotbarForBag, idx);
+      return;
+    }
+  }
+  selectedSlot = idx;
+  renderHotbar();
+}
+
+function startDrag(idx, x, y) {
+  const item = ITEM_DEF[hotbar[idx]];
+  if (!item) return;
+  const ghost = document.createElement('div');
+  ghost.className = 'drag-ghost';
+  ghost.innerHTML = buildIcon(item);
+  ghost.style.cssText = `position:fixed;pointer-events:none;z-index:9999;opacity:0.85;
+    transform:translate(-50%,-50%);transition:none;`;
+  ghost.style.left = x+'px'; ghost.style.top = y+'px';
+  document.body.appendChild(ghost);
+  dragState = { source:'hotbar', idx, itemId: hotbar[idx], startX:x, startY:y, ghost };
+}
+
+
+function moveDrag(x, y) {
+  if (!dragState) return;
+  dragState.ghost.style.left = x+'px';
+  dragState.ghost.style.top  = y+'px';
+}
+
+function endDrag(e) {
+  if (!dragState) return;
+  const { idx, itemId, ghost } = dragState;
+  dragState = null;
+  ghost.remove();
+
+  const x = e.clientX, y = e.clientY;
+  const W = window.innerWidth, H = window.innerHeight;
+  const tbWrap = document.getElementById('toolbar-wrap');
+  const tbRect = tbWrap ? tbWrap.getBoundingClientRect() : null;
+  const onToolbar = tbRect && x>=tbRect.left-20 && x<=tbRect.right+20 && y>=tbRect.top-20 && y<=tbRect.bottom+20;
+  const outOfScreen = x<30||x>W-30||y<30||y>H-30||!onToolbar;
+
+  if (outOfScreen) {
+    hotbar[idx] = null;
+    groundItems.push({ id:itemId, wx:player.wx+(Math.random()-0.5)*2, wy:player.wy+1 });
+    showToast(`${ITEM_DEF[itemId].name}掉到地上了`);
+  } else {
+    const slots = document.querySelectorAll('.tool-btn');
+    let targetIdx = -1;
+    slots.forEach(s => {
+      const r = s.getBoundingClientRect();
+      if (x>=r.left && x<=r.right && y>=r.top && y<=r.bottom)
+        targetIdx = parseInt(s.dataset.idx);
+    });
+    if (targetIdx >= 0 && targetIdx !== idx) {
+      [hotbar[idx], hotbar[targetIdx]] = [hotbar[targetIdx], hotbar[idx]];
+      if (selectedSlot===idx) selectedSlot=targetIdx;
+      else if (selectedSlot===targetIdx) selectedSlot=idx;
+    }
+  }
+  renderHotbar();
+}
+
+// 地上道具跳进检测（在 loop 里调用）
+function checkPickup() {
+  if (!groundItems.length) return;
+  groundItems = groundItems.filter(gi => {
+    const dx = gi.wx - player.wx, dy = gi.wy - player.wy;
+    if (Math.sqrt(dx*dx+dy*dy) < 0.8) {
+      // 检到！放入工具栏第一个空格
+      const emptyIdx = hotbar.indexOf(null);
+      if (emptyIdx >= 0) {
+        hotbar[emptyIdx] = gi.id;
+        showToast(`捡起了${ITEM_DEF[gi.id].name}`);
+        renderHotbar();
+        return false;
+      }
+    }
+    return true;
+  });
+}
+
+// 地上道具渲染（在 render 里调用）
+function renderGroundItems() {
+  groundItems.forEach(gi => {
+    const item = ITEM_DEF[gi.id];
+    if (!item) return;
+    const sx = Math.round(gi.wx * TILE - camX);
+    const sy = Math.round(gi.wy * TILE - camY);
+    ctx.save();
+    ctx.font = '20px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // 轻微浮动动画
+    const bob = Math.sin(performance.now() / 400) * 3;
+    ctx.fillText(item.icon, sx, sy + bob);
+    ctx.restore();
+  });
+}
+
+function setTool(el, tool) {} // 兼容性保留，不再使用
+function switchSeed() {}     // 兼容性保留
+function updateSeedSwitchUI() {}
+
+
+function nextDay(){
+  day++; if(day>28){day=1;seasonIdx=(seasonIdx+1)%4;}
+  resetBagSoldToday();
+  for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
+    const crop=cropMap[r][c];
+    if(crop){
+      if(!crop.ready){
+        if(crop.watered) crop.daysGrown++;  // 有浇水才生长
+        if(crop.daysGrown>=CROPS[crop.type].days) crop.ready=true;
+      }
+      crop.watered=false; // 天数刷新→所有作物格浇水重置（含ready格）
+    }
+    // 无作物格的独立浇水状态也重置
+    if(wateredMap[r]) wateredMap[r][c]=false;
+  }
+  updateHUD(); showToast(`🌙 第${day}天开始了`);
+}
+
+
+// ============================================================
+// 背包系统
+// ============================================================
+// bagItems: [0-7]=4×2基础格(8格), [9-13]=扩展格(5格)
+// 每格存 {id, count} 或 null
+let bagItems = new Array(14).fill(null);
+let equippedBag = null; // 当前装备的背包道具id
+let bagUnlocked = [true, true, false, false, false]; // 扩展格解锁状态（前2解锁，后3锁定）
+
+// 初始道具：背包（占位）
+const ITEM_DEF_BAG_PACK = 'bag_pack';
+// 背包道具定义注册到 ITEM_DEF（在此动态追加）
+// 占位背包道具图标：用 common_HUD 第3排第4个（row=2,col=3）
+function _bagPackIcon() {
+  const s = getImg('assets/images/ui/common/common_HUD.png');
+  if (!s || !s.loaded) return '<span style="font-size:20px">🎒</span>';
+  const fw = 16, scale = 2;
+  return `<span style="display:inline-block;width:${fw*scale}px;height:${fw*scale}px;overflow:hidden;` +
+    `background:url('assets/images/ui/common/common_HUD.png') no-repeat -${3*fw*scale}px -${2*fw*scale}px / ${26*fw*scale}px ${6*fw*scale}px;` +
+    `image-rendering:pixelated;"></span>`;
+}
+
+// 初始化：塞一个背包道具
+// 初始状态：扩展格[0]放普通背包，基础格8格全空
+// bagItems = [0..7基础格] + [8..12扩展格x5]
+equippedBag = 'bag_normal';
+bagItems = new Array(4).fill(null);          // 基础格 4格（普通背包）
+bagItems.push({ id: 'bag_normal', count: 1 }); // 扩展格[0]
+for (let _i=0;_i<4;_i++) bagItems.push(null); // 扩展格[1-4]空
+
+// 背包面板 canvas 九宫格底板
+const _bagFrameImg = new Image();
+_bagFrameImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
+const _bagSlotImg = new Image();
+_bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
+
+// 背包标题底板（common_button02 第1行 col6-8，原图坐标 x:80~128, y:0~16，48×16px）
+// 背包道具图集（Bags.png, 112×16, 7格每格16×16）
+const _bagsIconImg = new Image();
+_bagsIconImg.src = 'assets/images/ui/icon/Extras/Bags.png';
+
+// 计算总基础格数 = 扩展格里所有背包的 bagSlots 之和（不管是否解锁，放进去就算）
+function getTotalBagSlots() {
+  let total = 0;
+  const extItems = bagItems.slice(-5);
+  for (let i = 0; i < 5; i++) {
+    if (extItems[i]) {
+      const def = ITEM_DEF[extItems[i].id];
+      if (def && def.bagImg !== undefined) total += def.bagSlots || 8;
+    }
+  }
+  return total || 8;
+}
+
+// 从 Bags.png 图集绘制背包图标到 canvas
+function drawBagIcon(cv, bagImgIdx, displaySize) {
+  const dpr = window.devicePixelRatio || 1;
+  const px = Math.round(displaySize * dpr);
+  cv.width = px; cv.height = px;
+  cv.style.width = displaySize + 'px';
+  cv.style.height = displaySize + 'px';
+  const c = cv.getContext('2d');
+  c.imageSmoothingEnabled = false;
+  c.clearRect(0, 0, px, px);
+  if (_bagsIconImg.complete && _bagsIconImg.naturalWidth) {
+    c.drawImage(_bagsIconImg, bagImgIdx * 16, 0, 16, 16, 0, 0, px, px);
+  } else {
+    _bagsIconImg.addEventListener('load', () => {
+      c.clearRect(0, 0, px, px);
+      c.drawImage(_bagsIconImg, bagImgIdx * 16, 0, 16, 16, 0, 0, px, px);
+    }, {once: true});
+  }
+}
+
+const _bagTitleImg = new Image();
+_bagTitleImg.src = 'assets/images/ui/common/common_button02.png';
+// 九宫格参数：左右边缘3px(含2px透明+1px边框)，上下边缘1px(边框)，中间可拉伸
+const BTN_SX = 80, BTN_SY = 0, BTN_W = 48, BTN_H = 16;
+const BTN_SL = 4, BTN_SR = 4, BTN_ST = 1, BTN_SB = 1;
+
+// HUD 背包图标 canvas
+const _hudIconImg = new Image();
+_hudIconImg.src = 'assets/images/ui/common/common_HUD.png';
+_hudIconImg.onload = () => {
+  drawBagBtnIcon();
+  drawPanelCloseBtn('bag-close-btn');
+  drawPanelCloseBtn('shop-close-btn');
+};
+
+function drawBagBtnIcon() {
+  const cv = document.getElementById('bag-btn-canvas');
+  if (!cv) return;
+  const ctx2 = cv.getContext('2d');
+  ctx2.clearRect(0, 0, 48, 48);
+  ctx2.imageSmoothingEnabled = false;
+  if (_hudIconImg.complete && _hudIconImg.naturalWidth) {
+    // 第3排第4个 = row=2, col=3, 16×16px，放大到48×48
+    ctx2.drawImage(_hudIconImg, 3*16, 2*16, 16, 16, 0, 0, 48, 48);
+  }
+}
+
+// 绘制背包底板（九宫格，和工具栏一样的图集）
+// 绘制背包标题底板（九宫格拉伸）
+function drawBagTitle(cv, displayW, displayH) {
+  if (!cv || !_bagTitleImg.complete || !_bagTitleImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = Math.round(displayW * dpr);
+  cv.height = Math.round(displayH * dpr);
+  cv.style.width  = displayW + 'px';
+  cv.style.height = displayH + 'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, cv.width, cv.height);
+  c.imageSmoothingEnabled = false;
+  const scale = dpr * 2; // ×2放大让像素感更清晰
+  const SL = BTN_SL, SR = BTN_SR, ST = BTN_ST, SB = BTN_SB;
+  const SMH = BTN_W - SL - SR, SMV = BTN_H - ST - SB;
+  const ew = SL * scale, eh = ST * scale;
+  const tw = cv.width, th = cv.height;
+  const DW = tw - ew*2, DH = th - eh*2;
+  const img = _bagTitleImg;
+  const ox = BTN_SX, oy = BTN_SY;
+  // 九宫格
+  c.drawImage(img,ox,          oy,          SL,  ST,  0,     0,     ew,  eh);
+  c.drawImage(img,ox+SL,       oy,          SMH, ST,  ew,    0,     DW,  eh);
+  c.drawImage(img,ox+SL+SMH,   oy,          SR,  ST,  tw-ew, 0,     ew,  eh);
+  c.drawImage(img,ox,          oy+ST,       SL,  SMV, 0,     eh,    ew,  DH);
+  c.drawImage(img,ox+SL,       oy+ST,       SMH, SMV, ew,    eh,    DW,  DH);
+  c.drawImage(img,ox+SL+SMH,   oy+ST,       SR,  SMV, tw-ew, eh,    ew,  DH);
+  c.drawImage(img,ox,          oy+ST+SMV,   SL,  SB,  0,     th-eh, ew,  eh);
+  c.drawImage(img,ox+SL,       oy+ST+SMV,   SMH, SB,  ew,    th-eh, DW,  eh);
+  c.drawImage(img,ox+SL+SMH,   oy+ST+SMV,   SR,  SB,  tw-ew, th-eh, ew,  eh);
+}
+
+function drawBagBg() {
+  const inner = document.getElementById('bag-inner');
+  const cv = document.getElementById('bag-canvas');
+  if (!cv || !inner) return;
+  const slotsWrap = document.getElementById('bag-slots-wrap') || document.getElementById('bag-slots');
+  const slots = document.getElementById('bag-slots');
+  const extra = document.getElementById('bag-extra-slots');
+  const title = document.getElementById('bag-title-wrap');
+  if (!slots || !extra || !title) return;
+  // 宽度用 wrap（有固定宽），高度用 wrap（受max-height约束，不超出底板）
+  const slotsW = slotsWrap.offsetWidth || slots.offsetWidth;
+  const slotsH = slotsWrap.offsetHeight || slots.offsetHeight;
+  const W = Math.max(slotsW, extra.offsetWidth, 180) + (dbgParams.bagBgPadW||48);
+  const H = title.offsetHeight + slotsH + extra.offsetHeight + (dbgParams.bagBgPadH||100);
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = Math.round(W * dpr);
+  cv.height = Math.round(H * dpr);
+  cv.style.width  = W + 'px';
+  cv.style.height = H + 'px';
+  cv.style.top  = (dbgParams.bagBgTop!==undefined ? dbgParams.bagBgTop : -24)+'px';
+  cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
+  // 同步重绘标题底板
+  const _tWrap = document.getElementById('bag-title-wrap');
+  const _tCv   = document.getElementById('bag-title-canvas');
+  if (_tWrap && _tCv) {
+    const _bTW = dbgParams.bagTitleW || 83, _bTH = dbgParams.bagTitleH || 30;
+    drawBagTitle(_tCv, _bTW, _bTH);
+    _tWrap.style.width  = _bTW + 'px';
+    _tWrap.style.height = _bTH + 'px';
+  }
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, cv.width, cv.height);
+  if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
+  c.imageSmoothingEnabled = false;
+  // 与工具栏完全相同的参数：边缘 4px × EDGE_SCALE=2 × dpr
+  const SL=4, SR=4, ST=4, SB=4, SW=48, SH=48;
+  const EDGE_SCALE = 2;
+  const SMH = SW - SL - SR, SMV = SH - ST - SB;
+  const ew = SL * EDGE_SCALE * dpr;
+  const eh = ST * EDGE_SCALE * dpr;
+  const totalW = cv.width, totalH = cv.height;
+  const DW = totalW - ew*2, DH = totalH - eh*2;
+  const img = _bagFrameImg;
+  c.drawImage(img, 0,         0,         SL,  ST,  0,          0,          ew,  eh);
+  c.drawImage(img, SL,        0,         SMH, ST,  ew,         0,          DW,  eh);
+  c.drawImage(img, SL+SMH,    0,         SR,  ST,  totalW-ew,  0,          ew,  eh);
+  c.drawImage(img, 0,         ST,        SL,  SMV, 0,          eh,         ew,  DH);
+  c.drawImage(img, SL,        ST,        SMH, SMV, ew,         eh,         DW,  DH);
+  c.drawImage(img, SL+SMH,    ST,        SR,  SMV, totalW-ew,  eh,         ew,  DH);
+  c.drawImage(img, 0,         ST+SMV,    SL,  SB,  0,          totalH-eh,  ew,  eh);
+  c.drawImage(img, SL,        ST+SMV,    SMH, SB,  ew,         totalH-eh,  DW,  eh);
+  c.drawImage(img, SL+SMH,    ST+SMV,    SR,  SB,  totalW-ew,  totalH-eh,  ew,  eh);
+}
+
+// 绘制格子九宫格（与工具栏格子参数一致，边缘×2×dpr）
+function drawSlotCanvas(cv, w, h, alpha) {
+  if (!cv || !_bagSlotImg.complete || !_bagSlotImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  cv.style.width = w+'px'; cv.style.height = h+'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, cv.width, cv.height);
+  c.globalAlpha = alpha || 1;
+  c.imageSmoothingEnabled = false;
+  const SL=1, SR=1, ST=1, SB=1, SLOT_W=16, SLOT_H=48;
+  const SMH = SLOT_W-SL-SR, SMV = SLOT_H-ST-SB;
+  const ew = SL * dpr * 2, eh = ST * dpr * 2;  // 边缘×2×dpr，与工具栏一致
+  const DW = cv.width - ew*2, DH = cv.height - eh*2;
+  const img = _bagSlotImg;
+  c.drawImage(img, 0,        0,        SL,  ST,  0,           0,           ew,  eh);
+  c.drawImage(img, SL,       0,        SMH, ST,  ew,          0,           DW,  eh);
+  c.drawImage(img, SL+SMH,   0,        SR,  ST,  cv.width-ew, 0,           ew,  eh);
+  c.drawImage(img, 0,        ST,       SL,  SMV, 0,           eh,          ew,  DH);
+  c.drawImage(img, SL,       ST,       SMH, SMV, ew,          eh,          DW,  DH);
+  c.drawImage(img, SL+SMH,   ST,       SR,  SMV, cv.width-ew, eh,          ew,  DH);
+  c.drawImage(img, 0,        ST+SMV,   SL,  SB,  0,           cv.height-eh,ew,  eh);
+  c.drawImage(img, SL,       ST+SMV,   SMH, SB,  ew,          cv.height-eh,DW,  eh);
+  c.drawImage(img, SL+SMH,   ST+SMV,   SR,  SB,  cv.width-ew, cv.height-eh,ew,  eh);
+}
+
+// 渲染背包格子内容
 function renderBagSlots() {
   const slotsEl = document.getElementById('bag-slots');
   if (!slotsEl) return;
