@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.164</div>
+<div id="splash-version">版本号：v0.0.3.165</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1670,38 +1670,38 @@ const ITEM_DEF = {
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
   // ── 种子 ──
-  seed_potato: { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato', stackMax:20, desc:'春季种植，5天收获，售出价：25' },
-  seed_parsnip: { iconEl:()=>cropsIcon(0,8), name:'防风草种子', use:'tile', seedType:'parsnip', stackMax:20, desc:'春季种植，4天收获，售出价：10' },
-  seed_cauliflower: { iconEl:()=>cropsIcon(0,10), name:'花椰菜种子', use:'tile', seedType:'cauliflower', stackMax:20, desc:'春季种植，10天收获，售出价：40' },
-  seed_cabbage: { iconEl:()=>cropsIcon(0,9), name:'白菜种子', use:'tile', seedType:'cabbage', stackMax:20, desc:'春季种植，7天收获，售出价：25' },
-  seed_carrot: { iconEl:()=>cropsIcon(0,6), name:'胡萝卜种子', use:'tile', seedType:'carrot', stackMax:20, desc:'春季种植，5天收获，售出价：15' },
-  seed_onion: { iconEl:()=>cropsIcon(0,5), name:'洋葱种子', use:'tile', seedType:'onion', stackMax:20, desc:'春季种植，5天收获，售出价：15' },
-  seed_asparagus: { iconEl:()=>cropsIcon(0,13), name:'芦笋种子', use:'tile', seedType:'asparagus', stackMax:20, desc:'春季种植，4天收获，售出价：50' },
-  seed_rice: { iconEl:()=>cropsIcon(0,11), name:'大米种子', use:'tile', seedType:'rice', stackMax:20, desc:'春季种植，5天收获，售出价：20' },
-  seed_broccoli: { iconEl:()=>cropsIcon(0,12), name:'西兰花种子', use:'tile', seedType:'broccoli', stackMax:20, desc:'春季种植，8天收获，售出价：35' },
-  seed_strawberry: { iconEl:()=>cropsIcon(0,2), name:'草莓种子', use:'tile', seedType:'strawberry', stackMax:20, desc:'春季种植，7天收获，售出价：50' },
-  seed_blueberry: { iconEl:()=>cropsIcon(0,7), name:'蓝莓种子', use:'tile', seedType:'blueberry', stackMax:20, desc:'春季种植，12天收获，售出价：40' },
-  seed_springonion: { iconEl:()=>cropsIcon(0,3), name:'野葱种子', use:'tile', seedType:'springonion', stackMax:20, desc:'春季种植，5天收获，售出价：8' },
-  seed_tomato: { iconEl:()=>cropsIcon(9,4), name:'番茄种子', use:'tile', seedType:'tomato', stackMax:20, desc:'夏季种植，10天收获，售出价：25' },
-  seed_blackberry: { iconEl:()=>cropsIcon(9,16), name:'浆果种子', use:'tile', seedType:'blackberry', stackMax:20, desc:'夏季种植，12天收获，售出价：40' },
-  seed_watermelon: { iconEl:()=>cropsIcon(9,11), name:'西瓜种子', use:'tile', seedType:'watermelon', stackMax:20, desc:'夏季种植，11天收获，售出价：50' },
-  seed_melon: { iconEl:()=>cropsIcon(9,10), name:'甜瓜种子', use:'tile', seedType:'melon', stackMax:20, desc:'夏季种植，10天收获，售出价：40' },
-  seed_cucumber: { iconEl:()=>cropsIcon(9,12), name:'黄瓜种子', use:'tile', seedType:'cucumber', stackMax:20, desc:'夏季种植，9天收获，售出价：30' },
-  seed_sunflower: { iconEl:()=>cropsIcon(9,5), name:'向日葵种子', use:'tile', seedType:'sunflower', stackMax:20, desc:'夏季种植，7天收获，售出价：100' },
-  seed_hotpepper: { iconEl:()=>cropsIcon(9,6), name:'辣椒种子', use:'tile', seedType:'hotpepper', stackMax:20, desc:'夏季种植，6天收获，售出价：20' },
-  seed_bellpepper_g: { iconEl:()=>cropsIcon(9,7), name:'彩椒（绿）种子', use:'tile', seedType:'bellpepper_g', stackMax:20, desc:'夏季种植，5天收获，售出价：20' },
-  seed_bellpepper_y: { iconEl:()=>cropsIcon(9,9), name:'彩椒（黄）种子', use:'tile', seedType:'bellpepper_y', stackMax:20, desc:'夏季种植，5天收获，售出价：20' },
-  seed_bellpepper_r: { iconEl:()=>cropsIcon(9,8), name:'彩椒（红）种子', use:'tile', seedType:'bellpepper_r', stackMax:20, desc:'夏季种植，5天收获，售出价：20' },
-  seed_greenbeans: { iconEl:()=>cropsIcon(9,14), name:'豆角种子', use:'tile', seedType:'greenbeans', stackMax:20, desc:'夏季种植，9天收获，售出价：30' },
-  seed_adzukibean: { iconEl:()=>cropsIcon(9,15), name:'小豆种子', use:'tile', seedType:'adzukibean', stackMax:20, desc:'夏季种植，6天收获，售出价：20' },
-  seed_pineapple: { iconEl:()=>cropsIcon(9,13), name:'菠萝种子', use:'tile', seedType:'pineapple', stackMax:20, desc:'夏季种植，13天收获，售出价：100' },
-  seed_wheat: { iconEl:()=>cropsIcon(9,17), name:'小麦种子', use:'tile', seedType:'wheat', stackMax:20, desc:'夏季种植，5天收获，售出价：5' },
-  seed_corn: { iconEl:()=>cropsIcon(18,4), name:'玉米种子', use:'tile', seedType:'corn', stackMax:20, desc:'夏/秋季种植，13天收获，售出价：75' },
-  seed_pumpkin: { iconEl:()=>cropsIcon(18,2), name:'南瓜种子', use:'tile', seedType:'pumpkin', stackMax:20, desc:'秋季种植，12天收获，售出价：50' },
-  seed_eggplant: { iconEl:()=>cropsIcon(18,5), name:'茄子种子', use:'tile', seedType:'eggplant', stackMax:20, desc:'秋季种植，5天收获，售出价：10' },
-  seed_beetroot: { iconEl:()=>cropsIcon(18,1), name:'甜菜种子', use:'tile', seedType:'beetroot', stackMax:20, desc:'秋季种植，5天收获，售出价：10' },
-  seed_grapes: { iconEl:()=>cropsIcon(18,3), name:'葡萄种子', use:'tile', seedType:'grapes', stackMax:20, desc:'秋季种植，9天收获，售出价：30' },
-  seed_aloe: { iconEl:()=>cropsIcon(18,6), name:'芦荟种子', use:'tile', seedType:'aloe', stackMax:20, desc:'秋季种植，9天收获，售出价：20' },
+  seed_potato: { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato', stackMax:20, desc:'春季作物，6天收获，偶尔一穴多个，春季种植，5天收获，售出价：25' },
+  seed_parsnip: { iconEl:()=>cropsIcon(0,8), name:'防风草种子', use:'tile', seedType:'parsnip', stackMax:20, desc:'春季作物，5天收获，快速收获，春季种植，4天收获，售出价：10' },
+  seed_cauliflower: { iconEl:()=>cropsIcon(0,10), name:'花椰菜种子', use:'tile', seedType:'cauliflower', stackMax:20, desc:'春季作物，11天收获，最高价值蔬菜，春季种植，10天收获，售出价：40' },
+  seed_cabbage: { iconEl:()=>cropsIcon(0,9), name:'白菜种子', use:'tile', seedType:'cabbage', stackMax:20, desc:'春季作物，8天收获，常见蔬菜，产量稳定，春季种植，7天收获，售出价：25' },
+  seed_carrot: { iconEl:()=>cropsIcon(0,6), name:'胡萝卜种子', use:'tile', seedType:'carrot', stackMax:20, desc:'春季作物，6天收获，鲜甜可口，春季种植，5天收获，售出价：15' },
+  seed_onion: { iconEl:()=>cropsIcon(0,5), name:'洋葱种子', use:'tile', seedType:'onion', stackMax:20, desc:'春季作物，6天收获，鲜甜可口，春季种植，5天收获，售出价：15' },
+  seed_asparagus: { iconEl:()=>cropsIcon(0,13), name:'芦笋种子', use:'tile', seedType:'asparagus', stackMax:20, desc:'春季作物，5天收获，嫩芽可食，重复收割，春季种植，4天收获，售出价：50' },
+  seed_rice: { iconEl:()=>cropsIcon(0,11), name:'大米种子', use:'tile', seedType:'rice', stackMax:20, desc:'春季作物，6天收获，主食作物，产量高，春季种植，5天收获，售出价：20' },
+  seed_broccoli: { iconEl:()=>cropsIcon(0,12), name:'西兰花种子', use:'tile', seedType:'broccoli', stackMax:20, desc:'春季作物，9天收获，营养丰富，春季种植，8天收获，售出价：35' },
+  seed_strawberry: { iconEl:()=>cropsIcon(0,2), name:'草莓种子', use:'tile', seedType:'strawberry', stackMax:20, desc:'春季作物，8天收获，甜美浆果，重复结果，春季种植，7天收获，售出价：50' },
+  seed_blueberry: { iconEl:()=>cropsIcon(0,7), name:'蓝莓种子', use:'tile', seedType:'blueberry', stackMax:20, desc:'春季作物，13天收获，收获更多蓝莓，春季种植，12天收获，售出价：40' },
+  seed_springonion: { iconEl:()=>cropsIcon(0,3), name:'野葱种子', use:'tile', seedType:'springonion', stackMax:20, desc:'春季作物，6天收获，野外也能生长，春季种植，5天收获，售出价：8' },
+  seed_tomato: { iconEl:()=>cropsIcon(9,4), name:'番茄种子', use:'tile', seedType:'tomato', stackMax:20, desc:'夏季作物，11天收获，常见蔬菜，重复结果，夏季种植，10天收获，售出价：25' },
+  seed_blackberry: { iconEl:()=>cropsIcon(9,16), name:'浆果种子', use:'tile', seedType:'blackberry', stackMax:20, desc:'夏季作物，13天收获，也许有其他用途，夏季种植，12天收获，售出价：40' },
+  seed_watermelon: { iconEl:()=>cropsIcon(9,11), name:'西瓜种子', use:'tile', seedType:'watermelon', stackMax:20, desc:'夏季作物，12天收获，巨型水果，夏季最爱，夏季种植，11天收获，售出价：50' },
+  seed_melon: { iconEl:()=>cropsIcon(9,10), name:'甜瓜种子', use:'tile', seedType:'melon', stackMax:20, desc:'夏季作物，11天收获，香甜多汁，夏季种植，10天收获，售出价：40' },
+  seed_cucumber: { iconEl:()=>cropsIcon(9,12), name:'黄瓜种子', use:'tile', seedType:'cucumber', stackMax:20, desc:'夏季作物，10天收获，清爽蔬菜，重复收割，夏季种植，9天收获，售出价：30' },
+  seed_sunflower: { iconEl:()=>cropsIcon(9,5), name:'向日葵种子', use:'tile', seedType:'sunflower', stackMax:20, desc:'夏季作物，8天收获，可产出向日葵籽，夏季种植，7天收获，售出价：100' },
+  seed_hotpepper: { iconEl:()=>cropsIcon(9,6), name:'辣椒种子', use:'tile', seedType:'hotpepper', stackMax:20, desc:'夏季作物，7天收获，辛辣刺激，重复结果，夏季种植，6天收获，售出价：20' },
+  seed_bellpepper_g: { iconEl:()=>cropsIcon(9,7), name:'彩椒（绿）种子', use:'tile', seedType:'bellpepper_g', stackMax:20, desc:'夏季作物，6天收获，多色彩椒，夏季种植，5天收获，售出价：20' },
+  seed_bellpepper_y: { iconEl:()=>cropsIcon(9,9), name:'彩椒（黄）种子', use:'tile', seedType:'bellpepper_y', stackMax:20, desc:'夏季作物，6天收获，多色彩椒，夏季种植，5天收获，售出价：20' },
+  seed_bellpepper_r: { iconEl:()=>cropsIcon(9,8), name:'彩椒（红）种子', use:'tile', seedType:'bellpepper_r', stackMax:20, desc:'夏季作物，6天收获，多色彩椒，夏季种植，5天收获，售出价：20' },
+  seed_greenbeans: { iconEl:()=>cropsIcon(9,14), name:'豆角种子', use:'tile', seedType:'greenbeans', stackMax:20, desc:'夏季作物，10天收获，清爽蔬菜，重复收割，夏季种植，9天收获，售出价：30' },
+  seed_adzukibean: { iconEl:()=>cropsIcon(9,15), name:'小豆种子', use:'tile', seedType:'adzukibean', stackMax:20, desc:'夏季作物，7天收获，辛辣刺激，重复结果，夏季种植，6天收获，售出价：20' },
+  seed_pineapple: { iconEl:()=>cropsIcon(9,13), name:'菠萝种子', use:'tile', seedType:'pineapple', stackMax:20, desc:'夏季作物，14天收获，热带水果，重复结果，夏季种植，13天收获，售出价：100' },
+  seed_wheat: { iconEl:()=>cropsIcon(9,17), name:'小麦种子', use:'tile', seedType:'wheat', stackMax:20, desc:'夏季作物，6天收获，可酿造啤酒，夏季种植，5天收获，售出价：5' },
+  seed_corn: { iconEl:()=>cropsIcon(18,4), name:'玉米种子', use:'tile', seedType:'corn', stackMax:20, desc:'夏/秋季作物，14天收获，夏秋通用，跨季作物，夏/秋季种植，13天收获，售出价：75' },
+  seed_pumpkin: { iconEl:()=>cropsIcon(18,2), name:'南瓜种子', use:'tile', seedType:'pumpkin', stackMax:20, desc:'秋季作物，13天收获，万圣节代表蔬菜，秋季种植，12天收获，售出价：50' },
+  seed_eggplant: { iconEl:()=>cropsIcon(18,5), name:'茄子种子', use:'tile', seedType:'eggplant', stackMax:20, desc:'秋季作物，6天收获，紫色蔬菜，重复结果，秋季种植，5天收获，售出价：10' },
+  seed_beetroot: { iconEl:()=>cropsIcon(18,1), name:'甜菜种子', use:'tile', seedType:'beetroot', stackMax:20, desc:'秋季作物，6天收获，紫色蔬菜，重复结果，秋季种植，5天收获，售出价：10' },
+  seed_grapes: { iconEl:()=>cropsIcon(18,3), name:'葡萄种子', use:'tile', seedType:'grapes', stackMax:20, desc:'秋季作物，10天收获，可酿造葡萄酒，秋季种植，9天收获，售出价：30' },
+  seed_aloe: { iconEl:()=>cropsIcon(18,6), name:'芦荟种子', use:'tile', seedType:'aloe', stackMax:20, desc:'秋季作物，10天收获，药用植物，秋季种植，9天收获，售出价：20' },
   // 收获物品
   potato: { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:99, desc:'售出价：80' },
   parsnip: { iconEl:()=>cropsIcon(2,8), name:'防风草', use:'direct', stackMax:99, desc:'售出价：35' },
@@ -2167,18 +2167,20 @@ function drawPlayer(x, y) {
       const _cropSheetEntry = getImg(CROPS_SHEET);
       if (_hItem.iconEl && _cropSheetEntry && _cropSheetEntry.loaded) {
         // 图集类图标，直接画到 canvas
-        const _cropIconMap = {
-          seed_potato: [0, 4], potato: [2, 4],
-          seed_carrot: [0, 3], carrot: [2, 3],
-          seed_cabbage:[0, 5], cabbage:[2, 5],
-          seed_peach:  [0, 2], peach:  [2, 2],
-        };
-        const _pos = _cropIconMap[_id];
-        if (_pos) {
+        // 动态查坐标：种子用 ITEM_DEF[id].seedType→CROPS[seedType].seedCol/Row，收获物用 CROPS[id]
+        let _col = null, _row = null;
+        const _itemDef = ITEM_DEF[_id];
+        if (_itemDef?.seedType) {
+          const _cr = CROPS[_itemDef.seedType];
+          if (_cr) { _col = _cr.seedCol; _row = _cr.seedRow; }
+        } else if (CROPS[_id]) {
+          _col = CROPS[_id].seedCol + 2; _row = CROPS[_id].seedRow;
+        }
+        if (_col !== null) {
           const fw = 16;
           ctx.save();
           ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(_cropSheetEntry.img, _pos[0]*fw, _pos[1]*fw, fw, fw, iconX, iconY, iconSize, iconSize);
+          ctx.drawImage(_cropSheetEntry.img, _col*fw, _row*fw, fw, fw, iconX, iconY, iconSize, iconSize);
           ctx.restore();
         }
       } else if (_hItem.icon) {
@@ -2427,7 +2429,7 @@ function loop(ts){
               if (sowSeedType) {
                 const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
                 tileMap[r][c] = T.CROP;
-                cropMap[r][c] = {type:sowSeedType, daysGrown:0, watered:alreadyWatered, ready:false};
+                cropMap[r][c] = {type:sowSeedType, daysGrown:1, watered:alreadyWatered, ready:false};
               }
             } else if (action === 'harvest' || action === 'pickup') {
               const crop = cropMap[r] && cropMap[r][c];
@@ -2465,7 +2467,7 @@ function loop(ts){
                 }
                 // 重复收割 or 清除
                 if (cropCfg?.isRegrow) {
-                  cropMap[r][c] = { type:crop.type, daysGrown:0, watered:false, ready:false, regrowPhase:true };
+                  cropMap[r][c] = { type:crop.type, daysGrown:1, watered:false, ready:false, regrowPhase:true };
                 } else {
                   tileMap[r][c] = T.TILLED; cropMap[r][c] = null;
                 }
@@ -3871,7 +3873,7 @@ function updateSellGrid(){
 function updateTimeIcon() {
   const el = document.getElementById('time-icon-hud');
   if (!el) return;
-  const sz = dbgParams.hudSeasonIconSize || 24; // 时间图标大小与季节图标保持一致
+  const sz = 30; // 时间图标固定30px，不随季节图标调试器变化
   const fw = 16;
   const col = 9; // 第三排最右第一个
   const row = 2;
@@ -3896,7 +3898,7 @@ function updateSeasonIcon() {
   const totalH = 48  * ratio; // 图集实际高48px
   const bsx = col * fw * ratio;
   const bsy = row * fw * ratio;
-  el.style.cssText = `background:url('assets/images/ui/icon/weather icons.png') no-repeat -${bsx}px -${bsy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle; position:relative; left:${dx}px;`;
+  el.style.cssText = `background:url('assets/images/ui/icon/weather icons.png') no-repeat -${bsx}px -${bsy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle; position:relative; left:${dx}px; top:2px;`;
 }
 
 function formatCoins(n) {
@@ -4305,7 +4307,8 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   document.getElementById('trade-price-icon').innerHTML = `<span style="${coinIconStyle(unitPrice, dbgParams.tradeCoinSize)}position:relative;left:${dbgParams.tradeCoinDX||0}px;top:${dbgParams.tradeCoinDY||0}px;"></span>`;
   document.getElementById('trade-price-val').textContent = unitPrice;
   const isBag = ITEM_DEF[itemId]?.bagImg !== undefined;
-  const maxQty = (STACKABLE[itemId] && !isBag) ? 99 : 1;
+  const isSeed = !!ITEM_DEF[itemId]?.seedType;
+  const maxQty = isBag ? 1 : isSeed ? 20 : (STACKABLE[itemId] ? 99 : 1);
   const slider = document.getElementById('trade-qty-slider');
   const qtyRow = document.getElementById('trade-qty-row');
   const totalRow = document.getElementById('trade-qty-total');
@@ -4359,10 +4362,21 @@ function confirmTrade() {
       const def = ITEM_DEF[_tradeId];
       if (def?.seedType) {
         seedCount[def.seedType] = (seedCount[def.seedType]||0) + qty;
-        // 如果hotbar里没有该种子，找空位放入
+        // 如果hotbar没有该种子：先找空位放入工具栏，工具栏满则放背包
         if (hotbar.indexOf(_tradeId) < 0) {
           const ei = hotbar.indexOf(null);
-          if (ei >= 0) hotbar[ei] = _tradeId;
+          if (ei >= 0) {
+            hotbar[ei] = _tradeId;
+          } else {
+            // 工具栏满，放背包
+            const mainSlots2 = getTotalBagSlots();
+            let placedBag = false;
+            for (let i = 0; i < mainSlots2; i++) {
+              if (!bagItems[i]) { bagItems[i] = { id:_tradeId, count: seedCount[def.seedType] }; placedBag = true; break; }
+              if (bagItems[i].id === _tradeId) { bagItems[i].count = seedCount[def.seedType]; placedBag = true; break; }
+            }
+            if (!placedBag) showToast('工具栏和背包都满了！');
+          }
         }
       } else if (def?.stackMax) {
         harvestBag[_tradeId] = (harvestBag[_tradeId]||0) + qty;
