@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.174</div>
+<div id="splash-version">版本号：v0.0.3.175</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1496,7 +1496,7 @@ const CROPS = {
     seedBuy:60, seedSell:30, cropSell:80,
     cropSell1:100, cropSell2:120,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', frameH:16, sy16:true, desc:'夏季作物，10天收获，清爽蔬菜，重复收割' },
+    harvestTool:'manual', frameH:32, desc:'夏季作物，10天收获，清爽蔬菜，重复收割' },
   sunflower: { name:'向日葵', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Sunflower.png',
     seedCol:9, seedRow:5, days:8, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 3, "6": 4, "7": 4}, isRegrow:false, regrowDays:0,
@@ -1560,7 +1560,7 @@ const CROPS = {
     seedBuy:200, seedSell:100, cropSell:300,
     cropSell1:375, cropSell2:450,
     seedDropRate:0.05, extraMax:1,
-    harvestTool:'manual', frameH:16, sy16:true, desc:'夏季作物，14天收获，热带水果，重复结果' },
+    harvestTool:'manual', frameH:32, desc:'夏季作物，14天收获，热带水果，重复结果' },
   wheat: { name:'小麦', season:'夏季', imgPath:'assets/images/Crops/Summer/Crops_Summer_Wheat.png',
     seedCol:9, seedRow:17, days:6, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 2, "4": 3, "5": 4}, isRegrow:false, regrowDays:0,
@@ -1608,7 +1608,7 @@ const CROPS = {
     seedBuy:60, seedSell:30, cropSell:80,
     cropSell1:100, cropSell2:120,
     seedDropRate:0.05, extraMax:2,
-    harvestTool:'manual', frameH:16, sy16:true, desc:'秋季作物，10天收获，可酿造葡萄酒' },
+    harvestTool:'manual', frameH:32, desc:'秋季作物，10天收获，可酿造葡萄酒' },
   aloe: { name:'芦荟', season:'秋季', imgPath:'assets/images/Crops/Fall/Crops_Fall_Aloe.png',
     seedCol:18, seedRow:6, days:10, harvestFrame:5,
     dayMap:{"1": 0, "2": 1, "3": 1, "4": 2, "5": 2, "6": 3, "7": 3, "8": 4, "9": 4}, isRegrow:false, regrowDays:0,
@@ -2818,6 +2818,12 @@ function nextDay(){
     }
     // 无作物格的独立浇水状态也重置
     if(wateredMap[r]) wateredMap[r][c]=false;
+  }
+  // 空耕地随机恢复（参考星露谷：空耕地每天有概率变回未开垦）
+  for(let r=0;r<MAP_ROWS;r++) for(let c=0;c<MAP_COLS;c++){
+    if(tileMap[r][c] === T.TILLED && !cropMap[r]?.[c]) {
+      if(Math.random() < 0.3) tileMap[r][c] = T.GRASS; // 30%概率恢复
+    }
   }
   updateHUD(); showToast(`🌙 第${day}天开始了`);
 }
