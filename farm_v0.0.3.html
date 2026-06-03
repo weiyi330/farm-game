@@ -162,7 +162,7 @@ canvas { display:block; }
   padding:10px 14px;
   pointer-events:none; z-index:10;
 }
-.hud-left { display:flex; flex-direction:row; align-items:center; gap:20px; }
+.hud-left { display:flex; flex-direction:row; align-items:center; gap:var(--hud-bar-gap, 20px); }
 /* HUD金币栏 */
 .hud-coin-area {
   display:flex; align-items:center;
@@ -648,7 +648,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.146</div>
+<div id="splash-version">版本号：v0.0.3.147</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -676,6 +676,7 @@ canvas { display:block; }
         <div class="hud-coin-outer" id="hud-day-outer">
           <div class="hud-day" id="hud-day-wrap">
             <span id="seasonVal">春季</span> 第<span id="dayVal">1</span>天
+            <span id="time-icon-hud" style="display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;"></span>
           </div>
         </div>
       </div>
@@ -709,18 +710,11 @@ canvas { display:block; }
         onchange="applyDbg('hudCoinIconX',this.value)">
     </div>
     <div class="dbg-row">
-      <span class="dbg-label">底板左右</span>
-      <input class="dbg-slider" type="range" min="-30" max="30" value="0"
-        oninput="applyDbg('hudCoinBoardX',this.value)" onchange="applyDbg('hudCoinBoardX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinBoardX" value="0"
-        onchange="applyDbg('hudCoinBoardX',this.value)">
-    </div>
-    <div class="dbg-row">
-      <span class="dbg-label">底板缩短(px)</span>
-      <input class="dbg-slider" type="range" min="0" max="30" value="5"
-        oninput="applyDbg('hudCoinBoardShrink',this.value)" onchange="applyDbg('hudCoinBoardShrink',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinBoardShrink" value="5"
-        onchange="applyDbg('hudCoinBoardShrink',this.value)">
+      <span class="dbg-label">底板宽度</span>
+      <input class="dbg-slider" type="range" min="40" max="200" value="80"
+        oninput="applyDbg('hudCoinBoardW',this.value)" onchange="applyDbg('hudCoinBoardW',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudCoinBoardW" value="80"
+        onchange="applyDbg('hudCoinBoardW',this.value)">
     </div>
     <div class="dbg-group-title">☀️ 时间栏</div>
     <div class="dbg-row">
@@ -738,18 +732,18 @@ canvas { display:block; }
         onchange="applyDbg('hudSeasonIconX',this.value)">
     </div>
     <div class="dbg-row">
-      <span class="dbg-label">底板左右</span>
-      <input class="dbg-slider" type="range" min="-30" max="30" value="0"
-        oninput="applyDbg('hudDayBoardX',this.value)" onchange="applyDbg('hudDayBoardX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudDayBoardX" value="0"
-        onchange="applyDbg('hudDayBoardX',this.value)">
+      <span class="dbg-label">底板宽度</span>
+      <input class="dbg-slider" type="range" min="40" max="200" value="100"
+        oninput="applyDbg('hudDayBoardW',this.value)" onchange="applyDbg('hudDayBoardW',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudDayBoardW" value="100"
+        onchange="applyDbg('hudDayBoardW',this.value)">
     </div>
     <div class="dbg-row">
-      <span class="dbg-label">底板缩短(px)</span>
-      <input class="dbg-slider" type="range" min="0" max="30" value="5"
-        oninput="applyDbg('hudDayBoardShrink',this.value)" onchange="applyDbg('hudDayBoardShrink',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudDayBoardShrink" value="5"
-        onchange="applyDbg('hudDayBoardShrink',this.value)">
+      <span class="dbg-label">两栏间距</span>
+      <input class="dbg-slider" type="range" min="0" max="60" value="20"
+        oninput="applyDbg('hudBarGap',this.value)" onchange="applyDbg('hudBarGap',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudBarGap" value="20"
+        onchange="applyDbg('hudBarGap',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
     <div id="dbg-export-out" style="font-size:9px;color:#aaa;word-break:break-all;display:none;"></div>
@@ -2804,9 +2798,10 @@ const dbgParams = {
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
   hudCoinIconX: 0, hudCoinIconSize: 18,
-  hudCoinBoardX: 0, hudCoinBoardShrink: 5,
+  hudCoinBoardW: 80,
   hudSeasonIconSize: 24, hudSeasonIconX: 0,
-  hudDayBoardX: 0, hudDayBoardShrink: 5,
+  hudDayBoardW: 100,
+  hudBarGap: 20,
 };
 
 function initDebugIcon() {
@@ -2946,29 +2941,26 @@ function applyDbg(key, val) {
     if (wrap) wrap.style.left = (dbgParams.hudCoinIconX || 0) + 'px';
     if (icon) {
       const sz = dbgParams.hudCoinIconSize || 18;
-      icon.style.width = sz + 'px'; icon.style.height = sz + 'px';
+      const fw = 18; // common_HUD 每格18px
+      const ratio = sz / fw;
+      const totalW = 468 * ratio, totalH = 108 * ratio;
+      const sx = 9 * fw * ratio, sy = 5 * fw * ratio; // row=5,col=9
+      icon.style.cssText = `background:url('assets/images/ui/common/common_HUD.png') no-repeat -${sx}px -${sy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;`;
     }
   }
-  if (key === 'hudCoinBoardX' || key === 'hudCoinBoardShrink') {
-    const outer = document.getElementById('hud-coin-outer');
-    if (outer) {
-      const shrink = dbgParams.hudCoinBoardShrink || 0;
-      outer.style.margin = shrink + 'px';
-      outer.style.position = 'relative';
-      outer.style.left = (dbgParams.hudCoinBoardX || 0) + 'px';
-    }
+  if (key === 'hudCoinBoardW') {
+    const inner = document.getElementById('hud-coin-wrap');
+    if (inner) inner.style.minWidth = (dbgParams.hudCoinBoardW || 80) + 'px';
   }
   if (key === 'hudSeasonIconSize' || key === 'hudSeasonIconX') {
     updateSeasonIcon();
   }
-  if (key === 'hudDayBoardX' || key === 'hudDayBoardShrink') {
-    const outer = document.getElementById('hud-day-outer');
-    if (outer) {
-      const shrink = dbgParams.hudDayBoardShrink || 0;
-      outer.style.margin = shrink + 'px';
-      outer.style.position = 'relative';
-      outer.style.left = (dbgParams.hudDayBoardX || 0) + 'px';
-    }
+  if (key === 'hudDayBoardW') {
+    const inner = document.getElementById('hud-day-wrap');
+    if (inner) inner.style.minWidth = (dbgParams.hudDayBoardW || 100) + 'px';
+  }
+  if (key === 'hudBarGap') {
+    document.documentElement.style.setProperty('--hud-bar-gap', (dbgParams.hudBarGap || 20) + 'px');
   }
   if (key === 'tradeCoinSize' || key === 'tradeCoinDX' || key === 'tradeCoinDY') {
     const modal = document.getElementById('trade-modal');
@@ -2991,16 +2983,16 @@ function exportDbgValues() {
   if (!out) return;
   const lines = [
     '=== 🪙 金币栏 ===',
-    'hudCoinIconSize:    ' + dbgParams.hudCoinIconSize,
-    'hudCoinIconX:       ' + dbgParams.hudCoinIconX,
-    'hudCoinBoardX:      ' + dbgParams.hudCoinBoardX,
-    'hudCoinBoardShrink: ' + dbgParams.hudCoinBoardShrink,
+    'hudCoinIconSize: ' + dbgParams.hudCoinIconSize,
+    'hudCoinIconX:    ' + dbgParams.hudCoinIconX,
+    'hudCoinBoardW:   ' + dbgParams.hudCoinBoardW,
     '',
     '=== ☀️ 时间栏 ===',
-    'hudSeasonIconSize:  ' + dbgParams.hudSeasonIconSize,
-    'hudSeasonIconX:     ' + dbgParams.hudSeasonIconX,
-    'hudDayBoardX:       ' + dbgParams.hudDayBoardX,
-    'hudDayBoardShrink:  ' + dbgParams.hudDayBoardShrink,
+    'hudSeasonIconSize: ' + dbgParams.hudSeasonIconSize,
+    'hudSeasonIconX:    ' + dbgParams.hudSeasonIconX,
+    'hudDayBoardW:      ' + dbgParams.hudDayBoardW,
+    '',
+    'hudBarGap: ' + dbgParams.hudBarGap,
   ].join('\n');
   out.textContent = lines;
   out.style.display = 'block';
@@ -3202,6 +3194,21 @@ function updateSellGrid(){
   </div>`).join('');
 }
 
+function updateTimeIcon() {
+  const el = document.getElementById('time-icon-hud');
+  if (!el) return;
+  const sz = dbgParams.hudSeasonIconSize || 24; // 暴诉一用季节图标大小
+  const fw = 16;
+  const col = 9; // 第三排最右第一个
+  const row = 2;
+  const ratio = sz / fw;
+  const totalW = 160 * ratio;
+  const totalH = 48  * ratio;
+  const bsx = col * fw * ratio;
+  const bsy = row * fw * ratio;
+  el.style.cssText = `background:url('assets/images/ui/icon/weather icons.png') no-repeat -${bsx}px -${bsy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;`;
+}
+
 function updateSeasonIcon() {
   const el = document.getElementById('season-icon-hud');
   if (!el) return;
@@ -3223,6 +3230,7 @@ function updateHUD(){
   document.getElementById('dayVal').textContent=day;
   document.getElementById('seasonVal').textContent=SEASONS[seasonIdx];
   updateSeasonIcon();
+  updateTimeIcon();
 }
 
 let toastT=null;
@@ -3383,6 +3391,7 @@ document.getElementById('splash-btn').addEventListener('click', () => {
     document.getElementById('game-wrap').style.visibility = 'visible';
     resize();
     updateSeasonIcon();
+    updateTimeIcon();
   }, 400);
 });
 
