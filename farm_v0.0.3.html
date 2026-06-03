@@ -652,7 +652,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.152</div>
+<div id="splash-version">版本号：v0.0.3.153</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3058,6 +3058,12 @@ function exportDbgValues() {
 }
 
 window.addEventListener('load', () => { setTimeout(initDebugIcon, 300); });
+window.addEventListener('load', () => { setTimeout(() => {
+  // 初始化时主动应用所有 HUD 参数
+  ['hudCoinIconSize','hudCoinIconX','hudCoinBoardW','hudCoinBoardH','hudCoinContentX',
+   'hudSeasonIconSize','hudSeasonIconX','hudDayBoardW','hudDayBoardH','hudDayContentX',
+   'hudBarGap'].forEach(k => applyDbg(k, dbgParams[k]));
+}, 400); });
 
 
 function refreshShopItemStates() {
