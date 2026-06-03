@@ -636,6 +636,66 @@ canvas { display:block; }
 </head>
 <body>
 
+/* ── 存档面板 ── */
+#save-overlay {
+  position:absolute; inset:0; z-index:50;
+  display:none; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.6);
+}
+.save-panel {
+  background:#ffd2a1;
+  border:3px solid #4a2123;
+  padding:0;
+  min-width:300px; max-width:360px; width:90%;
+  display:flex; flex-direction:column;
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+}
+.save-panel-title {
+  background:#e8a050;
+  border-bottom:2px solid #4a2123;
+  padding:10px 16px;
+  font-size:15px; font-weight:bold;
+  color:#3a1a08; letter-spacing:2px; text-align:center;
+}
+.save-slot-list {
+  display:flex; flex-direction:column; gap:0;
+  padding:12px 14px; gap:8px;
+}
+.save-slot {
+  display:flex; align-items:center; gap:10px;
+  background:#ffe8c8;
+  border:2px solid #c8843a;
+  padding:10px 14px;
+  cursor:pointer;
+  transition:background 0.1s;
+}
+.save-slot:active { background:#ffcf90; }
+.save-slot-icon { font-size:28px; flex-shrink:0; }
+.save-slot-info { flex:1; }
+.save-slot-name { font-size:13px; color:#3a1a08; font-weight:bold; }
+.save-slot-detail { font-size:11px; color:#886640; margin-top:2px; }
+.save-slot-empty .save-slot-name { color:#b09060; }
+.save-slot-btns { display:flex; flex-direction:column; gap:4px; flex-shrink:0; }
+.save-slot-btn {
+  padding:4px 10px; border:none; font-size:11px; cursor:pointer;
+  font-family:inherit; letter-spacing:1px; color:#3a1a08;
+  background:#ffb86b; border:1px solid #c8843a;
+}
+.save-slot-btn:active { background:#ff9f3a; }
+.save-slot-btn.del { background:#e07060; color:#fff; border-color:#a03020; }
+.save-slot-btn.del:active { background:#c05040; }
+.save-panel-close-row {
+  padding:10px 14px 12px;
+  display:flex; justify-content:center;
+  border-top:2px solid #c8843a;
+}
+.save-panel-close {
+  padding:7px 32px; border:none; font-size:13px; cursor:pointer;
+  font-family:inherit; letter-spacing:2px; color:#3a1a08;
+  background:#ffb86b; border:1px solid #c8843a;
+}
+.save-panel-close:active { background:#ff9f3a; }
+</style>
 <!-- ── 竖屏引导页 ── -->
 <div id="guide-screen">
   <div id="guide-title">桃源拾光</div>
@@ -651,13 +711,13 @@ canvas { display:block; }
   <img id="splash-title" src="assets/images/ui/home/ui_home_title.webp" alt="桃源拾光">
   <div id="splash-inner">
     <div id="splash-btn" class="splash-menu-btn" style="margin-top:-10px;"><canvas class="btn-bg"></canvas><span class="btn-label">登录游戏</span></div>
-    <div class="splash-menu-btn" style="pointer-events:none; margin-top:-33px;"><canvas class="btn-bg"></canvas></div>
+    <div id="load-btn" class="splash-menu-btn" style="margin-top:-33px;"><canvas class="btn-bg"></canvas><span class="btn-label">载入存档</span></div>
     <div id="quit-btn" class="splash-menu-btn" style="margin-top:-33px;"><canvas class="btn-bg"></canvas><span class="btn-label">退出游戏</span></div>
   </div>
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.177</div>
+<div id="splash-version">版本号：v0.0.3.178</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -691,6 +751,10 @@ canvas { display:block; }
       </div>
     </div>
     <div class="hud-right">
+      <button id="save-quick-btn" onclick="openSavePanel()" style="
+        background:#ffb86b; border:1px solid #c8843a; padding:4px 10px;
+        font-size:11px; color:#3a1a08; cursor:pointer; font-family:inherit;
+        margin-right:6px; letter-spacing:1px;">💾 存档</button>
       <div id="bag-btn" onclick="toggleBag()">
         <canvas id="bag-btn-canvas" width="48" height="48" style="image-rendering:pixelated;"></canvas>
       </div>
@@ -846,6 +910,19 @@ canvas { display:block; }
         <div class="bag-slot-extra locked" id="bag-extra-4"><canvas></canvas></div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ── 存档面板 ── -->
+  <div id="save-overlay">
+    <div class="save-panel">
+      <div class="save-panel-title">📁 存档</div>
+      <div class="save-slot-list" id="save-slot-list">
+        <!-- 动态生成 -->
+      </div>
+      <div class="save-panel-close-row">
+        <button class="save-panel-close" onclick="closeSavePanel()">关 闭</button>
+      </div>
     </div>
   </div>
 
@@ -2827,6 +2904,103 @@ function nextDay(){
 
 
 // ============================================================
+// 存档系统
+// ============================================================
+const SAVE_SLOTS = 3;
+const SAVE_KEY_PREFIX = 'taoyuan_save_';
+
+function getSaveData(slot) {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY_PREFIX + slot)); }
+  catch(e){ return null; }
+}
+
+function buildSavePayload() {
+  return {
+    version: '0.0.3',
+    savedAt: Date.now(),
+    day, seasonIdx, coins,
+    tileMap: tileMap.map(r=>[...r]),
+    cropMap: cropMap.map(r => r ? r.map(c => c ? {...c} : null) : null),
+    hotbar: hotbar.map(v => v ? {...v} : null),
+    bagItems: bagItems.map(v => v ? {...v} : null),
+    seedCount: {...seedCount},
+    player: { wx: player.wx, wy: player.wy, dir: player.dir },
+  };
+}
+
+function writeSave(slot) {
+  localStorage.setItem(SAVE_KEY_PREFIX + slot, JSON.stringify(buildSavePayload()));
+}
+
+function loadSaveSlot(slot) {
+  const d = getSaveData(slot);
+  if (!d) { showToast('该存档为空'); return; }
+  day = d.day ?? 1;
+  seasonIdx = d.seasonIdx ?? 0;
+  coins = d.coins ?? 0;
+  tileMap = d.tileMap.map(r=>[...r]);
+  cropMap = d.cropMap.map(r => r ? r.map(c => c ? {...c} : null) : null);
+  hotbar = d.hotbar.map(v => v ? {...v} : null);
+  bagItems = d.bagItems.map(v => v ? {...v} : null);
+  seedCount = {...d.seedCount};
+  if (d.player) { player.wx = d.player.wx; player.wy = d.player.wy; player.dir = d.player.dir || 'down'; }
+  updateHUD(); renderHotbar(); renderBag();
+  closeSavePanel();
+  showToast('📂 读取存档成功！');
+}
+
+function deleteSave(slot) {
+  localStorage.removeItem(SAVE_KEY_PREFIX + slot);
+  renderSavePanel();
+}
+
+function renderSavePanel() {
+  const list = document.getElementById('save-slot-list');
+  list.innerHTML = '';
+  for (let i = 0; i < SAVE_SLOTS; i++) {
+    const d = getSaveData(i);
+    const div = document.createElement('div');
+    div.className = 'save-slot' + (d ? '' : ' save-slot-empty');
+    if (d) {
+      const date = new Date(d.savedAt);
+      const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+      const seasons = ['春','夏','秋','冬'];
+      div.innerHTML = `
+        <div class="save-slot-icon">🌾</div>
+        <div class="save-slot-info">
+          <div class="save-slot-name">存档 ${i+1}</div>
+          <div class="save-slot-detail">${seasons[d.seasonIdx??0]}季 第${d.day}天 · ${timeStr}</div>
+        </div>
+        <div class="save-slot-btns">
+          <button class="save-slot-btn" onclick="loadSaveSlot(${i})">读取</button>
+          <button class="save-slot-btn" onclick="writeSave(${i});renderSavePanel();showToast('✅ 存档${i+1}已保存')">覆盖</button>
+          <button class="save-slot-btn del" onclick="deleteSave(${i})">删除</button>
+        </div>`;
+    } else {
+      div.innerHTML = `
+        <div class="save-slot-icon">📭</div>
+        <div class="save-slot-info">
+          <div class="save-slot-name">存档 ${i+1} · 空</div>
+          <div class="save-slot-detail">暂无存档</div>
+        </div>
+        <div class="save-slot-btns">
+          <button class="save-slot-btn" onclick="writeSave(${i});renderSavePanel();showToast('✅ 存档${i+1}已保存')">保存</button>
+        </div>`;
+    }
+    list.appendChild(div);
+  }
+}
+
+function openSavePanel() {
+  renderSavePanel();
+  document.getElementById('save-overlay').style.display = 'flex';
+}
+
+function closeSavePanel() {
+  document.getElementById('save-overlay').style.display = 'none';
+}
+
+// ============================================================
 // 背包系统
 // ============================================================
 // bagItems: [0-7]=4×2基础格(8格), [9-13]=扩展格(5格)
@@ -4057,6 +4231,7 @@ function layoutSplash() {
     if (cv) drawNinePatch(cv, btnBgW, btnBgH);
   });
   splashBtn.style.fontSize = fontSize + 'px';
+  document.getElementById('load-btn').style.fontSize = fontSize + 'px';
   document.getElementById('quit-btn').style.fontSize = fontSize + 'px';
   splashInner.style.left      = '50%';
   splashInner.style.top       = '50%';
@@ -4080,6 +4255,18 @@ guideScreen.addEventListener('click', async () => {
     splashScreen.style.display = 'flex';
     layoutSplash();
   }, 300);
+});
+
+// 载入存档按钮
+document.getElementById('load-btn').addEventListener('click', () => {
+  // 先进游戏再打开存档面板
+  splashScreen.style.transition = 'opacity 0.6s';
+  splashScreen.style.opacity = '0';
+  setTimeout(() => {
+    splashScreen.style.display = 'none';
+    document.getElementById('game-wrap').style.display = 'block';
+    openSavePanel();
+  }, 600);
 });
 
 // 登录按钮：淡出进游戏
