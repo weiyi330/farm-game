@@ -652,7 +652,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.151</div>
+<div id="splash-version">版本号：v0.0.3.152</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3302,8 +3302,15 @@ function updateSeasonIcon() {
   el.style.cssText = `background:url('assets/images/ui/icon/weather icons.png') no-repeat -${bsx}px -${bsy}px / ${totalW}px ${totalH}px; width:${sz}px; height:${sz}px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle; position:relative; left:${dx}px;`;
 }
 
+function formatCoins(n) {
+  if (n >= 1e12) return (n / 1e12).toFixed(n % 1e12 === 0 ? 0 : 1).replace(/\.0$/,'') + 'T';
+  if (n >= 1e9)  return (n / 1e9 ).toFixed(n % 1e9  === 0 ? 0 : 1).replace(/\.0$/,'') + 'B';
+  if (n >= 1e6)  return (n / 1e6 ).toFixed(n % 1e6  === 0 ? 0 : 1).replace(/\.0$/,'') + 'M';
+  return n.toString();
+}
+
 function updateHUD(){
-  document.getElementById('coinVal').textContent=coins;
+  document.getElementById('coinVal').textContent=formatCoins(coins);
   document.getElementById('dayVal').textContent=day;
   document.getElementById('seasonVal').textContent=SEASONS[seasonIdx];
   updateSeasonIcon();
