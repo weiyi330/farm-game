@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.172</div>
+<div id="splash-version">版本号：v0.0.3.173</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2560,14 +2560,13 @@ function doAction(){
     if(type===T.GRASS||type===T.PATH||type===T.SOIL){
       startActionAnim(ANIM_HOE, r, c);
     } else if(type===T.TILLED){
-      // 已翻土：若有作物则清除
       if(cropMap[r][c]){ cropMap[r][c]=null; tileMap[r][c]=T.TILLED; showToast('清除了作物'); }
       else showToast('已翻过土啦～');
     }
     else showToast('这里不能翻土');
     return;
   }
-  else if(item.seedType){
+  else if(item?.seedType){
     const seedType = item.seedType;
     if(type!==T.TILLED){ showToast('请先锄地再播种'); return; }
     if(!(seedCount[seedType]>0)){ showToast(`没有${CROPS[seedType].name}种子了！`); return; }
