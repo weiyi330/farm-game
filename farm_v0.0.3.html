@@ -582,13 +582,26 @@ canvas { display:block; }
 .trade-price { font-size:12px; color:#3a1a08; }
 .trade-qty-row { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
 /* 滑动条颜色 */
-.trade-qty-row input[type=range] { width:100%; accent-color:#8d5d4c; }
+.trade-qty-row input[type=range] {
+  width:100%; accent-color:#ffb86b;
+  -webkit-appearance:none; appearance:none;
+  height:6px; background:#d4a060; border-radius:0; border:none; outline:none;
+}
+.trade-qty-row input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:14px; height:14px; border-radius:0;
+  background:#ffb86b; border:none; cursor:pointer;
+}
+.trade-qty-row input[type=range]::-moz-range-thumb {
+  width:14px; height:14px; border-radius:0;
+  background:#ffb86b; border:none; cursor:pointer;
+}
 .trade-qty-label { font-size:12px; color:#4a2123; text-align:center; }
 .trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; }
 .trade-btns { display:flex; gap:12px; margin-top:4px; }
 .trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
-.trade-btn.confirm { background:#ae4924; color:#000; font-weight:bold; }
-.trade-btn.cancel  { background:#8d5d4c; color:#000; border:none; }
+.trade-btn.confirm { background:#ffb86b; color:#000; font-weight:bold; }
+.trade-btn.cancel  { background:#ffb86b; color:#000; border:none; }
 /* 道具说明弹窗 */
 #item-tooltip {
   position:absolute; z-index:60;
@@ -625,7 +638,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.139</div>
+<div id="splash-version">版本号：v0.0.3.140</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
