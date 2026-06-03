@@ -165,9 +165,9 @@ canvas { display:block; }
 .hud-left { display:flex; flex-direction:column; gap:4px; }
 .hud-coin {
   display:flex; align-items:center; gap:5px;
-  background:rgba(40,25,8,0.7); border:1px solid #c8922a;
-  border-radius:16px; padding:4px 12px;
-  font-size:14px; color:#f5d78e;
+  background:#ffd2a1; border:3px solid #4a2123;
+  border-radius:4px; padding:3px 12px;
+  font-size:14px; color:#3a1a08;
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
@@ -561,11 +561,11 @@ canvas { display:block; }
 }
 .trade-title { font-size:15px; color:#f5d78e; letter-spacing:1px; text-align:center; }
 .trade-item-name { font-size:18px; color:#fff; font-weight:bold; }
-.trade-price { font-size:13px; color:#aaa; }
+.trade-price { font-size:13px; color:#3a1a08; display:inline-block; background:#ffd2a1; border:3px solid #4a2123; border-radius:4px; padding:2px 12px; }
 .trade-qty-row { display:flex; align-items:center; gap:8px; width:100%; }
 .trade-qty-row input[type=range] { flex:1; accent-color:#c8a040; }
 .trade-qty-label { font-size:14px; color:#f5d78e; min-width:32px; text-align:right; }
-.trade-qty-total { font-size:12px; color:#aaa; text-align:center; }
+.trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; display:inline-block; background:#ffd2a1; border:3px solid #4a2123; border-radius:4px; padding:2px 12px; }
 .trade-btns { display:flex; gap:12px; margin-top:4px; }
 .trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:14px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
 .trade-btn.confirm { background:#c8a040; color:#1a0e04; font-weight:bold; }
@@ -579,7 +579,7 @@ canvas { display:block; }
   max-width:200px; pointer-events:none;
   display:none;
 }
-.tooltip-name { font-size:15px; color:#3a2a10; font-weight:bold; margin-bottom:4px; }
+.tooltip-name { font-size:15px; color:#ffe0bf; font-weight:bold; margin-bottom:4px; }
 .tooltip-desc { font-size:12px; color:#5a4a30; line-height:1.5; }
 </style>
 </head>
@@ -606,7 +606,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.133</div>
+<div id="splash-version">版本号：v0.0.3.134</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
