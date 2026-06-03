@@ -194,12 +194,14 @@ canvas { display:block; }
   padding:2px 10px;
   font-size:14px; color:#3a1a08;
   clip-path: none;
+  width: max-content;
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
   background: transparent;
   padding:2px 10px;
   font-size:13px; color:#3a1a08;
+  width: max-content;
 }
 
 /* 底部UI */
@@ -653,7 +655,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.155</div>
+<div id="splash-version">版本号：v0.0.3.156</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3322,11 +3324,6 @@ function updateHUD(){
   document.getElementById('seasonVal').textContent=SEASONS[seasonIdx];
   updateSeasonIcon();
   updateTimeIcon();
-  // 底板宽度跟随内容动态变化
-  const coinWrap = document.getElementById('hud-coin-wrap');
-  const dayWrap  = document.getElementById('hud-day-wrap');
-  if (coinWrap) { coinWrap.style.minWidth = ''; coinWrap.style.width = 'max-content'; }
-  if (dayWrap)  { dayWrap.style.minWidth  = ''; dayWrap.style.width  = 'max-content'; }
 }
 
 let toastT=null;
@@ -3486,8 +3483,7 @@ document.getElementById('splash-btn').addEventListener('click', () => {
     document.getElementById('splash-version').style.display = 'none';
     document.getElementById('game-wrap').style.visibility = 'visible';
     resize();
-    updateSeasonIcon();
-    updateTimeIcon();
+    updateHUD();
   }, 400);
 });
 
