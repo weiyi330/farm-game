@@ -587,7 +587,11 @@ canvas { display:block; }
   align-items:center;
   box-shadow:0 4px 20px rgba(0,0,0,0.6);
 }
-.trade-title { font-size:18px; font-weight:bold; color:#4a2123; letter-spacing:1px; text-align:center; }
+.sitem-wrap.sold-out .sitem { filter:grayscale(1) opacity(0.5); }
+.sitem-wrap.sold-out .sitem-price { display:none; }
+.sitem-wrap.sold-out .sitem-soldout { display:block; }
+.sitem-soldout { display:none; font-size:10px; color:#a05020; font-weight:bold; text-align:center; margin-top:2px; }
+.trade-item-desc { font-size:11px; color:#886640; text-align:center; margin:2px 0 4px; line-height:1.4; }
 .trade-item-name { font-size:12px; color:#3a1a08; font-weight:bold; }
 .trade-price { font-size:12px; color:#3a1a08; }
 .trade-qty-row { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
@@ -648,7 +652,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.149</div>
+<div id="splash-version">版本号：v0.0.3.150</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -797,6 +801,7 @@ canvas { display:block; }
     <div class="trade-box">
       <div class="trade-title" id="trade-title">购买确认</div>
       <div class="trade-item-name" id="trade-item-name">土豆种子</div>
+      <div class="trade-item-desc" id="trade-item-desc"></div>
       <div class="trade-price" id="trade-price">单价：<span id="trade-price-icon"></span><span id="trade-price-val">8</span></div>
       <div class="trade-qty-row">
         <input type="range" id="trade-qty-slider" min="1" max="99" value="1"
@@ -855,6 +860,7 @@ canvas { display:block; }
             <span class="sitem-icon" style="display:inline-block;width:32px;height:32px;overflow:hidden;background:url('assets/images/Crops/Crops_All Crops.png') no-repeat 0px -128px / 832px 576px;image-rendering:pixelated;"></span>
           </div>
           <div class="sitem-name">土豆种子</div><div class="sitem-price"><span class="shop-coin-icon" data-price="8"></span>8</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
       </div>
       <div class="shop-section-label shop-grid-label">背包</div>
@@ -862,30 +868,37 @@ canvas { display:block; }
         <div class="sitem-wrap" onclick="openTrade('buy','bag_normal',1000)" data-item="bag_normal">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="0" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">普通背包</div><div class="sitem-price"><span class="shop-coin-icon" data-price="1000"></span>1000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_large',2000)" data-item="bag_large">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="1" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">大格背包</div><div class="sitem-price"><span class="shop-coin-icon" data-price="2000"></span>2000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_adv_b',4000)" data-item="bag_adv_b">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="2" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">高级背包(蓝)</div><div class="sitem-price"><span class="shop-coin-icon" data-price="4000"></span>4000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_adv_p',4000)" data-item="bag_adv_p">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="4" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">高级背包(粉)</div><div class="sitem-price"><span class="shop-coin-icon" data-price="4000"></span>4000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_lux_p',8000)" data-item="bag_lux_p">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="3" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">豪华背包(粉)</div><div class="sitem-price"><span class="shop-coin-icon" data-price="8000"></span>8000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_lux_w',8000)" data-item="bag_lux_w">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="5" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">豪华背包(白)</div><div class="sitem-price"><span class="shop-coin-icon" data-price="8000"></span>8000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
         <div class="sitem-wrap" onclick="openTrade('buy','bag_mystery',16000)" data-item="bag_mystery">
           <div class="sitem"><canvas class="sitem-bg"></canvas><canvas class="sitem-bag-icon" data-idx="6" width="56" height="56" style="position:absolute;image-rendering:pixelated;width:28px;height:28px;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas></div>
           <div class="sitem-name">神秘背包</div><div class="sitem-price"><span class="shop-coin-icon" data-price="16000"></span>16000</div>
+          <div class="sitem-soldout">已持有</div>
         </div>
       </div>
       <div class="shop-section-label shop-grid-label">出售农产品</div>
@@ -1153,7 +1166,7 @@ const ITEM_DEF = {
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
-  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'种在耕地上，等待收获。' },
+  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'收获需要 5 天，加工后售出价：12枚' },
   seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot', desc:'种在耕地上，等待收获。' },
   seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage', desc:'种在耕地上，等待收获。' },
   seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach', desc:'种在耕地上，等待收获。' },
@@ -1162,13 +1175,13 @@ const ITEM_DEF = {
   // 背包道具占位（原有）
   'bag_pack': { name:'背包道具', icon:'🎒', desc:'可携带物品', type:'bag' },
   // 7种背包（Bags.png图集，每格16×16，从左到右索引0-6）
-  'bag_normal':  { name:'普通背包',   bagSlots:4,  bagImg:0, desc:'容量4格' },
-  'bag_large':   { name:'大格背包',   bagSlots:8,  bagImg:1, desc:'容量8格' },
-  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:12, bagImg:2, desc:'容量12格' },
-  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:16, bagImg:3, desc:'容量16格' },
-  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:12, bagImg:4, desc:'容量12格' },
-  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:16, bagImg:5, desc:'容量16格' },
-  'bag_mystery': { name:'神秘背包',   bagSlots:20, bagImg:6, desc:'容量20格' },
+  'bag_normal':  { name:'普通背包',   bagSlots:4,  bagImg:0, desc:'容量 4 格，出售价：500枚' },
+  'bag_large':   { name:'大格背包',   bagSlots:8,  bagImg:1, desc:'容量 8 格，出售价：1000枚' },
+  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:12, bagImg:2, desc:'容量 12 格，出售价：2000枚' },
+  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:16, bagImg:3, desc:'容量 16 格，出售价：4000枚' },
+  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:12, bagImg:4, desc:'容量 12 格，出售价：2000枚' },
+  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:16, bagImg:5, desc:'容量 16 格，出售价：4000枚' },
+  'bag_mystery': { name:'神秘背包',   bagSlots:20, bagImg:6, desc:'容量 20 格，出售价：8000枚' },
 };
 
 // 工具栏：12格，存 itemId 或 null
@@ -3047,9 +3060,30 @@ function exportDbgValues() {
 window.addEventListener('load', () => { setTimeout(initDebugIcon, 300); });
 
 
+function refreshShopItemStates() {
+  // 背包类：已拥有则显示“已持有”并置灰，种子类不限制
+  document.querySelectorAll('.sitem-wrap[data-item]').forEach(wrap => {
+    const itemId = wrap.dataset.item;
+    if (!itemId) return;
+    const def = ITEM_DEF[itemId];
+    if (!def) return;
+    const isBag = def.bagImg !== undefined;
+    if (isBag) {
+      // 已持有：在背包列表或工具栏中
+      const owned = bagItems.some(i => i && i.id === itemId) ||
+                    hotbar.some(i => i === itemId) ||
+                    equippedBag === itemId;
+      wrap.classList.toggle('sold-out', owned);
+      const soldoutEl = wrap.querySelector('.sitem-soldout');
+      if (soldoutEl) soldoutEl.textContent = '已持有';
+    }
+  });
+}
+
 function openShop(){
   updateSellGrid();
   refreshShopCoinIcons();
+  refreshShopItemStates();
   const shopPanel = document.getElementById('shop-panel');
   shopPanel.style.display='flex';
   // 应用商店位置
@@ -3565,7 +3599,10 @@ let _tradeUnitPrice = 0;
 let _tradeBagIdx = null; // 出售时背包格子索引
 
 const SELL_PRICES = {
-  potato:8, carrot:8, cabbage:12, peach:25,
+  potato:12, carrot:9, cabbage:15, peach:40,
+  // 背包出售为买价50%
+  bag_normal:500, bag_large:1000, bag_adv_b:2000, bag_adv_p:2000,
+  bag_lux_p:4000, bag_lux_w:4000, bag_mystery:8000,
 };
 const BUY_PRICES = {
   seed_potato:8, seed_carrot:8, seed_cabbage:12, seed_peach:30,
@@ -3587,6 +3624,17 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   const name = def?.name || itemId;
   document.getElementById('trade-title').textContent = mode === 'buy' ? '购买确认' : '出售确认';
   document.getElementById('trade-item-name').textContent = name;
+  // 物品说明
+  const descEl = document.getElementById('trade-item-desc');
+  if (descEl) {
+    let descText = def?.desc || '';
+    if (mode === 'buy' && SELL_PRICES[itemId]) {
+      // 购买模式：显示出售价（如果 desc 里没包含出售价信息则追加）
+      if (!descText.includes('出售')) descText += (descText ? '，' : '') + '出售价：' + SELL_PRICES[itemId] + '枚';
+    }
+    descEl.textContent = descText;
+    descEl.style.display = descText ? '' : 'none';
+  }
   document.getElementById('trade-price-icon').innerHTML = `<span style="${coinIconStyle(unitPrice, dbgParams.tradeCoinSize)}position:relative;left:${dbgParams.tradeCoinDX||0}px;top:${dbgParams.tradeCoinDY||0}px;"></span>`;
   document.getElementById('trade-price-val').textContent = unitPrice;
   const maxQty = STACKABLE[itemId] ? 99 : 1;
