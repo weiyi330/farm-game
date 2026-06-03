@@ -655,7 +655,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.157</div>
+<div id="splash-version">版本号：v0.0.3.158</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -732,9 +732,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">内容左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="12"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="6"
         oninput="applyDbg('hudCoinContentX',this.value)" onchange="applyDbg('hudCoinContentX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="12"
+      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="6"
         onchange="applyDbg('hudCoinContentX',this.value)">
     </div>
     <div class="dbg-group-title">☀️ 时间栏</div>
@@ -1169,22 +1169,22 @@ const ITEM_DEF = {
   sleep:   { icon:'🌙', name:'入睡',   use:'direct' },
   shop:    { icon:'🏪', name:'商店',   use:'direct' },
   // 种子类：type前缀seed_
-  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'收获需要 5 天，种子售出价：4枚' },
-  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot', desc:'收获需要 4 天，种子售出价：4枚' },
-  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage', desc:'收获需要 5 天，种子售出价：6枚' },
-  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach', desc:'收获需要 7 天，种子售出价：15枚' },
+  seed_potato:  { iconEl:()=>cropsIcon(0,4), name:'土豆种子', use:'tile', seedType:'potato',  stackMax:20, desc:'春季种植，收获需要 5 天，种子售出价：4' },
+  seed_carrot:  { icon:'🥕', name:'萝卜种子', use:'tile', seedType:'carrot', stackMax:20, desc:'春季种植，收获需要 4 天，种子售出价：4' },
+  seed_cabbage: { icon:'🥬', name:'白菜种子', use:'tile', seedType:'cabbage', stackMax:20, desc:'春季种植，收获需要 5 天，种子售出价：6' },
+  seed_peach:   { icon:'🍑', name:'桃子种子', use:'tile', seedType:'peach', stackMax:20, desc:'春季种植，收获需要 7 天，种子售出价：15' },
   // 收获物品
   potato:       { iconEl:()=>cropsIcon(2,4), name:'土豆', use:'direct', stackMax:20, desc:'收获的土豆，可以出售。' },
   // 背包道具占位（原有）
   'bag_pack': { name:'背包道具', icon:'🎒', desc:'可携带物品', type:'bag' },
   // 7种背包（Bags.png图集，每格16×16，从左到右索引0-6）
-  'bag_normal':  { name:'普通背包',   bagSlots:4,  bagImg:0, desc:'容量 4 格，出售价：500枚' },
-  'bag_large':   { name:'大格背包',   bagSlots:8,  bagImg:1, desc:'容量 8 格，出售价：1000枚' },
-  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:12, bagImg:2, desc:'容量 12 格，出售价：2000枚' },
-  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:16, bagImg:3, desc:'容量 16 格，出售价：4000枚' },
-  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:12, bagImg:4, desc:'容量 12 格，出售价：2000枚' },
-  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:16, bagImg:5, desc:'容量 16 格，出售价：4000枚' },
-  'bag_mystery': { name:'神秘背包',   bagSlots:20, bagImg:6, desc:'容量 20 格，出售价：8000枚' },
+  'bag_normal':  { name:'普通背包',   bagSlots:4,  bagImg:0, desc:'容量 4 格，出售价：500' },
+  'bag_large':   { name:'大格背包',   bagSlots:8,  bagImg:1, desc:'容量 8 格，出售价：1000' },
+  'bag_adv_b':   { name:'高级背包(蓝)', bagSlots:12, bagImg:2, desc:'容量 12 格，出售价：2000' },
+  'bag_lux_p':   { name:'豪华背包(粉)', bagSlots:16, bagImg:3, desc:'容量 16 格，出售价：4000' },
+  'bag_adv_p':   { name:'高级背包(粉)', bagSlots:12, bagImg:4, desc:'容量 12 格，出售价：2000' },
+  'bag_lux_w':   { name:'豪华背包(白)', bagSlots:16, bagImg:5, desc:'容量 16 格，出售价：4000' },
+  'bag_mystery': { name:'神秘背包',   bagSlots:20, bagImg:6, desc:'容量 20 格，出售价：8000' },
 };
 
 // 工具栏：12格，存 itemId 或 null
@@ -2843,7 +2843,7 @@ const dbgParams = {
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
   hudCoinIconX: 21, hudCoinIconSize: 25,
-  hudCoinBoardW: 90, hudCoinBoardH: 23, hudCoinContentX: 12,
+  hudCoinBoardW: 90, hudCoinBoardH: 23, hudCoinContentX: 6,
   hudSeasonIconSize: 33, hudSeasonIconX: 22,
   hudDayBoardW: 100, hudDayBoardH: 23, hudDayContentX: 9,
   hudBarGap: -25,
@@ -3631,7 +3631,7 @@ function resetBagSoldToday() {
   refreshShopItemStates();
 }
 const STACKABLE = { // 最大数量
-  seed_potato:99, seed_carrot:99, seed_cabbage:99, seed_peach:99,
+  seed_potato:20, seed_carrot:20, seed_cabbage:20, seed_peach:20,
   potato:99, carrot:99, cabbage:99, peach:99,
 };
 
@@ -3669,7 +3669,7 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   // 背包desc只显示出售价，不显示容量
   if (descEl && isBag) {
     const sellP = SELL_PRICES[itemId];
-    descEl.textContent = sellP ? '出售价：' + sellP + '枚' : '';
+    descEl.textContent = sellP ? '出售价：' + sellP : '';
     descEl.style.display = sellP ? '' : 'none';
   }
   updateTradeTotal();
