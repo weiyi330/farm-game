@@ -655,7 +655,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.159</div>
+<div id="splash-version">版本号：v0.0.3.160</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3063,6 +3063,159 @@ function refreshTradeCoinIcons() {
   });
 }
 
+function loop(ts){
+  const dt=Math.min((ts-lastT)/1000,0.05); lastT=ts;
+
+  const moving = joyActive && (Math.abs(joyDX)>0.08||Math.abs(joyDY)>0.08);
+
+  // ---------- 跑步判定 ----------
+  // 摇杆顶到边界并持续超过 RUN_HOLD_MS → 跑；松开或缩回 → 走
+  if (moving && joyAtEdge) {
+    runHoldTimer += dt * 1000;
+  } else {
+    runHoldTimer = 0;
+  }
+  const isRunning = moving && runHoldTimer >= RUN_HOLD_MS;
+
+  // ---------- 移动 ----------
+  const RUN_SPEED = SPEED * 1.9;  // 跑步速度倍率
+  if (moving) {
+    const sp = (isRunning ? RUN_SPEED : SPEED) * dt;
+    const nx = player.wx + joyDX * sp;
+    const ny = player.wy + joyDY * sp;
+    if (canWalk(nx, ny)) {
+      player.wx = nx; player.wy = ny;
+    } else if (canWalk(nx, player.wy)) {
+      player.wx = nx;
+    } else if (canWalk(player.wx, ny)) {
+      player.wy = ny;
+    }
+    if(Math.abs(joyDX)>Math.abs(joyDY)) player.dir=joyDX>0?'right':'left';
+    else player.dir=joyDY>0?'down':'up';
+    player.moving = true;
+  } else {
+    player.moving = false;
+  }
+
+  // ---------- 动画状态切换 ----------
+  const ACTION_ANIMS = [ANIM_WATER, ANIM_HOE, ANIM_HARVEST, ANIM_CARRY_THROW];
+  if (ACTION_ANIMS.includes(spAnim)) {
+    if (player.moving) {
+      // 位移打断
+      const actionName = { water:'浇水', hoe:'锄地', harvest:'收获', carry_throw:'播种' }[spAnim] || '操作';
+      showToast(`${actionName}被打断`);
+      pendingActionTile = null;
+      const wasCarry = [ANIM_CARRY_THROW].includes(spAnim);
+      spAnim = wasCarry ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+    } else {
+      // 帧推进（不循环，播完执行操作）
+      spFrameTimer += dt * 1000;
+      const cfg = SPRITE_CFG[spAnim];
+      if (spFrameTimer >= cfg.frameMs) {
+        spFrameTimer = 0;
+        if (spFrame < cfg.frames - 1) {
+          spFrame++;
+        } else {
+          // 动画播完 → 执行对应操作
+          if (pendingActionTile) {
+            const {r, c, action} = pendingActionTile;
+            if (action === 'water') {
+              if (!wateredMap[r]) wateredMap[r] = {};
+              if (cropMap[r][c]) cropMap[r][c].watered = true;
+              else wateredMap[r][c] = true;
+            } else if (action === 'hoe') {
+              tileMap[r][c] = T.TILLED;
+            } else if (action === 'sow') {
+              // 播种动画播完 → 执行种植
+              const sowSeedType = pendingActionTile.seedType;
+              if (sowSeedType) {
+                const alreadyWatered = !!(wateredMap[r] && wateredMap[r][c]);
+                tileMap[r][c] = T.CROP;
+                cropMap[r][c] = {type:sowSeedType, daysGrown:0, watered:alreadyWatered, ready:false};
+              }
+            } else if (action === 'harvest') {
+              const crop = cropMap[r] && cropMap[r][c];
+              if (crop && crop.ready) {
+                const key = r+'_'+c;
+                // 1. 立即清除地块上的作物（让作物图消失）
+                tileMap[r][c] = T.TILLED;
+                cropMap[r][c] = null;
+                // 2. 启动收获物弹出动画（偏右）
+                harvestAnims[key] = { startMs: performance.now(), r, c, type: crop.type, isSeed: false };
+                setTimeout(() => { delete harvestAnims[key]; }, 600);
+                // 3. 50%概率额外获得种子，启动种子弹出动画（偏左）
+                const gotSeed = Math.random() < 0.5;
+                if (gotSeed) {
+                  const seedKey = r+'_'+c+'_seed';
+                  harvestAnims[seedKey] = { startMs: performance.now(), r, c, type: crop.type, isSeed: true };
+                  setTimeout(() => { delete harvestAnims[seedKey]; }, 600);
+                }
+                // 4. 计入背包
+                harvestBag[crop.type] = (harvestBag[crop.type]||0) + 1;
+                const seedItemId = 'seed_' + crop.type;
+                if (gotSeed && ITEM_DEF[seedItemId]) {
+                  seedCount[crop.type] = (seedCount[crop.type] || 0) + 1;
+                  const existSeedIdx = hotbar.indexOf(seedItemId);
+                  if (existSeedIdx < 0) {
+                    const emptyIdx = hotbar.indexOf(null);
+                    if (emptyIdx >= 0) hotbar[emptyIdx] = seedItemId;
+                  }
+                }
+                if (crop.type === 'potato') {
+                  const existIdx = hotbar.indexOf('potato');
+                  if (existIdx < 0) {
+                    const emptyIdx = hotbar.indexOf(null);
+                    if (emptyIdx >= 0) hotbar[emptyIdx] = 'potato';
+                  }
+                }
+                renderHotbar();
+                const seedMsg = gotSeed ? ` + 🌱${CROPS[crop.type]?.name||crop.type}种子×1` : '';
+                showToast(`收获了 ${CROPS[crop.type]?.icon||''}${CROPS[crop.type]?.name||crop.type}！${seedMsg}`);
+              }
+            }
+            pendingActionTile = null;
+          }
+          // 播种播完回搜携idle，其他动作回普通idle
+          const wasThrow = (spAnim === ANIM_CARRY_THROW);
+          spAnim = wasThrow ? ANIM_CARRY_IDLE : ANIM_IDLE; spFrame = 0; spFrameTimer = 0;
+        }
+      }
+    }
+  } else {
+    // 判断是否搬运模式（当前选中种子类道具）
+    const _curItem = currentItem();
+    const isCarrying = _curItem && (_curItem.seedType || (_curItem.stackMax && _curItem.use === 'direct'));
+    let newAnim;
+    if (!player.moving) newAnim = isCarrying ? ANIM_CARRY_IDLE : ANIM_IDLE;
+    else if (isRunning)  newAnim = isCarrying ? ANIM_CARRY_RUN  : ANIM_RUN;
+    else                 newAnim = isCarrying ? ANIM_CARRY_WALK : ANIM_WALK;
+    if (newAnim !== spAnim) { spAnim = newAnim; spFrame = 0; spFrameTimer = 0; }
+    spFrameTimer += dt * 1000;
+    const cfg = SPRITE_CFG[spAnim] || SPRITE_CFG[ANIM_IDLE];
+    if (spFrameTimer >= cfg.frameMs) {
+      spFrameTimer = 0;
+      spFrame = (spFrame + 1) % cfg.frames;
+    }
+  }
+
+  checkPickup();
+
+  // 相机跟随
+  const targetX = player.wx * TILE - canvas.width/2;
+  const targetY = player.wy * TILE - canvas.height/2;
+  camX += (targetX - camX) * 0.12;
+  camY += (targetY - camY) * 0.12;
+  camX = Math.round(camX);
+  camY = Math.round(camY);
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+// ============================================================
+// 行动按钮
+// ============================================================
+// 通用动作动画启动：animKey='water'|'hoe'|'harvest'
 requestAnimationFrame(ts => { lastT=ts; loop(ts); });
 
 // ── 交易弹窗逻辑 ──
