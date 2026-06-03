@@ -168,7 +168,7 @@ canvas { display:block; }
   background:#ffd2a1;
   outline:3px solid #4a2123;
   outline-offset:-3px;
-  clip-path:polygon(3px 0%,calc(100% - 3px) 0%,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0% calc(100% - 3px),0% 3px);
+  clip-path:polygon(6px 0%,calc(100% - 6px) 0%,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0% calc(100% - 6px),0% 6px);
   padding:3px 12px;
   font-size:14px; color:#3a1a08;
 }
@@ -562,15 +562,15 @@ canvas { display:block; }
   align-items:center;
   box-shadow:0 4px 20px rgba(0,0,0,0.6);
 }
-.trade-title { font-size:15px; color:#4a2123; letter-spacing:1px; text-align:center; }
-.trade-item-name { font-size:18px; color:#3a1a08; font-weight:bold; }
-.trade-price { font-size:13px; color:#3a1a08; }
-.trade-qty-row { display:flex; align-items:center; gap:8px; width:100%; }
-.trade-qty-row input[type=range] { flex:1; accent-color:#c8a040; }
-.trade-qty-label { font-size:14px; color:#4a2123; min-width:32px; text-align:right; }
+.trade-title { font-size:15px; font-weight:bold; color:#4a2123; letter-spacing:1px; text-align:center; }
+.trade-item-name { font-size:12px; color:#3a1a08; font-weight:bold; }
+.trade-price { font-size:12px; color:#3a1a08; }
+.trade-qty-row { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
+.trade-qty-row input[type=range] { width:100%; accent-color:#c8a040; }
+.trade-qty-label { font-size:12px; color:#4a2123; text-align:center; }
 .trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; }
 .trade-btns { display:flex; gap:12px; margin-top:4px; }
-.trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:14px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
+.trade-btn { padding:8px 24px; border-radius:8px; border:none; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:1px; }
 .trade-btn.confirm { background:#c8a040; color:#1a0e04; font-weight:bold; }
 .trade-btn.cancel  { background:rgba(80,40,10,0.6); color:#c8a040; border:1px solid #8b5e20; }
 /* 道具说明弹窗 */
@@ -582,7 +582,7 @@ canvas { display:block; }
   max-width:200px; pointer-events:none;
   display:none;
 }
-.tooltip-name { font-size:15px; color:#3a2a10; font-weight:bold; margin-bottom:4px; }
+.tooltip-name { font-size:12px; color:#3a2a10; font-weight:bold; margin-bottom:4px; }
 .tooltip-desc { font-size:12px; color:#5a4a30; line-height:1.5; }
 </style>
 </head>
@@ -609,7 +609,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.135</div>
+<div id="splash-version">版本号：v0.0.3.136</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -676,13 +676,13 @@ canvas { display:block; }
     <div class="trade-box">
       <div class="trade-title" id="trade-title">购买确认</div>
       <div class="trade-item-name" id="trade-item-name">土豆种子</div>
-      <div class="trade-price" id="trade-price">单价：🪙8</div>
+      <div class="trade-price" id="trade-price">单价：<span id="trade-price-icon"></span><span id="trade-price-val">8</span></div>
       <div class="trade-qty-row">
         <input type="range" id="trade-qty-slider" min="1" max="99" value="1"
-          oninput="document.getElementById('trade-qty-label').textContent=this.value; updateTradeTotal()">
-        <span class="trade-qty-label" id="trade-qty-label">1</span>
+          oninput="updateTradeQtyLabel(this.value); updateTradeTotal()">
+        <span class="trade-qty-label" id="trade-qty-label">数量：1</span>
       </div>
-      <div class="trade-qty-total" id="trade-qty-total">合计：🪙8</div>
+      <div class="trade-qty-total" id="trade-qty-total">合计：<span id="trade-total-icon"></span><span id="trade-total-val">8</span></div>
       <div class="trade-btns">
         <button class="trade-btn confirm" onclick="confirmTrade()">确认</button>
         <button class="trade-btn cancel"  onclick="closeTrade()">取消</button>
@@ -3319,6 +3319,10 @@ const STACKABLE = { // 最大数量
   potato:99, carrot:99, cabbage:99, peach:99,
 };
 
+function updateTradeQtyLabel(val) {
+  document.getElementById('trade-qty-label').textContent = '数量：' + val;
+}
+
 function openTrade(mode, itemId, unitPrice, bagIdx) {
   _tradeMode = mode; _tradeId = itemId; _tradeUnitPrice = unitPrice;
   _tradeBagIdx = bagIdx !== undefined ? bagIdx : null;
@@ -3326,19 +3330,22 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   const name = def?.name || itemId;
   document.getElementById('trade-title').textContent = mode === 'buy' ? '购买确认' : '出售确认';
   document.getElementById('trade-item-name').textContent = name;
-  document.getElementById('trade-price').textContent = `单价：🪙${unitPrice}`;
+  document.getElementById('trade-price-icon').innerHTML = coinIconEl(unitPrice);
+  document.getElementById('trade-price-val').textContent = unitPrice;
   const maxQty = STACKABLE[itemId] ? 99 : 1;
   const slider = document.getElementById('trade-qty-slider');
   slider.max = maxQty;
   slider.value = 1;
-  document.getElementById('trade-qty-label').textContent = '1';
+  document.getElementById('trade-qty-label').textContent = '数量：1';
   updateTradeTotal();
   document.getElementById('trade-modal').style.display = 'flex';
 }
 
 function updateTradeTotal() {
   const qty = parseInt(document.getElementById('trade-qty-slider').value) || 1;
-  document.getElementById('trade-qty-total').textContent = `合计：🪙${qty * _tradeUnitPrice}`;
+  const total = qty * _tradeUnitPrice;
+  document.getElementById('trade-total-icon').innerHTML = coinIconEl(total);
+  document.getElementById('trade-total-val').textContent = total;
 }
 
 function closeTrade() {
