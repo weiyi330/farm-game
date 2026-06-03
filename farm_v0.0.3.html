@@ -551,6 +551,8 @@ canvas { display:block; }
   display:flex; flex-direction:column; align-items:center; gap:3px;
   cursor:pointer; width:52px;
   position:relative; z-index:2;
+  -webkit-tap-highlight-color: transparent;
+  outline:none; user-select:none;
 }
 .sitem-wrap:active .sitem { transform:scale(0.93); }
 .sitem {
@@ -560,7 +562,7 @@ canvas { display:block; }
 }
 .sitem canvas.sitem-bg {
   position:absolute; top:0; left:0; width:100%; height:100%;
-  image-rendering:pixelated; pointer-events:none;
+  image-rendering:pixelated; pointer-events:none; background:transparent;
 }
 .sitem-icon { font-size:20px; position:relative; z-index:1; }
 .sitem-name { font-size:9px; color:#3a1a08; text-align:center; max-width:60px; word-break:keep-all; position:relative; z-index:1; }
@@ -655,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.162</div>
+<div id="splash-version">版本号：v0.0.3.164</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -704,23 +706,23 @@ canvas { display:block; }
     <div class="dbg-group-title">🪙 金币栏</div>
     <div class="dbg-row">
       <span class="dbg-label">图标大小</span>
-      <input class="dbg-slider" type="range" min="10" max="40" value="25"
+      <input class="dbg-slider" type="range" min="10" max="40" value="31"
         oninput="applyDbg('hudCoinIconSize',this.value)" onchange="applyDbg('hudCoinIconSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinIconSize" value="25"
+      <input class="dbg-val" type="number" id="dv-hudCoinIconSize" value="31"
         onchange="applyDbg('hudCoinIconSize',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">图标左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="21"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="27"
         oninput="applyDbg('hudCoinIconX',this.value)" onchange="applyDbg('hudCoinIconX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinIconX" value="21"
+      <input class="dbg-val" type="number" id="dv-hudCoinIconX" value="27"
         onchange="applyDbg('hudCoinIconX',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">底板宽度</span>
-      <input class="dbg-slider" type="range" min="40" max="200" value="90"
+      <input class="dbg-slider" type="range" min="40" max="200" value="133"
         oninput="applyDbg('hudCoinBoardW',this.value)" onchange="applyDbg('hudCoinBoardW',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinBoardW" value="90"
+      <input class="dbg-val" type="number" id="dv-hudCoinBoardW" value="133"
         onchange="applyDbg('hudCoinBoardW',this.value)">
     </div>
     <div class="dbg-row">
@@ -732,24 +734,24 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">内容左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="6"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="10"
         oninput="applyDbg('hudCoinContentX',this.value)" onchange="applyDbg('hudCoinContentX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="6"
+      <input class="dbg-val" type="number" id="dv-hudCoinContentX" value="10"
         onchange="applyDbg('hudCoinContentX',this.value)">
     </div>
     <div class="dbg-group-title">☀️ 时间栏</div>
     <div class="dbg-row">
       <span class="dbg-label">图标大小</span>
-      <input class="dbg-slider" type="range" min="10" max="40" value="33"
+      <input class="dbg-slider" type="range" min="10" max="40" value="40"
         oninput="applyDbg('hudSeasonIconSize',this.value)" onchange="applyDbg('hudSeasonIconSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudSeasonIconSize" value="33"
+      <input class="dbg-val" type="number" id="dv-hudSeasonIconSize" value="40"
         onchange="applyDbg('hudSeasonIconSize',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">图标左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="22"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="28"
         oninput="applyDbg('hudSeasonIconX',this.value)" onchange="applyDbg('hudSeasonIconX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudSeasonIconX" value="22"
+      <input class="dbg-val" type="number" id="dv-hudSeasonIconX" value="28"
         onchange="applyDbg('hudSeasonIconX',this.value)">
     </div>
     <div class="dbg-row">
@@ -768,9 +770,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">内容左右</span>
-      <input class="dbg-slider" type="range" min="-40" max="40" value="9"
+      <input class="dbg-slider" type="range" min="-40" max="40" value="14"
         oninput="applyDbg('hudDayContentX',this.value)" onchange="applyDbg('hudDayContentX',this.value)">
-      <input class="dbg-val" type="number" id="dv-hudDayContentX" value="9"
+      <input class="dbg-val" type="number" id="dv-hudDayContentX" value="14"
         onchange="applyDbg('hudDayContentX',this.value)">
     </div>
     <div class="dbg-row">
@@ -3428,10 +3430,10 @@ const dbgParams = {
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
-  hudCoinIconX: 21, hudCoinIconSize: 25,
-  hudCoinBoardW: 90, hudCoinBoardH: 23, hudCoinContentX: 6,
-  hudSeasonIconSize: 33, hudSeasonIconX: 22,
-  hudDayBoardW: 100, hudDayBoardH: 23, hudDayContentX: 9,
+  hudCoinIconX: 27, hudCoinIconSize: 31,
+  hudCoinBoardW: 133, hudCoinBoardH: 23, hudCoinContentX: 10,
+  hudSeasonIconSize: 40, hudSeasonIconX: 28,
+  hudDayBoardW: 100, hudDayBoardH: 23, hudDayContentX: 14,
   hudBarGap: -25,
 };
 
@@ -4353,10 +4355,15 @@ function confirmTrade() {
       bagSoldToday[_tradeId] = (bagSoldToday[_tradeId] || 0) + 1;
       refreshShopItemStates();
     } else {
-      // 种子：加到 seedCount
+      // 种子：加到 seedCount，并确保hotbar有格子
       const def = ITEM_DEF[_tradeId];
       if (def?.seedType) {
         seedCount[def.seedType] = (seedCount[def.seedType]||0) + qty;
+        // 如果hotbar里没有该种子，找空位放入
+        if (hotbar.indexOf(_tradeId) < 0) {
+          const ei = hotbar.indexOf(null);
+          if (ei >= 0) hotbar[ei] = _tradeId;
+        }
       } else if (def?.stackMax) {
         harvestBag[_tradeId] = (harvestBag[_tradeId]||0) + qty;
       }
