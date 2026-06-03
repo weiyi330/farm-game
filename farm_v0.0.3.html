@@ -180,12 +180,6 @@ canvas { display:block; }
   background:#ffd2a1;
   padding:2px 10px;
   font-size:14px; color:#3a1a08;
-  clip-path: polygon(
-    3px 0px,   calc(100% - 3px) 0px,
-    100% 3px,  100% calc(100% - 3px),
-    calc(100% - 3px) 100%, 3px 100%,
-    0px calc(100% - 3px), 0px 3px
-  );
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
@@ -530,7 +524,7 @@ canvas { display:block; }
   right:-22px; top:-31px;
   cursor:pointer; image-rendering:pixelated;
 }
-.shop-section-label { position:relative; z-index:1; font-size:12px; color:#f5d78e; letter-spacing:2px; font-weight:bold; }
+.shop-section-label { position:relative; z-index:1; font-size:12px; color:#4a2123; letter-spacing:2px; font-weight:bold; }
 .shop-grid-label { position:relative; z-index:1; }
 .shop-grid {
   display:grid; grid-template-columns:repeat(3, 52px); gap:10px;
@@ -551,9 +545,9 @@ canvas { display:block; }
   image-rendering:pixelated; pointer-events:none;
 }
 .sitem-icon { font-size:20px; position:relative; z-index:1; }
-.sitem-name { font-size:9px; color:#d4a060; text-align:center; max-width:60px; word-break:keep-all; position:relative; z-index:1; }
-.sitem-price { font-size:9px; color:#f5d78e; text-align:center; position:relative; z-index:1; }
-.sitem-desc { font-size:8px; color:#886640; text-align:center; max-width:60px; position:relative; z-index:1; }
+.sitem-name { font-size:9px; color:#3a1a08; text-align:center; max-width:60px; word-break:keep-all; position:relative; z-index:1; }
+.sitem-price { font-size:9px; color:#3a1a08; text-align:center; position:relative; z-index:1; }
+.sitem-desc { font-size:8px; color:#5a3a20; text-align:center; max-width:60px; position:relative; z-index:1; }
 .shop-close {
   position:relative; z-index:1;
   padding:9px; background:rgba(140,60,20,0.4); border:1px solid #b06030;
@@ -581,7 +575,8 @@ canvas { display:block; }
 .trade-item-name { font-size:12px; color:#3a1a08; font-weight:bold; }
 .trade-price { font-size:12px; color:#3a1a08; }
 .trade-qty-row { display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
-.trade-qty-row input[type=range] { width:100%; accent-color:#c8a040; }
+/* 滑动条颜色 */
+.trade-qty-row input[type=range] { width:100%; accent-color:#8d5d4c; }
 .trade-qty-label { font-size:12px; color:#4a2123; text-align:center; }
 .trade-qty-total { font-size:12px; color:#3a1a08; text-align:center; }
 .trade-btns { display:flex; gap:12px; margin-top:4px; }
@@ -624,7 +619,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.137</div>
+<div id="splash-version">版本号：v0.0.3.138</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3549,7 +3544,7 @@ document.addEventListener('pointerdown', e => {
 // 金币图标：根据数量从 common_HUD.png 取对应格（row5, col4-9）
 function coinIconStyle(amount, size) {
   const HUD = 'assets/images/ui/common/common_HUD.png';
-  const fw = 16, scale = 2;
+  const fw = 16, baseScale = 2;   // 图集原始基准缩放
   let col = 4;
   const n = Math.abs(amount);
   if (n >= 1000000) col = 9;
@@ -3559,9 +3554,12 @@ function coinIconStyle(amount, size) {
   else if (n >= 100)    col = 5;
   else col = 4;
   const row = 5;
-  const sx = col * fw * scale, sy = row * fw * scale;
-  const totalW = 26 * fw * scale, totalH = 6 * fw * scale;
-  const px = size || fw*scale;
+  const px = size || fw * baseScale;          // 显示框大小
+  const ratio = px / (fw * baseScale);        // 整体缩放比
+  const totalW = 26 * fw * baseScale * ratio;
+  const totalH = 6  * fw * baseScale * ratio;
+  const sx = col * fw * baseScale * ratio;
+  const sy = row * fw * baseScale * ratio;
   return `background:url('${HUD}') no-repeat -${sx}px -${sy}px / ${totalW}px ${totalH}px; width:${px}px; height:${px}px; display:inline-block; image-rendering:pixelated; flex-shrink:0;`;
 }
 function coinIconEl(amount, size) {
