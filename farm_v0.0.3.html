@@ -164,6 +164,14 @@ canvas { display:block; }
 }
 .hud-left { display:flex; flex-direction:column; gap:4px; }
 /* HUD金币像素风wrap */
+/* HUD金币栏 */
+.hud-coin-area {
+  display:flex; align-items:center;
+}
+#coin-icon-hud-wrap {
+  position:relative;
+  z-index:2;
+}
 .hud-coin-outer {
   display:inline-flex;
   border-image: url('assets/images/ui/common/common_top_button.png') 4 4 4 4 fill / 4px 4px 4px 4px stretch;
@@ -172,6 +180,7 @@ canvas { display:block; }
   background: none;
   padding: 0;
   clip-path: none;
+  margin: 5px;
 }
 .hud-coin {
   display:flex; align-items:center; gap:5px;
@@ -523,7 +532,9 @@ canvas { display:block; }
   right:-22px; top:-31px;
   cursor:pointer; image-rendering:pixelated;
 }
-.shop-section-label { position:relative; z-index:1; font-size:12px; color:#4a2123; letter-spacing:2px; font-weight:bold; }
+.shop-section-label { position:relative; z-index:1; font-size:12px; color:#4a2123; letter-spacing:2px; font-weight:bold;
+  margin-top:6px; padding-top:6px; border-top:1px solid #8b5e20; width:100%; }
+.shop-section-label:first-of-type { margin-top:0; padding-top:0; border-top:none; }
 .shop-grid-label { position:relative; z-index:1; }
 .shop-grid {
   display:grid; grid-template-columns:repeat(3, 52px); gap:10px;
@@ -631,7 +642,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.142</div>
+<div id="splash-version">版本号：v0.0.3.143</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -640,10 +651,14 @@ canvas { display:block; }
   <!-- HUD -->
   <div id="hud">
     <div class="hud-left">
-      <div class="hud-coin-outer">
-        <div class="hud-coin" id="hud-coin-wrap">
+      <div class="hud-coin-area">
+        <span id="coin-icon-hud-wrap" style="position:relative;">
           <span id="coin-icon-hud" style="background:url('assets/images/ui/common/common_HUD.png') no-repeat -162px -90px / 468px 108px; width:18px; height:18px; display:inline-block; image-rendering:pixelated; flex-shrink:0; vertical-align:middle;"></span>
-          <span id="coinVal">99999</span> 枚
+        </span>
+        <div class="hud-coin-outer">
+          <div class="hud-coin" id="hud-coin-wrap">
+            <span id="coinVal">99999</span> 枚
+          </div>
         </div>
       </div>
       <div class="hud-day">第<span id="dayVal">1</span>天 &nbsp;<span id="seasonVal">🌸春</span></div>
@@ -676,12 +691,20 @@ canvas { display:block; }
       <input class="dbg-val" type="number" id="dv-bagTitleLeft" value="0"
         onchange="applyDbg('bagTitleLeft',this.value)">
     </div>
+    <div class="dbg-group-title">🪙 主界金币图标</div>
+    <div class="dbg-row">
+      <span class="dbg-label">图标左右位置</span>
+      <input class="dbg-slider" type="range" min="-40" max="40" value="0"
+        oninput="applyDbg('hudCoinIconX',this.value)" onchange="applyDbg('hudCoinIconX',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudCoinIconX" value="0"
+        onchange="applyDbg('hudCoinIconX',this.value)">
+    </div>
     <div class="dbg-group-title">🎪 购买/出售金币图标</div>
     <div class="dbg-row">
       <span class="dbg-label">图标大小</span>
       <input class="dbg-slider" type="range" min="12" max="64" value="32"
         oninput="applyDbg('tradeCoinSize',this.value)" onchange="applyDbg('tradeCoinSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-tradeCoinSize" value="32"
+      <input class="dbg-val" type="number" id="dv-tradeCoinSize" value="20"
         onchange="applyDbg('tradeCoinSize',this.value)">
     </div>
     <div class="dbg-row">
@@ -693,9 +716,9 @@ canvas { display:block; }
     </div>
     <div class="dbg-row">
       <span class="dbg-label">上下偏移</span>
-      <input class="dbg-slider" type="range" min="-20" max="20" value="0"
+      <input class="dbg-slider" type="range" min="-20" max="20" value="1"
         oninput="applyDbg('tradeCoinDY',this.value)" onchange="applyDbg('tradeCoinDY',this.value)">
-      <input class="dbg-val" type="number" id="dv-tradeCoinDY" value="0"
+      <input class="dbg-val" type="number" id="dv-tradeCoinDY" value="1"
         onchange="applyDbg('tradeCoinDY',this.value)">
     </div>
     <div class="dbg-group-title">🛒 商店金币图标</div>
@@ -703,21 +726,21 @@ canvas { display:block; }
       <span class="dbg-label">图标大小</span>
       <input class="dbg-slider" type="range" min="12" max="48" value="32"
         oninput="applyShopDbg('shopCoinSize',this.value)" onchange="applyShopDbg('shopCoinSize',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopCoinSize" value="32"
+      <input class="dbg-val" type="number" id="sdv-shopCoinSize" value="20"
         onchange="applyShopDbg('shopCoinSize',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">左右偏移</span>
-      <input class="dbg-slider" type="range" min="-20" max="20" value="0"
+      <input class="dbg-slider" type="range" min="-20" max="20" value="-8"
         oninput="applyShopDbg('shopCoinDX',this.value)" onchange="applyShopDbg('shopCoinDX',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopCoinDX" value="0"
+      <input class="dbg-val" type="number" id="sdv-shopCoinDX" value="-8"
         onchange="applyShopDbg('shopCoinDX',this.value)">
     </div>
     <div class="dbg-row">
       <span class="dbg-label">上下偏移</span>
-      <input class="dbg-slider" type="range" min="-20" max="20" value="0"
+      <input class="dbg-slider" type="range" min="-20" max="20" value="-10"
         oninput="applyShopDbg('shopCoinDY',this.value)" onchange="applyShopDbg('shopCoinDY',this.value)">
-      <input class="dbg-val" type="number" id="sdv-shopCoinDY" value="0"
+      <input class="dbg-val" type="number" id="sdv-shopCoinDY" value="-10"
         onchange="applyShopDbg('shopCoinDY',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
@@ -2757,7 +2780,7 @@ const shopDbg = {
   shopCloseRight: -31, shopCloseTop: -31,
   shopBagRight: 20,
   shopBagScrollH: 224,
-  shopCoinSize: 32, shopCoinDX: 0, shopCoinDY: 0,
+  shopCoinSize: 20, shopCoinDX: -8, shopCoinDY: -10,
 };
 
 const dbgParams = {
@@ -2771,7 +2794,8 @@ const dbgParams = {
   bagCloseRight: -19, bagCloseTop: -32,
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
-  tradeCoinSize: 32, tradeCoinDX: 0, tradeCoinDY: 0,
+  tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
+  hudCoinIconX: 0,
 };
 
 function initDebugIcon() {
@@ -2905,6 +2929,10 @@ function applyDbg(key, val) {
     window._dbgIconSize = dbgParams.iconSize;
     window._dbgIconYOff = dbgParams.iconYOff;
   }
+  if (key === 'hudCoinIconX') {
+    const wrap = document.getElementById('coin-icon-hud-wrap');
+    if (wrap) wrap.style.left = (dbgParams.hudCoinIconX || 0) + 'px';
+  }
   if (key === 'tradeCoinSize' || key === 'tradeCoinDX' || key === 'tradeCoinDY') {
     const modal = document.getElementById('trade-modal');
     if (modal && modal.style.display === 'flex') {
@@ -2925,6 +2953,9 @@ function exportDbgValues() {
   const out = document.getElementById('dbg-export-out');
   if (!out) return;
   const lines = [
+    '=== 🪙 主界金币图标 ===',
+    'hudCoinIconX:  ' + dbgParams.hudCoinIconX,
+    '',
     '=== 🎪 购买/出售金币图标 ===',
     'tradeCoinSize: ' + dbgParams.tradeCoinSize,
     'tradeCoinDX:   ' + dbgParams.tradeCoinDX,
