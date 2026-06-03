@@ -657,7 +657,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.173</div>
+<div id="splash-version">版本号：v0.0.3.174</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -1918,7 +1918,7 @@ function drawTile(r, c) {
       const drawW = 16 * _scale;
       const drawH = _fh * _scale;
       const drawX = x - drawW / 2;
-      const drawY = y + TILE * 0.1 - drawH;  // 底部对齐地块中心
+      const drawY = y + TILE * 0.1 - drawH + 10;  // 底部对齐地块中心，下移10px
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(cropImg, _sx, _sy, 16, _fh, drawX, drawY, drawW, drawH);
     } else {
@@ -2549,17 +2549,16 @@ function doAction(){
   const type=tileMap[r][c];
   const itemId = currentItemId();
   const item   = currentItem();
-  // 空手也可以收获，不提前return
-  if (item?.use === 'direct') {
-    if (itemId === 'sleep') { nextDay(); return; }
-    if (itemId === 'shop')  { openShop(); return; }
-    return;
-  }
+  // sleep/shop有功能，收获物/其他direct道具无功能→落到兜底收获
+  if (itemId === 'sleep') { nextDay(); return; }
+  if (itemId === 'shop')  { openShop(); return; }
+  // 有功能工具才拦截，收获物(use:direct但不是sleep/shop)不拦截
 
   if(itemId==='hoe'){
     if(type===T.GRASS||type===T.PATH||type===T.SOIL){
       startActionAnim(ANIM_HOE, r, c);
-    } else if(type===T.TILLED){
+    } else if(type===T.TILLED || type===T.CROP){
+      // 有作物/枯萎植物→清除
       if(cropMap[r][c]){ cropMap[r][c]=null; tileMap[r][c]=T.TILLED; showToast('清除了作物'); }
       else showToast('已翻过土啦～');
     }
