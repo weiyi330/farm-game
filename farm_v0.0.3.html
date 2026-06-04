@@ -362,7 +362,15 @@ canvas { display:block; }
   position:relative; z-index:1;
   font-size:16px; color:#fffee8; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
-  -webkit-text-stroke: 2px #461507;
+  text-shadow:
+    -2px -2px 0 #461507,
+     2px -2px 0 #461507,
+    -2px  2px 0 #461507,
+     2px  2px 0 #461507,
+    -2px  0   0 #461507,
+     2px  0   0 #461507,
+     0   -2px 0 #461507,
+     0    2px 0 #461507;
 }
 /* 外层负责滚动，内层 grid overflow:visible 让选中框不被裁 */
 #bag-slots-wrap {
@@ -741,7 +749,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.192</div>
+<div id="splash-version">版本号：v0.0.3.193</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2944,7 +2952,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.192',
+    version: '0.0.3.193',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3889,7 +3897,13 @@ function applyDbg(key, val) {
   }
   if (key === 'bagTitleStroke') {
     const tt = document.getElementById('bag-title-text');
-    if (tt) tt.style.webkitTextStroke = v+'px #461507';
+    if (tt) {
+      const s = parseFloat(v) || 0;
+      const c = '#461507';
+      tt.style.textShadow = s <= 0 ? 'none' :
+        `${-s}px ${-s}px 0 ${c}, ${s}px ${-s}px 0 ${c}, ${-s}px ${s}px 0 ${c}, ${s}px ${s}px 0 ${c},`+
+        `${-s}px 0 0 ${c}, ${s}px 0 0 ${c}, 0 ${-s}px 0 ${c}, 0 ${s}px 0 ${c}`;
+    }
   }
   if (key === 'bagTitleDX') {
     const tt = document.getElementById('bag-title-text');
