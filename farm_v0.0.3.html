@@ -3000,11 +3000,13 @@ for (let _i=0;_i<4;_i++) bagItems.push(null); // 扩展格[1-4]空
 
 // 背包面板 canvas 九宫格底板
 const _bagFrameImg = new Image();
-_bagFrameImg.src = 'assets/images/ui/common/common_slot02.png';
+_bagFrameImg.src = 'assets/images/ui/common/common_slot01.png'; // 大底板 slot01
 const _bagSlotImg = new Image();
-_bagSlotImg.src = 'assets/images/ui/common/common_slot04.png';
+_bagSlotImg.src = 'assets/images/ui/common/common_slot04.png'; // 道具框 slot04
+const _bagContentImg = new Image();
+_bagContentImg.src = 'assets/images/ui/common/common_slot02.png'; // 内容区 slot02
 const _shopBg2Img = new Image();
-_shopBg2Img.src = 'assets/images/ui/common/common_slot03.png';
+_shopBg2Img.src = 'assets/images/ui/common/common_slot03.png'; // 扩展/分割区 slot03
 const _hudBoardImg = new Image();
 _hudBoardImg.src = 'assets/images/ui/common/common_slot01.png';
 
@@ -3076,9 +3078,36 @@ function drawBagBtnIcon() {
 // 标题底板已去掉，保留空函数防止调用报错
 function drawBagTitle(cv, displayW, displayH) { /* 标题底板已移除 */ }
 
-// 九宫格绘制公共函数（slot02: 16x48 corner=2）
-function draw9SliceSlot02(cv, w, h, dx, dy) {
+// 九宫格绘制公共函数（slot01: 48x48 corner=3，大底板）
+function draw9SliceSlot01(cv, w, h, dx, dy) {
   if (!cv || !_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = Math.round(w * dpr), H = Math.round(h * dpr);
+  cv.width = W; cv.height = H;
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  cv.style.left = (dx || 0) + 'px'; cv.style.top = (dy || 0) + 'px';
+  const c = cv.getContext('2d');
+  c.clearRect(0, 0, W, H);
+  c.imageSmoothingEnabled = false;
+  const SL=3,SR=3,ST=3,SB=3,SW=48,SH=48,ES=2;
+  const SMH=SW-SL-SR, SMV=SH-ST-SB;
+  const ew=Math.round(SL*ES*dpr), eh=Math.round(ST*ES*dpr);
+  const DW=W-ew*2, DH=H-eh*2;
+  const img=_bagFrameImg;
+  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+  c.drawImage(img,SL+SMH,0,SR,ST,W-ew,0,ew,eh);
+  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+  c.drawImage(img,SL+SMH,ST,SR,SMV,W-ew,eh,ew,DH);
+  c.drawImage(img,0,ST+SMV,SL,SB,0,H-eh,ew,eh);
+  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,H-eh,DW,eh);
+  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,W-ew,H-eh,ew,eh);
+}
+
+// 九宫格绘制公共函数（slot02: 16x48 corner=2，内容区底板）
+function draw9SliceSlot02(cv, w, h, dx, dy) {
+  if (!cv || !_bagContentImg.complete || !_bagContentImg.naturalWidth) return;
   const dpr = window.devicePixelRatio || 1;
   const W = Math.round(w * dpr), H = Math.round(h * dpr);
   cv.width = W; cv.height = H;
@@ -3091,7 +3120,7 @@ function draw9SliceSlot02(cv, w, h, dx, dy) {
   const SMH=SW-SL-SR, SMV=SH-ST-SB;
   const ew=Math.round(SL*ES*dpr), eh=Math.round(ST*ES*dpr);
   const DW=W-ew*2, DH=H-eh*2;
-  const img=_bagFrameImg;
+  const img=_bagContentImg;
   c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
   c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
   c.drawImage(img,SL+SMH,0,SR,ST,W-ew,0,ew,eh);
@@ -3141,7 +3170,7 @@ function drawBagBg() {
   const slotsW = slotsWrap.offsetWidth || slots.offsetWidth;
   const slotsH = slotsWrap.offsetHeight || slots.offsetHeight;
 
-  // 层±1：大底板 (bag-canvas, slot02)
+  // 层±1：大底板 (bag-canvas, slot01)
   const cv1 = document.getElementById('bag-canvas');
   if (cv1) {
     const p1w = dbgParams.bag1PadW ?? 25, p1h = dbgParams.bag1PadH ?? 49;
@@ -3149,7 +3178,7 @@ function drawBagBg() {
     const H1 = title.offsetHeight + slotsH + extra.offsetHeight + p1h;
     const baseTop = dbgParams.bagBgTop ?? -24;
     const dx1 = dbgParams.bag1DX ?? 0, dy1 = dbgParams.bag1DY ?? 0;
-    draw9SliceSlot02(cv1, W1, H1, -(W1 - inner.offsetWidth) / 2 + dx1, baseTop + dy1);
+    draw9SliceSlot01(cv1, W1, H1, -(W1 - inner.offsetWidth) / 2 + dx1, baseTop + dy1);
   }
 
   // 层±2：格子区底板 (bag-slots-canvas, slot02)
@@ -3422,9 +3451,10 @@ function drawShopBg() {
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
   c.imageSmoothingEnabled = false;
   // common_slot02: 16x48, corner=2 （外层底板）
-  const SL=2, SR=2, ST=2, SB=2, SW=16, SH=48, EDGE_SCALE=2;
+  // common_slot01: 48x48, corner=3 (大底板)
+  const SL=3, SR=3, ST=3, SB=3, SW=48, SH=48, EDGE_SCALE=2;
   const SMH=SW-SL-SR, SMV=SH-ST-SB;
-  const ew=SL*EDGE_SCALE*dpr, eh=ST*EDGE_SCALE*dpr;
+  const ew=Math.round(SL*EDGE_SCALE*dpr), eh=Math.round(ST*EDGE_SCALE*dpr);
   const totalW=cv.width, totalH=cv.height;
   const DW=totalW-ew*2, DH=totalH-eh*2;
   const img=_bagFrameImg;
