@@ -269,10 +269,7 @@ canvas { display:block; }
   cursor:pointer; position:relative;
   transition:all 0.15s;
 }
-.tool-btn.bag-select {
-  outline: 2px solid #60c8f5;
-  outline-offset: 1px;
-}
+/* bag-select 已合并到 active 风格，不再单独显示蓝色框 */
 .tool-btn.active {
   outline: 2px solid #f5c842;
   outline-offset: 1px;
@@ -750,7 +747,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.196</div>
+<div id="splash-version">版本号：v0.0.3.197</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2732,7 +2729,7 @@ function renderHotbar() {
   hotbar.forEach((itemId, idx) => {
     const item = itemId ? ITEM_DEF[itemId] : null;
     const slot = document.createElement('div');
-    slot.className = 'tool-btn' + (idx === selectedSlot ? ' active' : '') + (idx === selectedHotbarForBag ? ' bag-select' : '');
+    slot.className = 'tool-btn' + (idx === selectedSlot || idx === selectedHotbarForBag ? ' active' : '');
     slot.dataset.idx = idx;
     if (item) {
       // 数量（种子用 seedCount，可堆叠道具用 harvestBag）
@@ -2799,17 +2796,26 @@ function selectSlot(idx) {
       renderHotbar();
       return;
     }
+    if (selectedHotbarForBag !== null) {
+      // 已选中工具栏A → 再点工具栏B → 工具栏内互换
+      const tmp = hotbar[selectedHotbarForBag];
+      hotbar[selectedHotbarForBag] = hotbar[idx];
+      hotbar[idx] = tmp;
+      selectedHotbarForBag = null;
+      selectedSlot = idx;
+      renderHotbar();
+      return;
+    }
     if (hotbar[idx]) {
       // 选中工具栏道具（等待点背包格子）
       selectedHotbarForBag = idx;
       renderHotbar();
       return;
     }
-    // 工具栏空格子 + 背包有道具等待 → 当做目标
-    if (selectedHotbarForBag !== null) {
-      doSwapHotbarBag(selectedHotbarForBag, idx);
-      return;
-    }
+    // 工具栏空格子 → 直接选中
+    selectedSlot = idx;
+    renderHotbar();
+    return;
   }
   selectedSlot = idx;
   renderHotbar();
@@ -2953,7 +2959,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.196',
+    version: '0.0.3.197',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
