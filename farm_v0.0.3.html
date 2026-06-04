@@ -373,11 +373,10 @@ canvas { display:block; }
 #bag-slots-wrap {
   position:relative; z-index:2;
   width:calc(4 * 41px + 3 * 4px);
-  max-height:calc(3.5 * 41px + 2.5 * 4px);
-  overflow:visible;
+  max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
   scrollbar-width:none;
   margin:0 4px;
-  padding:2px; box-sizing:content-box;
+  padding:3px; margin:-1px; box-sizing:content-box; /* 让 box-shadow 不被裁 */
 }
 #bag-slots-wrap::-webkit-scrollbar { display:none; }
 #bag-slots {
@@ -415,10 +414,12 @@ canvas { display:block; }
 }
 .bag-slot-extra.locked::before {
   content:'待解锁';
-  position:absolute; inset:0; z-index:2;
-  display:flex; align-items:center; justify-content:center;
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  z-index:2;
   font-size:9px; color:#b27642; font-weight:bold; letter-spacing:1px;
-  pointer-events:none;
+  pointer-events:none; white-space:nowrap;
 }
 .bag-slot-extra.locked { cursor:default; filter:grayscale(1) brightness(0.6); position:relative; }
 .bag-slot-extra.selected { outline:2px solid #f5c842; outline-offset:1px; box-shadow:0 0 0 1px #8b5e00; border-radius:2px; }
@@ -755,7 +756,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.200</div>
+<div id="splash-version">版本号：v0.0.3.201</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2737,7 +2738,9 @@ function renderHotbar() {
   hotbar.forEach((itemId, idx) => {
     const item = itemId ? ITEM_DEF[itemId] : null;
     const slot = document.createElement('div');
-    slot.className = 'tool-btn' + (idx === selectedSlot || idx === selectedHotbarForBag ? ' active' : '');
+    slot.className = 'tool-btn' + (
+      (bagOpen ? idx === selectedHotbarForBag : idx === selectedSlot) ? ' active' : ''
+    );
     slot.dataset.idx = idx;
     if (item) {
       // 数量（种子用 seedCount，可堆叠道具用 harvestBag）
@@ -2967,7 +2970,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.200',
+    version: '0.0.3.201',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
