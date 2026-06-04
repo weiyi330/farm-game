@@ -405,20 +405,13 @@ canvas { display:block; }
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; image-rendering:pixelated;
 }
-.bag-slot-extra.locked::after {
-  content:'';
-  position:absolute; top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.35);
-  border-radius:2px;
-  z-index:2;
-  pointer-events:none;
-}
+.bag-slot-extra.locked::after { display:none; }
 .bag-slot-extra.locked::before {
   content:'待解锁';
   position:absolute;
   top:50%; left:50%;
   transform:translate(-50%,-50%);
-  z-index:3;
+  z-index:2;
   font-size:9px; color:#b27642; font-weight:bold; letter-spacing:1px;
   pointer-events:none; white-space:nowrap;
 }
@@ -757,7 +750,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.202</div>
+<div id="splash-version">版本号：v0.0.3.203</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2971,7 +2964,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.202',
+    version: '0.0.3.203',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3403,7 +3396,7 @@ function renderBagSlots() {
     const cv = el.querySelector('canvas');
     const unlocked = bagUnlocked[i];
     el.className = 'bag-slot-extra' + (unlocked ? '' : ' locked') + (selectedExtSlot === i ? ' selected' : '');
-    if (cv) drawSlotCanvas(cv, 32, 32, unlocked ? 1 : 0.4);
+    if (cv) drawSlotCanvas(cv, 32, 32, unlocked ? 1 : 0.3);
     el.querySelectorAll('.bag-item-icon,.bag-item-count,canvas:not(:first-child)').forEach(e=>e.remove());
     const item = bagItems[extOffset+i];
     if (item && unlocked) {
