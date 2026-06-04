@@ -362,8 +362,7 @@ canvas { display:block; }
   position:relative; z-index:1;
   font-size:16px; color:#fffee8; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
-  text-shadow: 0 0 0 #fffee8, -1px -1px 0 #fffee8, 1px -1px 0 #fffee8, -1px 1px 0 #fffee8, 1px 1px 0 #fffee8;
-  -webkit-text-stroke: 2px #fffee8;
+  -webkit-text-stroke: 2px #461507;
 }
 /* 外层负责滚动，内层 grid overflow:visible 让选中框不被裁 */
 #bag-slots-wrap {
@@ -381,7 +380,14 @@ canvas { display:block; }
 }
 #bag-extra-slots {
   position:relative; z-index:2;
+  display:flex; flex-direction:column; gap:4px; align-items:center;
+}
+#bag-extra-slots-row {
   display:flex; gap:6px; align-items:center;
+}
+.bag-extra-label {
+  font-size:11px; color:#b27642; letter-spacing:2px; font-weight:bold;
+  text-align:center;
 }
 .bag-slot {
   width:41px; height:41px; position:relative;
@@ -735,7 +741,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.188</div>
+<div id="splash-version">版本号：v0.0.3.189</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -798,6 +804,17 @@ canvas { display:block; }
     <div class="dbg-row"><span class="dbg-label">上下偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bagTitleDY',this.value)" onchange="applyDbg('bagTitleDY',this.value)">
       <input class="dbg-val" type="number" id="dv-bagTitleDY" value="0" onchange="applyDbg('bagTitleDY',this.value)"></div>
+
+    <div class="dbg-group-title">❌ 关闭按鈕</div>
+    <div class="dbg-row"><span class="dbg-label">大小</span>
+      <input class="dbg-slider" type="range" min="20" max="60" value="36" oninput="applyDbg('bagCloseSize',this.value)" onchange="applyDbg('bagCloseSize',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseSize" value="36" onchange="applyDbg('bagCloseSize',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">左右</span>
+      <input class="dbg-slider" type="range" min="-100" max="20" value="-19" oninput="applyDbg('bagCloseRight',this.value)" onchange="applyDbg('bagCloseRight',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-19" onchange="applyDbg('bagCloseRight',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">上下</span>
+      <input class="dbg-slider" type="range" min="-80" max="20" value="-32" oninput="applyDbg('bagCloseTop',this.value)" onchange="applyDbg('bagCloseTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-32" onchange="applyDbg('bagCloseTop',this.value)"></div>
 
     <div class="dbg-group-title">🧱 大底板（slot01）</div>
     <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
@@ -908,11 +925,13 @@ canvas { display:block; }
       </div>
       <div id="bag-slots-wrap"><div id="bag-slots"></div></div>
       <div id="bag-extra-slots">
-        <div class="bag-slot-extra" id="bag-extra-0"><canvas></canvas></div>
-        <div class="bag-slot-extra" id="bag-extra-1"><canvas></canvas></div>
-        <div class="bag-slot-extra locked" id="bag-extra-2"><canvas></canvas></div>
-        <div class="bag-slot-extra locked" id="bag-extra-3"><canvas></canvas></div>
-        <div class="bag-slot-extra locked" id="bag-extra-4"><canvas></canvas></div>
+        <div class="bag-extra-label">背包扩展</div>
+        <div id="bag-extra-slots-row">
+          <div class="bag-slot-extra" id="bag-extra-0"><canvas></canvas></div>
+          <div class="bag-slot-extra" id="bag-extra-1"><canvas></canvas></div>
+          <div class="bag-slot-extra locked" id="bag-extra-2"><canvas></canvas></div>
+          <div class="bag-slot-extra locked" id="bag-extra-3"><canvas></canvas></div>
+        </div>
       </div>
 
     </div>
@@ -2922,7 +2941,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3',
+    version: '0.0.3.189',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3013,7 +3032,7 @@ function closeSavePanel() {
 // 每格存 {id, count} 或 null
 let bagItems = new Array(14).fill(null);
 let equippedBag = null; // 当前装备的背包道具id
-let bagUnlocked = [true, true, false, false, false]; // 扩展格解锁状态（前2解锁，后3锁定）
+let bagUnlocked = [true, true, false, false]; // 扩展格解锁状态（前2解锁，后2锁定）
 
 // 初始道具：背包（占位）
 const ITEM_DEF_BAG_PACK = 'bag_pack';
@@ -3056,8 +3075,8 @@ _bagsIconImg.src = 'assets/images/ui/icon/Extras/Bags.png';
 // 计算总基础格数 = 扩展格里所有背包的 bagSlots 之和（不管是否解锁，放进去就算）
 function getTotalBagSlots() {
   let total = 0;
-  const extItems = bagItems.slice(-5);
-  for (let i = 0; i < 5; i++) {
+  const extItems = bagItems.slice(-4);
+  for (let i = 0; i < 4; i++) {
     if (extItems[i]) {
       const def = ITEM_DEF[extItems[i].id];
       if (def && def.bagImg !== undefined) total += def.bagSlots || 8;
@@ -3348,7 +3367,7 @@ function renderBagSlots() {
   // 扩展格（5个），索引从mainSlots开始
   // 扩展格起始index：用当前equippedBag重新算（placeBagIntoExtSlot可能已经改变了equippedBag）
   const extOffset = getTotalBagSlots();
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     const el = document.getElementById('bag-extra-'+i);
     if (!el) continue;
     const cv = el.querySelector('canvas');
@@ -3754,7 +3773,7 @@ const dbgParams = {
   bagOffX: 35, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#fffee8',
   bagTitleStroke: 2, bagTitleDX: 0, bagTitleDY: 0,
-  bagCloseRight: -19, bagCloseTop: -32,
+  bagCloseRight: -19, bagCloseTop: -32, bagCloseSize: 36,
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
@@ -3867,7 +3886,7 @@ function applyDbg(key, val) {
   }
   if (key === 'bagTitleStroke') {
     const tt = document.getElementById('bag-title-text');
-    if (tt) tt.style.webkitTextStroke = v+'px #fffee8';
+    if (tt) tt.style.webkitTextStroke = v+'px #461507';
   }
   if (key === 'bagTitleDX') {
     const tt = document.getElementById('bag-title-text');
@@ -3900,6 +3919,10 @@ function applyDbg(key, val) {
   if (key === 'bagCloseTop') {
     const btn = document.getElementById('bag-close-btn');
     if (btn) btn.style.top = v+'px';
+  }
+  if (key === 'bagCloseSize') {
+    const btn = document.getElementById('bag-close-btn');
+    if (btn) { btn.style.width=v+'px'; btn.style.height=v+'px'; btn.setAttribute('width',v); btn.setAttribute('height',v); drawPanelCloseBtn('bag-close-btn'); }
   }
   if (key.startsWith('bag1') || key.startsWith('bag2') || key.startsWith('bag3')) {
     setTimeout(drawBagBg, 30);
@@ -4159,7 +4182,7 @@ function placeBagIntoExtSlot(srcIdx, destExtIdx) {
 
   // 新扩展格快照下的总格子数
   let newTotal = 0;
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     if (extSnap[i]) {
       const d = ITEM_DEF[extSnap[i].id];
       if (d && d.bagImg !== undefined) newTotal += d.bagSlots || 8;
@@ -4186,7 +4209,7 @@ function placeBagIntoExtSlot(srcIdx, destExtIdx) {
 
   // equippedBag = 最大格子数的那个背包
   let bestBag = null, bestSlots = 0;
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 4; i++) {
     if (extSnap[i]) {
       const d = ITEM_DEF[extSnap[i].id];
       if (d && (d.bagSlots||0) > bestSlots) { bestSlots = d.bagSlots||0; bestBag = extSnap[i].id; }
