@@ -741,7 +741,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.190</div>
+<div id="splash-version">版本号：v0.0.3.191</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -804,6 +804,9 @@ canvas { display:block; }
     <div class="dbg-row"><span class="dbg-label">上下偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bagTitleDY',this.value)" onchange="applyDbg('bagTitleDY',this.value)">
       <input class="dbg-val" type="number" id="dv-bagTitleDY" value="7" onchange="applyDbg('bagTitleDY',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">上边距</span>
+      <input class="dbg-slider" type="range" min="-60" max="10" value="-33" oninput="applyDbg('bagTitleMT',this.value)" onchange="applyDbg('bagTitleMT',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-33" onchange="applyDbg('bagTitleMT',this.value)"></div>
 
     <div class="dbg-group-title">❌ 关闭按鈕</div>
     <div class="dbg-row"><span class="dbg-label">大小</span>
@@ -2941,7 +2944,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.190',
+    version: '0.0.3.191',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -4049,6 +4052,7 @@ function exportDbgValues() {
     'bagTitleDX:     ' + dbgParams.bagTitleDX,
     'bagTitleDY:     ' + dbgParams.bagTitleDY,
     'bagTitleMT:     ' + dbgParams.bagTitleMT,
+    'bagTitleColor:  ' + dbgParams.bagTitleColor,
     '',
     '=== ❌ 关闭按鈕 ===',
     'bagCloseSize:  ' + dbgParams.bagCloseSize,
