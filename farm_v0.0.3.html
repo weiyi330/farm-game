@@ -741,7 +741,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.191</div>
+<div id="splash-version">版本号：v0.0.3.192</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2944,7 +2944,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.191',
+    version: '0.0.3.192',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3052,11 +3052,11 @@ function _bagPackIcon() {
 
 // 初始化：塞一个背包道具
 // 初始状态：扩展格[0]放普通背包，基础格8格全空
-// bagItems = [0..7基础格] + [8..12扩展格x5]
+// bagItems = [0..N-1基础格] + [N..N+3扩展格x4]
 equippedBag = 'bag_normal';
 bagItems = new Array(4).fill(null);          // 基础格 4格（普通背包）
 bagItems.push({ id: 'bag_normal', count: 1 }); // 扩展格[0]
-for (let _i=0;_i<4;_i++) bagItems.push(null); // 扩展格[1-4]空
+for (let _i=0;_i<3;_i++) bagItems.push(null); // 扩展格[1-3]空
 
 // 背包面板 canvas 九宫格底板
 const _bagFrameImg = new Image();
@@ -3403,7 +3403,7 @@ function renderBagSlots() {
         const selItem = bagItems[extBase + selectedExtSlot];
         if (extItem) {
           // 两个扩展格都有背包 → 直接swap（格子总数不变，只换位置）
-          const extStart2 = bagItems.length - 5;
+          const extStart2 = bagItems.length - 4;
           const tmp = bagItems[extStart2 + selectedExtSlot];
           bagItems[extStart2 + selectedExtSlot] = bagItems[extStart2 + slotI];
           bagItems[extStart2 + slotI] = tmp;
@@ -3600,7 +3600,7 @@ let selectedHotbarForBag = null; // 工具栏被选中的格子（等待放入�
 function onBagSlotClick(idx) {
   // 扩展格已选中 → 点基础格：互换 or 取出
   if (selectedExtSlot !== null) {
-    const extStart = bagItems.length - 5;
+    const extStart = bagItems.length - 4;
     const extItem = bagItems[extStart + selectedExtSlot];
     if (!extItem) { selectedExtSlot = null; renderBagSlots(); return; }
     if (bagItems[idx]) {
@@ -3626,7 +3626,7 @@ function onBagSlotClick(idx) {
     if (newTotal < extStart) bagItems.splice(newTotal, extStart - newTotal);
     // 更新equippedBag
     let bestBag = null, bestSl = 0;
-    bagItems.slice(bagItems.length - 5).forEach(x => { if(x){ const d=ITEM_DEF[x.id]; if(d&&(d.bagSlots||0)>bestSl){bestSl=d.bagSlots||0;bestBag=x.id;}}});
+    bagItems.slice(bagItems.length - 4).forEach(x => { if(x){ const d=ITEM_DEF[x.id]; if(d&&(d.bagSlots||0)>bestSl){bestSl=d.bagSlots||0;bestBag=x.id;}}});
     equippedBag = bestBag;
     selectedExtSlot = null;
     renderBagSlots(); drawBagBg(); return;
