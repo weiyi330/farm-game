@@ -4052,6 +4052,7 @@ function sellCrop(type){
 
 function updateSellGrid(){
   const el=document.getElementById('sellGrid');
+  if(!el) return;
   const entries=Object.entries(harvestBag).filter(([k,v])=>v>0);
   if(!entries.length){ el.innerHTML='<div style="color:#886640;font-size:11px;padding:6px;grid-column:1/-1">暂无农产品</div>'; return; }
   el.innerHTML=entries.map(([t,q])=>`<div class="sitem" onclick="sellCrop('${t}')">
