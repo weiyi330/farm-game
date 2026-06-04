@@ -234,7 +234,7 @@ canvas { display:block; }
 }
 #joy-stick {
   width:41px; height:41px; border-radius:50%;
-  background:rgba(255,255,255,0.55);
+  background:rgba(254,229,171,0.55);
   border:none;
   box-shadow:none;
   position:absolute; top:37px; left:37px;
@@ -294,8 +294,8 @@ canvas { display:block; }
 */
 #action-btn {
   width:70px; height:70px; border-radius:50%;
-  background:rgba(255,255,255,0.55);
-  border:2px solid rgba(255,255,255,0.30);
+  background:rgba(254,229,171,0.55);
+  border:2px solid rgba(254,229,171,0.30);
   box-shadow:none;
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; pointer-events:all;
@@ -360,8 +360,10 @@ canvas { display:block; }
 }
 #bag-title-text {
   position:relative; z-index:1;
-  font-size:16px; color:#3a1a08; letter-spacing:3px;
+  font-size:16px; color:#fffee8; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
+  text-shadow: 0 0 0 #fffee8, -1px -1px 0 #fffee8, 1px -1px 0 #fffee8, -1px 1px 0 #fffee8, 1px 1px 0 #fffee8;
+  -webkit-text-stroke: 2px #fffee8;
 }
 /* 外层负责滚动，内层 grid overflow:visible 让选中框不被裁 */
 #bag-slots-wrap {
@@ -783,7 +785,21 @@ canvas { display:block; }
   </div>
   <!-- UI调试面板 -->
   <div id="ui-debug-panel">
-    <div class="dbg-group-title">🧱 大底板（slot02）</div>
+    <div class="dbg-group-title">📝 标题文字</div>
+    <div class="dbg-row"><span class="dbg-label">字号</span>
+      <input class="dbg-slider" type="range" min="10" max="32" value="20" oninput="applyDbg('bagTitleFS',this.value)" onchange="applyDbg('bagTitleFS',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleFS" value="20" onchange="applyDbg('bagTitleFS',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">描边粗细</span>
+      <input class="dbg-slider" type="range" min="0" max="6" value="2" step="0.5" oninput="applyDbg('bagTitleStroke',this.value)" onchange="applyDbg('bagTitleStroke',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleStroke" value="2" onchange="applyDbg('bagTitleStroke',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">左右偏移</span>
+      <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bagTitleDX',this.value)" onchange="applyDbg('bagTitleDX',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleDX" value="0" onchange="applyDbg('bagTitleDX',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">上下偏移</span>
+      <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bagTitleDY',this.value)" onchange="applyDbg('bagTitleDY',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagTitleDY" value="0" onchange="applyDbg('bagTitleDY',this.value)"></div>
+
+    <div class="dbg-group-title">🧱 大底板（slot01）</div>
     <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
       <input class="dbg-slider" type="range" min="0" max="100" value="25" oninput="applyDbg('bag1PadW',this.value)" onchange="applyDbg('bag1PadW',this.value)">
       <input class="dbg-val" type="number" id="dv-bag1PadW" value="25" onchange="applyDbg('bag1PadW',this.value)"></div>
@@ -3596,8 +3612,8 @@ function onBagSlotClick(idx) {
 
   if (selectedBagSlot === null && selectedHotbarForBag === null) {
     if (!bagItems[idx]) return;
-    // 点击可出售道具 → 出售弹窗
-    {
+    // 点击可出售道具 → 仅当商店已打开时才弹出售弹窗
+    if (document.getElementById('shop-panel').style.display === 'flex') {
       const item = bagItems[idx];
       const sellPrice = item && SELL_PRICES[item.id];
       if (sellPrice) { openTrade('sell', item.id, sellPrice, idx); return; }
@@ -3736,7 +3752,8 @@ const dbgParams = {
   bagTitleLeft: 0, bagTitleTop: -1,
   bagTitleTextLeft: 2, bagTitleTextTop: 0,
   bagOffX: 35, bagOffY: -27, bagScale: 1.0,
-  bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#3a1a08',
+  bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#fffee8',
+  bagTitleStroke: 2, bagTitleDX: 0, bagTitleDY: 0,
   bagCloseRight: -19, bagCloseTop: -32,
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
@@ -3847,6 +3864,18 @@ function applyDbg(key, val) {
     const tt = document.getElementById('bag-title-text');
     if (tt) tt.style.fontSize = v+'px';
     setTimeout(drawBagBg, 30);
+  }
+  if (key === 'bagTitleStroke') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) tt.style.webkitTextStroke = v+'px #fffee8';
+  }
+  if (key === 'bagTitleDX') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) { tt.style.position='relative'; tt.style.left = v+'px'; }
+  }
+  if (key === 'bagTitleDY') {
+    const tt = document.getElementById('bag-title-text');
+    if (tt) { tt.style.position='relative'; tt.style.top = v+'px'; }
   }
   if (key === 'bagTitleColor') {
     if (val && val !== 'NaN' && val !== 'undefined') {
