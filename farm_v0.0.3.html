@@ -180,9 +180,9 @@ canvas { display:block; }
 }
 .hud-coin-outer {
   display:inline-flex;
-  border-image: url('assets/images/ui/common/common_slot01.png') 3 3 3 3 fill / 3px 3px 3px 3px stretch;
+  border-image: url('assets/images/ui/common/common_slot01.png') 3 3 3 3 fill / 6px 6px 6px 6px stretch;
   border-style: solid;
-  border-width: 3px;
+  border-width: 6px;
   background: none;
   padding: 0;
   clip-path: none;
@@ -192,7 +192,7 @@ canvas { display:block; }
   display:flex; align-items:center; gap:5px;
   background: transparent;
   padding:2px 10px;
-  font-size:14px; color:#3a1a08;
+  font-size:14px; color:#fdffda; font-weight:bold;
   clip-path: none;
   width: max-content;
 }
@@ -200,7 +200,7 @@ canvas { display:block; }
   display:flex; align-items:center; gap:5px;
   background: transparent;
   padding:2px 10px;
-  font-size:13px; color:#3a1a08;
+  font-size:13px; color:#fdffda; font-weight:bold;
   width: max-content;
 }
 
@@ -846,6 +846,13 @@ canvas { display:block; }
         oninput="applyDbg('hudBarGap',this.value)" onchange="applyDbg('hudBarGap',this.value)">
       <input class="dbg-val" type="number" id="dv-hudBarGap" value="-25"
         onchange="applyDbg('hudBarGap',this.value)">
+    </div>
+    <div class="dbg-row">
+      <span class="dbg-label">整体上下</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="0"
+        oninput="applyDbg('hudY',this.value)" onchange="applyDbg('hudY',this.value)">
+      <input class="dbg-val" type="number" id="dv-hudY" value="0"
+        onchange="applyDbg('hudY',this.value)">
     </div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
     <div id="dbg-export-out" style="font-size:9px;color:#aaa;word-break:break-all;display:none;"></div>
@@ -2109,12 +2116,12 @@ function drawToolbarBg() {
     const slotDisplayW = 41 * dpr; // 显示宽41px
     const slotDisplayH = 41 * dpr; // 显示高41px（正方形）
     const slotGroupW = (10 * 41 + 9 * 4) * dpr; // 格子组总宽
-    const startX = (cv.width - slotGroupW) / 2; // 水平居中
-    const startY = (cv.height - slotDisplayH) / 2; // 垂直居中
+    const startX = Math.round((cv.width - slotGroupW) / 2); // 水平居中，取整避免亚像素缝隙
+    const startY = Math.round((cv.height - slotDisplayH) / 2); // 垂直居中，取整
     for (let i = 0; i < 10; i++) {
-      const sx = startX + i * (slotDisplayW + 4 * dpr);
-      const sdw = slotDisplayW, sdh = slotDisplayH;
-      const ew = SLOT_EDGE_H, eh = SLOT_EDGE_V;
+      const sx = Math.round(startX + i * (slotDisplayW + 4 * dpr));
+      const sdw = Math.round(slotDisplayW), sdh = Math.round(slotDisplayH);
+      const ew = Math.round(SLOT_EDGE_H), eh = Math.round(SLOT_EDGE_V);
       const dmW = sdw - ew*2, dmH = sdh - eh*2;
       // 格子九宫格3×3
       c.drawImage(_slotImg, 0,                 0,          SLOT_SL,   SLOT_ST,   sx,        startY,        ew,  eh);
@@ -3177,7 +3184,7 @@ function drawSlotCanvas(cv, w, h, alpha) {
   c.imageSmoothingEnabled = false;
   const SL=2, SR=2, ST=2, SB=2, SLOT_W=16, SLOT_H=48;
   const SMH = SLOT_W-SL-SR, SMV = SLOT_H-ST-SB;
-  const ew = SL * dpr * 2, eh = ST * dpr * 2;  // 边缘×2×dpr，与工具栏一致
+  const ew = Math.round(SL * dpr * 2), eh = Math.round(ST * dpr * 2);  // 边缘×2×dpr，取整避免亚像素缝隙
   const DW = cv.width - ew*2, DH = cv.height - eh*2;
   const img = _bagSlotImg;
   c.drawImage(img, 0,        0,        SL,  ST,  0,           0,           ew,  eh);
@@ -3670,6 +3677,7 @@ const dbgParams = {
   hudSeasonIconSize: 40, hudSeasonIconX: 28,
   hudDayBoardW: 100, hudDayBoardH: 23, hudDayContentX: 14,
   hudBarGap: -25,
+  hudY: 0,
 };
 
 function initDebugIcon() {
@@ -3843,6 +3851,10 @@ function applyDbg(key, val) {
     const area = document.getElementById('hud-day-area');
     if (area) area.style.marginLeft = (dbgParams.hudBarGap ?? 20) + 'px';
   }
+  if (key === 'hudY') {
+    const hud = document.getElementById('hud');
+    if (hud) hud.style.marginTop = (dbgParams.hudY || 0) + 'px';
+  }
   if (key === 'tradeCoinSize' || key === 'tradeCoinDX' || key === 'tradeCoinDY') {
     const modal = document.getElementById('trade-modal');
     if (modal && modal.style.display === 'flex') {
@@ -3878,6 +3890,7 @@ function exportDbgValues() {
     'hudDayContentX:    ' + dbgParams.hudDayContentX,
     '',
     'hudBarGap: ' + dbgParams.hudBarGap,
+    'hudY:      ' + dbgParams.hudY,
   ].join('\n');
   out.textContent = lines;
   out.style.display = 'block';
