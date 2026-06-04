@@ -749,7 +749,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.194</div>
+<div id="splash-version">版本号：v0.0.3.195</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2952,7 +2952,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.194',
+    version: '0.0.3.195',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3464,10 +3464,17 @@ function renderBagSlots() {
 function drawPanelCloseBtn(canvasId) {
   const cv = document.getElementById(canvasId);
   if (!cv || !_hudIconImg.complete || !_hudIconImg.naturalWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  // 读取当前显示尺寸（CSS px）
+  const displayW = parseInt(cv.style.width) || cv.offsetWidth || 36;
+  const displayH = parseInt(cv.style.height) || cv.offsetHeight || 36;
+  cv.width  = Math.round(displayW * dpr);
+  cv.height = Math.round(displayH * dpr);
   const c = cv.getContext('2d');
-  c.clearRect(0, 0, 36, 36);
+  c.clearRect(0, 0, cv.width, cv.height);
   c.imageSmoothingEnabled = false;
-  c.drawImage(_hudIconImg, 17*16, 4*16, 16, 16, 0, 0, 36, 36);
+  // 图集源区域固定 16x16，目标用全尺寸（适配 dpr）
+  c.drawImage(_hudIconImg, 17*16, 4*16, 16, 16, 0, 0, cv.width, cv.height);
 }
 
 // 商店标题底板绘制（使用背包标题同款图：common_button02）
