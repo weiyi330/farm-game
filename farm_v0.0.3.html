@@ -747,7 +747,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.198</div>
+<div id="splash-version">版本号：v0.0.3.199</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2784,7 +2784,7 @@ function onSlotPointerDown(e, idx) {
 
 function selectSlot(idx) {
   if (bagOpen) {
-    // 背包开着
+    // 背包开着时，选工具栏时清掉背包选中态
     if (selectedBagSlot !== null) {
       // 有背包格子已选中 → 互换
       doSwapHotbarBag(idx, selectedBagSlot);
@@ -2959,7 +2959,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.198',
+    version: '0.0.3.199',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3662,6 +3662,8 @@ function onBagSlotClick(idx) {
       if (sellPrice) { openTrade('sell', item.id, sellPrice, idx); return; }
     }
     selectedBagSlot = idx;
+    selectedSlot = -1; // 背包选中时清工具栏
+    renderHotbar();
     renderBagSlots();
   } else if (selectedBagSlot === idx) {
     selectedBagSlot = null;
@@ -3735,6 +3737,7 @@ function toggleBag() {
   panel.style.display = bagOpen ? 'flex' : 'none';
   selectedBagSlot = null;
   selectedHotbarForBag = null;
+  selectedSlot = -1; // 打开/关闭背包时清掉工具栏选中态
   renderHotbar();
   if (bagOpen) {
     renderBagSlots();
