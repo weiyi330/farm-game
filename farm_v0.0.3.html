@@ -749,7 +749,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.193</div>
+<div id="splash-version">版本号：v0.0.3.194</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2952,7 +2952,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.193',
+    version: '0.0.3.194',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3399,7 +3399,7 @@ function renderBagSlots() {
     // ── 绑定点击事件 ──
     el.onclick = ((slotI) => () => {
       if (!bagUnlocked[slotI]) { showToast('扩展格未解锁'); return; }
-      const extBase = getTotalBagSlots();
+      const extBase = bagItems.length - 4; // 扩展格起始，始终用末尾-4
       const extItem = bagItems[extBase + slotI];
 
       // ── 情况1：当前有选中的扩展格 ──
@@ -3411,13 +3411,12 @@ function renderBagSlots() {
         const selItem = bagItems[extBase + selectedExtSlot];
         if (extItem) {
           // 两个扩展格都有背包 → 直接swap（格子总数不变，只换位置）
-          const extStart2 = bagItems.length - 4;
-          const tmp = bagItems[extStart2 + selectedExtSlot];
-          bagItems[extStart2 + selectedExtSlot] = bagItems[extStart2 + slotI];
-          bagItems[extStart2 + slotI] = tmp;
+          const tmp = bagItems[extBase + selectedExtSlot];
+          bagItems[extBase + selectedExtSlot] = bagItems[extBase + slotI];
+          bagItems[extBase + slotI] = tmp;
           // 更新equippedBag = 最大格子背包
           let bestBag = null, bestSl = 0;
-          bagItems.slice(extStart2).forEach(x => { if(x){const d=ITEM_DEF[x.id];if(d&&(d.bagSlots||0)>bestSl){bestSl=d.bagSlots||0;bestBag=x.id;}}});
+          bagItems.slice(extBase).forEach(x => { if(x){const d=ITEM_DEF[x.id];if(d&&(d.bagSlots||0)>bestSl){bestSl=d.bagSlots||0;bestBag=x.id;}}});
           equippedBag = bestBag;
           selectedExtSlot = null; renderBagSlots(); drawBagBg();
         } else {
@@ -4195,16 +4194,17 @@ function equipByBagId(bagId) {
 // destExtI：目标扩展格的位置索引（0-4）
 function placeBagIntoExtSlot(srcIdx, destExtIdx) {
   const oldTotal = getTotalBagSlots();
+  const extBase = bagItems.length - 4; // 扩展格在数组里的起始位置
   const srcItem = bagItems[srcIdx];
   if (!srcItem) return;
   const srcDef = ITEM_DEF[srcItem.id];
   if (!srcDef || srcDef.bagImg === undefined) return;
 
-  // 快照扩展格（末尾5格）
-  const extSnap = Array.from({length:5}, (_,i) => bagItems[oldTotal + i] || null);
-  const srcIsExt = srcIdx >= oldTotal;
-  const srcExtI  = srcIsExt ? srcIdx - oldTotal : -1;
-  const destExtI = destExtIdx - oldTotal;
+  // 快照扩展格（末尾4格）
+  const extSnap = Array.from({length:4}, (_,i) => bagItems[extBase + i] || null);
+  const srcIsExt = srcIdx >= extBase;
+  const srcExtI  = srcIsExt ? srcIdx - extBase : -1;
+  const destExtI = destExtIdx - extBase;
 
   if (srcIsExt) extSnap[srcExtI] = null;
   const oldDestItem = extSnap[destExtI];
@@ -4230,7 +4230,8 @@ function placeBagIntoExtSlot(srcIdx, destExtIdx) {
   }
 
   // 重建基础格：保留原内容，src位置放oldDestItem（退回旧扩展格内容）
-  const mainSnap = bagItems.slice(0, oldTotal).map((x, i) => {
+  // 用 extBase 截取基础格（更精确，oldTotal可能与extBase不一致）
+  const mainSnap = bagItems.slice(0, extBase).map((x, i) => {
     if (!srcIsExt && i === srcIdx) return oldDestItem;
     return x;
   });
