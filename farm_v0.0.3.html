@@ -181,7 +181,7 @@ canvas { display:block; }
 .hud-coin-outer {
   display:flex;
   align-items:center;
-  border-image: url('assets/images/ui/common/common_slot01.png') 3 3 3 3 fill / 6px 6px 6px 6px stretch;
+  border-image: url('assets/images/ui/common/common_slot01_48.png') 3 3 3 3 fill / 6px 6px 6px 6px stretch;
   border-style: solid;
   border-width: 6px;
   background: none;
@@ -189,14 +189,15 @@ canvas { display:block; }
   clip-path: none;
   margin: 5px;
   box-sizing: border-box;
+  overflow: visible;
 }
 .hud-coin {
   display:flex; align-items:center; gap:5px;
   background: transparent;
   padding:2px 10px;
   font-size:14px; color:#fdffda; font-weight:bold;
-  clip-path: none;
   width: max-content;
+  position:relative;
 }
 .hud-day {
   display:flex; align-items:center; gap:5px;
@@ -204,6 +205,7 @@ canvas { display:block; }
   padding:2px 10px;
   font-size:13px; color:#fdffda; font-weight:bold;
   width: max-content;
+  position:relative;
 }
 
 /* 底部UI */
@@ -3862,8 +3864,8 @@ function applyDbg(key, val) {
     const dy = dbgParams.hudContentY || 0;
     const coin = document.getElementById('hud-coin-wrap');
     const day  = document.getElementById('hud-day-wrap');
-    if (coin) coin.style.marginTop = dy + 'px';
-    if (day)  day.style.marginTop  = dy + 'px';
+    if (coin) coin.style.top = dy + 'px';
+    if (day)  day.style.top  = dy + 'px';
   }
   if (key === 'tradeCoinSize' || key === 'tradeCoinDX' || key === 'tradeCoinDY') {
     const modal = document.getElementById('trade-modal');
