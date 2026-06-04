@@ -741,7 +741,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.189</div>
+<div id="splash-version">版本号：v0.0.3.190</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -803,7 +803,7 @@ canvas { display:block; }
       <input class="dbg-val" type="number" id="dv-bagTitleDX" value="0" onchange="applyDbg('bagTitleDX',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">上下偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bagTitleDY',this.value)" onchange="applyDbg('bagTitleDY',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleDY" value="0" onchange="applyDbg('bagTitleDY',this.value)"></div>
+      <input class="dbg-val" type="number" id="dv-bagTitleDY" value="7" onchange="applyDbg('bagTitleDY',this.value)"></div>
 
     <div class="dbg-group-title">❌ 关闭按鈕</div>
     <div class="dbg-row"><span class="dbg-label">大小</span>
@@ -2941,7 +2941,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.189',
+    version: '0.0.3.190',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3772,7 +3772,7 @@ const dbgParams = {
   bagTitleTextLeft: 2, bagTitleTextTop: 0,
   bagOffX: 35, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#fffee8',
-  bagTitleStroke: 2, bagTitleDX: 0, bagTitleDY: 0,
+  bagTitleStroke: 2, bagTitleDX: 0, bagTitleDY: 7,
   bagCloseRight: -19, bagCloseTop: -32, bagCloseSize: 36,
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
@@ -4042,6 +4042,18 @@ function exportDbgValues() {
     'bag3DY:   ' + dbgParams.bag3DY,
     '',
     'bagSlotSize: ' + dbgParams.bagSlotSize,
+    '',
+    '=== 📝 标题文字 ===',
+    'bagTitleFS:     ' + dbgParams.bagTitleFS,
+    'bagTitleStroke: ' + dbgParams.bagTitleStroke,
+    'bagTitleDX:     ' + dbgParams.bagTitleDX,
+    'bagTitleDY:     ' + dbgParams.bagTitleDY,
+    'bagTitleMT:     ' + dbgParams.bagTitleMT,
+    '',
+    '=== ❌ 关闭按鈕 ===',
+    'bagCloseSize:  ' + dbgParams.bagCloseSize,
+    'bagCloseRight: ' + dbgParams.bagCloseRight,
+    'bagCloseTop:   ' + dbgParams.bagCloseTop,
   ].join('\n');
   out.textContent = lines;
   out.style.display = 'block';
