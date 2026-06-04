@@ -579,15 +579,28 @@ canvas { display:block; }
   background:rgba(0,0,0,0.6);
 }
 .trade-box {
-  background:#ffd2a1;
+  background: transparent;
   border:none;
   border-radius:0;
   padding:20px 24px 16px;
   min-width:220px; max-width:280px;
   display:flex; flex-direction:column; gap:12px;
   align-items:center;
-  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+  position:relative;
 }
+#trade-bg-canvas {
+  position:absolute; top:0; left:0;
+  image-rendering:pixelated; pointer-events:none; z-index:0;
+}
+#trade-sep-canvas {
+  position:absolute;
+  image-rendering:pixelated; pointer-events:none; z-index:1;
+}
+#trade-icon-canvas {
+  position:absolute; top:0; left:0;
+  image-rendering:pixelated; pointer-events:none; z-index:0;
+}
+.trade-box > * { position:relative; z-index:2; }
 .sitem-wrap.sold-out { pointer-events:none; }
 .sitem-wrap.sold-out .sitem { filter:grayscale(1) opacity(0.5); }
 .sitem-wrap.sold-out .sitem-price { display:none; }
@@ -623,11 +636,15 @@ canvas { display:block; }
 /* 道具说明弹窗 */
 #item-tooltip {
   position:absolute; z-index:60;
-  background:#ffe0bf;
-  border-radius:0; border:none;
+  background: transparent;
+  border-image: url('assets/images/ui/common/common_slot03.png') 2 2 2 2 fill / 4px 4px 4px 4px stretch;
+  border-style: solid;
+  border-width: 4px;
+  border-radius:0; 
   padding:10px 14px;
   max-width:200px; pointer-events:none;
   display:none;
+  box-sizing: border-box;
 }
 .tooltip-name { font-size:12px; color:#3a2a10; font-weight:bold; margin-bottom:4px; }
 .tooltip-desc { font-size:12px; color:#5a4a30; line-height:1.5; }
@@ -834,8 +851,12 @@ canvas { display:block; }
   <!-- 购买/出售确认弹窗 -->
   <div id="trade-modal">
     <div class="trade-box">
+      <canvas id="trade-bg-canvas"></canvas>
+      <canvas id="trade-sep-canvas"></canvas>
       <div class="trade-title" id="trade-title">购买确认</div>
-      <div id="trade-item-icon-wrap" style="width:48px;height:48px;position:relative;margin-bottom:2px;"></div>
+      <div id="trade-item-icon-wrap" style="width:48px;height:48px;position:relative;margin-bottom:2px;">
+        <canvas id="trade-icon-canvas"></canvas>
+      </div>
       <div class="trade-item-name" id="trade-item-name">土豆种子</div>
       <div class="trade-price" id="trade-price">单价：<span id="trade-price-icon"></span><span id="trade-price-val">8</span></div>
       <div class="trade-qty-row" id="trade-qty-row">
@@ -849,6 +870,7 @@ canvas { display:block; }
         <button class="trade-btn cancel"  onclick="closeTrade()">取消</button>
       </div>
     </div>
+  </div>
   </div>
   <!-- 道具说明 -->
   <div id="item-tooltip">
@@ -4672,6 +4694,7 @@ function openTrade(mode, itemId, unitPrice, bagIdx) {
   if (totalRow) totalRow.style.display = hideQty ? 'none' : '';
   updateTradeTotal();
   document.getElementById('trade-modal').style.display = 'flex';
+  setTimeout(drawTradeBoxBg, 30);
 }
 
 function updateTradeTotal() {
@@ -4679,6 +4702,74 @@ function updateTradeTotal() {
   const total = qty * _tradeUnitPrice;
   document.getElementById('trade-total-icon').innerHTML = `<span style="${coinIconStyle(total, dbgParams.tradeCoinSize)}position:relative;left:${dbgParams.tradeCoinDX||0}px;top:${dbgParams.tradeCoinDY||0}px;"></span>`;
   document.getElementById('trade-total-val').textContent = total;
+}
+
+// 绘制购买/出售弹窗底板
+function drawTradeBoxBg() {
+  const box = document.querySelector('.trade-box');
+  if (!box) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = box.offsetWidth, H = box.offsetHeight;
+  if (!W || !H) return;
+
+  // 主底板 slot02
+  const cv = document.getElementById('trade-bg-canvas');
+  if (cv && _bagContentImg.complete && _bagContentImg.naturalWidth) {
+    const cw = Math.round(W*dpr), ch = Math.round(H*dpr);
+    cv.width = cw; cv.height = ch;
+    cv.style.width = W+'px'; cv.style.height = H+'px';
+    const c = cv.getContext('2d'); c.clearRect(0,0,cw,ch);
+    c.imageSmoothingEnabled = false;
+    const SL=2,SR=2,ST=2,SB=2,SW=16,SH=48,ES=2;
+    const SMH=SW-SL-SR, SMV=SH-ST-SB;
+    const ew=Math.round(SL*ES*dpr), eh=Math.round(ST*ES*dpr);
+    const DW=cw-ew*2, DH=ch-eh*2, img=_bagContentImg;
+    c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+    c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+    c.drawImage(img,SL+SMH,0,SR,ST,cw-ew,0,ew,eh);
+    c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+    c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+    c.drawImage(img,SL+SMH,ST,SR,SMV,cw-ew,eh,ew,DH);
+    c.drawImage(img,0,ST+SMV,SL,SB,0,ch-eh,ew,eh);
+    c.drawImage(img,SL,ST+SMV,SMH,SB,ew,ch-eh,DW,eh);
+    c.drawImage(img,SL+SMH,ST+SMV,SR,SB,cw-ew,ch-eh,ew,eh);
+  }
+
+  // 道具图标底框 slot04 (48x48)
+  const icv = document.getElementById('trade-icon-canvas');
+  if (icv) { drawSlotCanvas(icv, 48, 48, 1); }
+
+  // 分割区 slot03（数量行 + 合计行区域）
+  const sepCv = document.getElementById('trade-sep-canvas');
+  const qtyRow = document.getElementById('trade-qty-row');
+  const totalRow = document.getElementById('trade-qty-total');
+  if (sepCv && qtyRow && qtyRow.offsetHeight > 0 && _shopBg2Img.complete && _shopBg2Img.naturalWidth) {
+    const boxRect = box.getBoundingClientRect();
+    const qtyRect = qtyRow.getBoundingClientRect();
+    const totalRect = totalRow ? totalRow.getBoundingClientRect() : qtyRect;
+    const top2 = qtyRect.top - boxRect.top - 4;
+    const bot2 = (totalRect.bottom - boxRect.top) + 4;
+    const sw = W - 12, sh = bot2 - top2;
+    const scw = Math.round(sw*dpr), sch = Math.round(sh*dpr);
+    sepCv.width = scw; sepCv.height = sch;
+    sepCv.style.width = sw+'px'; sepCv.style.height = sh+'px';
+    sepCv.style.left = '6px'; sepCv.style.top = top2+'px';
+    const c2 = sepCv.getContext('2d'); c2.clearRect(0,0,scw,sch);
+    c2.imageSmoothingEnabled = false;
+    const SL=2,SR=2,ST=2,SB=2,SW=16,SH=48,ES=2;
+    const SMH=SW-SL-SR, SMV=SH-ST-SB;
+    const ew=Math.round(SL*ES*dpr), eh=Math.round(ST*ES*dpr);
+    const DW=scw-ew*2, DH=sch-eh*2, img=_shopBg2Img;
+    c2.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+    c2.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+    c2.drawImage(img,SL+SMH,0,SR,ST,scw-ew,0,ew,eh);
+    c2.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+    c2.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+    c2.drawImage(img,SL+SMH,ST,SR,SMV,scw-ew,eh,ew,DH);
+    c2.drawImage(img,0,ST+SMV,SL,SB,0,sch-eh,ew,eh);
+    c2.drawImage(img,SL,ST+SMV,SMH,SB,ew,sch-eh,DW,eh);
+    c2.drawImage(img,SL+SMH,ST+SMV,SR,SB,scw-ew,sch-eh,ew,eh);
+  }
 }
 
 function closeTrade() {
