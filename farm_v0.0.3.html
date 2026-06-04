@@ -376,7 +376,8 @@ canvas { display:block; }
 #bag-slots-wrap {
   position:relative; z-index:2;
   width:calc(4 * 41px + 3 * 4px);
-  max-height:calc(3.5 * 41px + 2.5 * 4px); overflow-y:auto;
+  max-height:calc(3.5 * 41px + 2.5 * 4px);
+  overflow:visible;
   scrollbar-width:none;
   margin:0 4px;
   padding:2px; box-sizing:content-box;
@@ -749,7 +750,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.195</div>
+<div id="splash-version">版本号：v0.0.3.196</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -811,43 +812,43 @@ canvas { display:block; }
       <input class="dbg-val" type="number" id="dv-bagTitleDX" value="0" onchange="applyDbg('bagTitleDX',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">上下偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bagTitleDY',this.value)" onchange="applyDbg('bagTitleDY',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagTitleDY" value="7" onchange="applyDbg('bagTitleDY',this.value)"></div>
+      <input class="dbg-val" type="number" id="dv-bagTitleDY" value="4" onchange="applyDbg('bagTitleDY',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">上边距</span>
       <input class="dbg-slider" type="range" min="-60" max="10" value="-33" oninput="applyDbg('bagTitleMT',this.value)" onchange="applyDbg('bagTitleMT',this.value)">
       <input class="dbg-val" type="number" id="dv-bagTitleMT" value="-33" onchange="applyDbg('bagTitleMT',this.value)"></div>
 
     <div class="dbg-group-title">❌ 关闭按鈕</div>
     <div class="dbg-row"><span class="dbg-label">大小</span>
-      <input class="dbg-slider" type="range" min="20" max="60" value="36" oninput="applyDbg('bagCloseSize',this.value)" onchange="applyDbg('bagCloseSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseSize" value="36" onchange="applyDbg('bagCloseSize',this.value)"></div>
+      <input class="dbg-slider" type="range" min="20" max="60" value="25" oninput="applyDbg('bagCloseSize',this.value)" onchange="applyDbg('bagCloseSize',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseSize" value="25" onchange="applyDbg('bagCloseSize',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">左右</span>
-      <input class="dbg-slider" type="range" min="-100" max="20" value="-19" oninput="applyDbg('bagCloseRight',this.value)" onchange="applyDbg('bagCloseRight',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-19" onchange="applyDbg('bagCloseRight',this.value)"></div>
+      <input class="dbg-slider" type="range" min="-100" max="20" value="-6" oninput="applyDbg('bagCloseRight',this.value)" onchange="applyDbg('bagCloseRight',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseRight" value="-6" onchange="applyDbg('bagCloseRight',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">上下</span>
-      <input class="dbg-slider" type="range" min="-80" max="20" value="-32" oninput="applyDbg('bagCloseTop',this.value)" onchange="applyDbg('bagCloseTop',this.value)">
-      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-32" onchange="applyDbg('bagCloseTop',this.value)"></div>
+      <input class="dbg-slider" type="range" min="-80" max="20" value="-27" oninput="applyDbg('bagCloseTop',this.value)" onchange="applyDbg('bagCloseTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-bagCloseTop" value="-27" onchange="applyDbg('bagCloseTop',this.value)"></div>
 
     <div class="dbg-group-title">🧱 大底板（slot01）</div>
     <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
-      <input class="dbg-slider" type="range" min="0" max="100" value="25" oninput="applyDbg('bag1PadW',this.value)" onchange="applyDbg('bag1PadW',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag1PadW" value="25" onchange="applyDbg('bag1PadW',this.value)"></div>
+      <input class="dbg-slider" type="range" min="0" max="100" value="30" oninput="applyDbg('bag1PadW',this.value)" onchange="applyDbg('bag1PadW',this.value)">
+      <input class="dbg-val" type="number" id="dv-bag1PadW" value="30" onchange="applyDbg('bag1PadW',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">高度内边距</span>
-      <input class="dbg-slider" type="range" min="0" max="150" value="55" oninput="applyDbg('bag1PadH'",this.value)" onchange="applyDbg('bag1PadH',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag1PadH" value="55" onchange="applyDbg('bag1PadH',this.value)"></div>
+      <input class="dbg-slider" type="range" min="0" max="150" value="46" oninput="applyDbg('bag1PadH'",this.value)" onchange="applyDbg('bag1PadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-bag1PadH" value="46" onchange="applyDbg('bag1PadH',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">左右偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bag1DX',this.value)" onchange="applyDbg('bag1DX',this.value)">
       <input class="dbg-val" type="number" id="dv-bag1DX" value="0" onchange="applyDbg('bag1DX',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">上下偏移</span>
       <input class="dbg-slider" type="range" min="-80" max="80" value="0" oninput="applyDbg('bag1DY',this.value)" onchange="applyDbg('bag1DY',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag1DY" value="-6" onchange="applyDbg('bag1DY',this.value)"></div>
+      <input class="dbg-val" type="number" id="dv-bag1DY" value="-10" onchange="applyDbg('bag1DY',this.value)"></div>
 
     <div class="dbg-group-title">📦 格子区底板（slot02）</div>
     <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
       <input class="dbg-slider" type="range" min="0" max="60" value="16" oninput="applyDbg('bag2PadW'",this.value)" onchange="applyDbg('bag2PadW',this.value)">
       <input class="dbg-val" type="number" id="dv-bag2PadW" value="16" onchange="applyDbg('bag2PadW',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">高度内边距</span>
-      <input class="dbg-slider" type="range" min="0" max="150" value="75" oninput="applyDbg('bag2PadH'",this.value)" onchange="applyDbg('bag2PadH',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag2PadH" value="75" onchange="applyDbg('bag2PadH',this.value)"></div>
+      <input class="dbg-slider" type="range" min="0" max="150" value="82" oninput="applyDbg('bag2PadH'",this.value)" onchange="applyDbg('bag2PadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-bag2PadH" value="82" onchange="applyDbg('bag2PadH',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">左右偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bag2DX',this.value)" onchange="applyDbg('bag2DX',this.value)">
       <input class="dbg-val" type="number" id="dv-bag2DX" value="0" onchange="applyDbg('bag2DX',this.value)"></div>
@@ -857,17 +858,17 @@ canvas { display:block; }
 
     <div class="dbg-group-title">🏦 扩展格底板（slot03）</div>
     <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
-      <input class="dbg-slider" type="range" min="0" max="60" value="8" oninput="applyDbg('bag3PadW',this.value)" onchange="applyDbg('bag3PadW',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag3PadW" value="8" onchange="applyDbg('bag3PadW',this.value)"></div>
+      <input class="dbg-slider" type="range" min="0" max="60" value="29" oninput="applyDbg('bag3PadW',this.value)" onchange="applyDbg('bag3PadW',this.value)">
+      <input class="dbg-val" type="number" id="dv-bag3PadW" value="29" onchange="applyDbg('bag3PadW',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">高度内边距</span>
-      <input class="dbg-slider" type="range" min="0" max="60" value="6" oninput="applyDbg('bag3PadH',this.value)" onchange="applyDbg('bag3PadH',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag3PadH" value="6" onchange="applyDbg('bag3PadH',this.value)"></div>
+      <input class="dbg-slider" type="range" min="0" max="60" value="11" oninput="applyDbg('bag3PadH',this.value)" onchange="applyDbg('bag3PadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-bag3PadH" value="11" onchange="applyDbg('bag3PadH',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">左右偏移</span>
       <input class="dbg-slider" type="range" min="-60" max="60" value="0" oninput="applyDbg('bag3DX',this.value)" onchange="applyDbg('bag3DX',this.value)">
       <input class="dbg-val" type="number" id="dv-bag3DX" value="0" onchange="applyDbg('bag3DX',this.value)"></div>
     <div class="dbg-row"><span class="dbg-label">上下偏移</span>
       <input class="dbg-slider" type="range" min="-80" max="80" value="0" oninput="applyDbg('bag3DY',this.value)" onchange="applyDbg('bag3DY',this.value)">
-      <input class="dbg-val" type="number" id="dv-bag3DY" value="0" onchange="applyDbg('bag3DY',this.value)"></div>
+      <input class="dbg-val" type="number" id="dv-bag3DY" value="1" onchange="applyDbg('bag3DY',this.value)"></div>
 
     <div class="dbg-group-title">🔲 道具框大小</div>
     <div class="dbg-row"><span class="dbg-label">尺寸</span>
@@ -2952,7 +2953,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.195',
+    version: '0.0.3.196',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3789,8 +3790,8 @@ const dbgParams = {
   bagTitleTextLeft: 2, bagTitleTextTop: 0,
   bagOffX: 35, bagOffY: -27, bagScale: 1.0,
   bagTitleMT: -33, bagTitleFS: 20, bagTitleColor: '#fffee8',
-  bagTitleStroke: 2, bagTitleDX: 0, bagTitleDY: 7,
-  bagCloseRight: -19, bagCloseTop: -32, bagCloseSize: 36,
+  bagTitleStroke: 2, bagTitleDX: 0, bagTitleDY: 4,
+  bagCloseRight: -6, bagCloseTop: -27, bagCloseSize: 25,
   tbWidth: 470, tbHeight: 60, tbMarginBottom: -10,
   iconSize: 29, iconYOff: 20,
   tradeCoinSize: 20, tradeCoinDX: 0, tradeCoinDY: 1,
@@ -3803,11 +3804,11 @@ const dbgParams = {
   hudContentY: 0,
   // 背包三层底板独立参数
   // 层±1: 大底板 (bag-canvas, slot01)
-  bag1DX: 0, bag1DY: -6, bag1PadW: 25, bag1PadH: 55,
+  bag1DX: 0, bag1DY: -10, bag1PadW: 30, bag1PadH: 46,
   // 层±2: 格子区底板 (bag-slots-canvas, slot02)
-  bag2DX: 0, bag2DY: 32, bag2PadW: 16, bag2PadH: 75,
+  bag2DX: 0, bag2DY: 32, bag2PadW: 16, bag2PadH: 82,
   // 层±3: 扩展格区底板 (bag-extra-canvas, slot03)
-  bag3DX: 0, bag3DY: 0, bag3PadW: 8, bag3PadH: 6,
+  bag3DX: 0, bag3DY: 1, bag3PadW: 29, bag3PadH: 11,
   // 道具框尺寸
   bagSlotSize: 41,
 };
