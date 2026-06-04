@@ -405,16 +405,23 @@ canvas { display:block; }
   display:flex; align-items:center; justify-content:center;
   cursor:pointer; image-rendering:pixelated;
 }
-.bag-slot-extra.locked::after { display:none; }
-.bag-slot-extra.locked::before { display:none; }
-.bag-slot-extra.locked { cursor:default; }
-.bag-extra-lock-label {
-  position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  z-index:3; pointer-events:none;
-  font-size:8px; color:#b27642; font-weight:bold; letter-spacing:0.5px;
-  white-space:nowrap; text-shadow:0 1px 2px rgba(0,0,0,0.6);
+.bag-slot-extra.locked::after {
+  content:'';
+  position:absolute; inset:0;
+  background:rgba(0,0,0,0.35);
+  border-radius:2px;
+  z-index:1;
 }
+.bag-slot-extra.locked::before {
+  content:'待解锁';
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  z-index:2;
+  font-size:9px; color:#b27642; font-weight:bold; letter-spacing:1px;
+  pointer-events:none; white-space:nowrap;
+}
+.bag-slot-extra.locked { cursor:default; filter:grayscale(1) brightness(0.6); position:relative; }
 .bag-slot-extra.selected { outline:2px solid #f5c842; outline-offset:1px; box-shadow:0 0 0 1px #8b5e00; border-radius:2px; }
 .bag-slot canvas, .bag-slot-extra canvas {
   position:absolute; top:0; left:0; width:100%; height:100%;
@@ -749,7 +756,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.202</div>
+<div id="splash-version">版本号：v0.0.3.201</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2963,7 +2970,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.202',
+    version: '0.0.3.201',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3395,14 +3402,8 @@ function renderBagSlots() {
     const cv = el.querySelector('canvas');
     const unlocked = bagUnlocked[i];
     el.className = 'bag-slot-extra' + (unlocked ? '' : ' locked') + (selectedExtSlot === i ? ' selected' : '');
-    if (cv) drawSlotCanvas(cv, 32, 32, unlocked ? 1 : 0.25);
-    el.querySelectorAll('.bag-item-icon,.bag-item-count,.bag-extra-lock-label,canvas:not(:first-child)').forEach(e=>e.remove());
-    if (!unlocked) {
-      const lbl = document.createElement('span');
-      lbl.className = 'bag-extra-lock-label';
-      lbl.textContent = '待解锁';
-      el.appendChild(lbl);
-    }
+    if (cv) drawSlotCanvas(cv, 32, 32, unlocked ? 1 : 0.4);
+    el.querySelectorAll('.bag-item-icon,.bag-item-count,canvas:not(:first-child)').forEach(e=>e.remove());
     const item = bagItems[extOffset+i];
     if (item && unlocked) {
       const itemDef = ITEM_DEF[item.id];
