@@ -180,9 +180,9 @@ canvas { display:block; }
 }
 .hud-coin-outer {
   display:inline-flex;
-  border-image: url('assets/images/ui/common/common_top_button.png') 4 4 4 4 fill / 4px 4px 4px 4px stretch;
+  border-image: url('assets/images/ui/common/common_slot01.png') 3 3 3 3 fill / 3px 3px 3px 3px stretch;
   border-style: solid;
-  border-width: 4px;
+  border-width: 3px;
   background: none;
   padding: 0;
   clip-path: none;
@@ -352,8 +352,7 @@ canvas { display:block; }
   margin-bottom:4px; margin-top:-33px;
 }
 #bag-title-canvas {
-  position:absolute; top:0; left:0;
-  image-rendering:pixelated; pointer-events:none; z-index:0;
+  display:none;
 }
 #bag-title-text {
   position:relative; z-index:1;
@@ -516,8 +515,7 @@ canvas { display:block; }
   width:100%; margin-bottom:4px; margin-top:-33px;
 }
 #shop-title-canvas {
-  position:absolute; top:0; left:50px;
-  image-rendering:pixelated; pointer-events:none; z-index:0;
+  display:none;
 }
 #shop-title-text {
   position:relative; z-index:1;
@@ -532,6 +530,7 @@ canvas { display:block; }
   scrollbar-width:none;
   padding:0 4px 20px;
   max-height:calc(4 * 70px + 3 * 10px);
+  position:relative;
 }
 #shop-scroll::-webkit-scrollbar { display:none; }
 .shop-title { position:relative; z-index:1; text-align:center; font-size:17px; color:#f5d78e; letter-spacing:3px; }
@@ -937,6 +936,8 @@ canvas { display:block; }
         <span id="shop-title-text">桃源杂货铺</span>
       </div>
       <div id="shop-scroll">
+            <canvas id="shop-seed-canvas" style="position:absolute;pointer-events:none;image-rendering:pixelated;z-index:0;"></canvas>
+            <canvas id="shop-bag-canvas" style="position:absolute;pointer-events:none;image-rendering:pixelated;z-index:0;"></canvas>
             <div class="shop-section-label shop-grid-label">种子</div>
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="openTrade('buy','seed_potato',50)" data-item="seed_potato">
@@ -2036,13 +2037,13 @@ function drawAbove(r, c) {
 // 工具栏底板九宫格（只左右拉伸，高度固定）
 // ============================================================
 const _tbImg = new Image();
-_tbImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
+_tbImg.src = 'assets/images/ui/common/common_slot01.png';
 const _slotImg = new Image();
 _slotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
 _slotImg.onload = drawToolbarBg;
 // 原图: 48×64，左固定4px，右固定4px，中间40px可拉伸，高度64px
-const TB_SL = 4, TB_SR = 4, TB_ST = 4, TB_SB = 4; // 左右上下边缘px
-const TB_SW = 48, TB_SH = 48; // 有效高度48px（行0-47，行48后透明）
+const TB_SL = 3, TB_SR = 3, TB_ST = 3, TB_SB = 3; // 左右上下边缘px (common_slot01 corner=3)
+const TB_SW = 48, TB_SH = 48; // 有效高度48px
 const TB_EDGE_SCALE = 2; // 边缘放大倍率
 const TB_SCALE = 1; // 高度1:1
 
@@ -3033,9 +3034,13 @@ for (let _i=0;_i<4;_i++) bagItems.push(null); // 扩展格[1-4]空
 
 // 背包面板 canvas 九宫格底板
 const _bagFrameImg = new Image();
-_bagFrameImg.src = 'assets/images/ui/toolbar/toolbar_frame.png';
+_bagFrameImg.src = 'assets/images/ui/common/common_slot02.png';
 const _bagSlotImg = new Image();
-_bagSlotImg.src = 'assets/images/ui/toolbar/toolbar_slot.png';
+_bagSlotImg.src = 'assets/images/ui/common/common_slot04.png';
+const _shopBg2Img = new Image();
+_shopBg2Img.src = 'assets/images/ui/common/common_slot03.png';
+const _hudBoardImg = new Image();
+_hudBoardImg.src = 'assets/images/ui/common/common_slot01.png';
 
 // 背包标题底板（common_button02 第1行 col6-8，原图坐标 x:80~128, y:0~16，48×16px）
 // 背包道具图集（Bags.png, 112×16, 7格每格16×16）
@@ -3102,37 +3107,8 @@ function drawBagBtnIcon() {
   }
 }
 
-// 绘制背包底板（九宫格，和工具栏一样的图集）
-// 绘制背包标题底板（九宫格拉伸）
-function drawBagTitle(cv, displayW, displayH) {
-  if (!cv || !_bagTitleImg.complete || !_bagTitleImg.naturalWidth) return;
-  const dpr = window.devicePixelRatio || 1;
-  cv.width  = Math.round(displayW * dpr);
-  cv.height = Math.round(displayH * dpr);
-  cv.style.width  = displayW + 'px';
-  cv.style.height = displayH + 'px';
-  const c = cv.getContext('2d');
-  c.clearRect(0, 0, cv.width, cv.height);
-  c.imageSmoothingEnabled = false;
-  const scale = dpr * 2; // ×2放大让像素感更清晰
-  const SL = BTN_SL, SR = BTN_SR, ST = BTN_ST, SB = BTN_SB;
-  const SMH = BTN_W - SL - SR, SMV = BTN_H - ST - SB;
-  const ew = SL * scale, eh = ST * scale;
-  const tw = cv.width, th = cv.height;
-  const DW = tw - ew*2, DH = th - eh*2;
-  const img = _bagTitleImg;
-  const ox = BTN_SX, oy = BTN_SY;
-  // 九宫格
-  c.drawImage(img,ox,          oy,          SL,  ST,  0,     0,     ew,  eh);
-  c.drawImage(img,ox+SL,       oy,          SMH, ST,  ew,    0,     DW,  eh);
-  c.drawImage(img,ox+SL+SMH,   oy,          SR,  ST,  tw-ew, 0,     ew,  eh);
-  c.drawImage(img,ox,          oy+ST,       SL,  SMV, 0,     eh,    ew,  DH);
-  c.drawImage(img,ox+SL,       oy+ST,       SMH, SMV, ew,    eh,    DW,  DH);
-  c.drawImage(img,ox+SL+SMH,   oy+ST,       SR,  SMV, tw-ew, eh,    ew,  DH);
-  c.drawImage(img,ox,          oy+ST+SMV,   SL,  SB,  0,     th-eh, ew,  eh);
-  c.drawImage(img,ox+SL,       oy+ST+SMV,   SMH, SB,  ew,    th-eh, DW,  eh);
-  c.drawImage(img,ox+SL+SMH,   oy+ST+SMV,   SR,  SB,  tw-ew, th-eh, ew,  eh);
-}
+// 标题底板已去掉，保留空函数防止调用报错
+function drawBagTitle(cv, displayW, displayH) { /* 标题底板已移除 */ }
 
 function drawBagBg() {
   const inner = document.getElementById('bag-inner');
@@ -3169,7 +3145,8 @@ function drawBagBg() {
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
   c.imageSmoothingEnabled = false;
   // 与工具栏完全相同的参数：边缘 4px × EDGE_SCALE=2 × dpr
-  const SL=4, SR=4, ST=4, SB=4, SW=48, SH=48;
+  // common_slot02: 16x48, corner=2
+  const SL=2, SR=2, ST=2, SB=2, SW=16, SH=48;
   const EDGE_SCALE = 2;
   const SMH = SW - SL - SR, SMV = SH - ST - SB;
   const ew = SL * EDGE_SCALE * dpr;
@@ -3420,7 +3397,8 @@ function drawShopBg() {
   c.clearRect(0, 0, cv.width, cv.height);
   if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
   c.imageSmoothingEnabled = false;
-  const SL=4, SR=4, ST=4, SB=4, SW=48, SH=48, EDGE_SCALE=2;
+  // common_slot02: 16x48, corner=2 （外层底板）
+  const SL=2, SR=2, ST=2, SB=2, SW=16, SH=48, EDGE_SCALE=2;
   const SMH=SW-SL-SR, SMV=SH-ST-SB;
   const ew=SL*EDGE_SCALE*dpr, eh=ST*EDGE_SCALE*dpr;
   const totalW=cv.width, totalH=cv.height;
@@ -3435,9 +3413,72 @@ function drawShopBg() {
   c.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
   c.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
   c.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
+  // 绘制种子区和背包区的 slot03 底板
+  drawShopSectionBgs(dpr);
 }
 
-// 背包格子与工具栏互换
+// 绘制种子区 / 背包区分区底板（common_slot03）
+function drawShopSectionBgs(dpr) {
+  if (!_shopBg2Img.complete || !_shopBg2Img.naturalWidth) return;
+  const scroll = document.getElementById('shop-scroll');
+  const seedGrid = scroll?.querySelector('.shop-grid');
+  const labels = scroll?.querySelectorAll('.shop-section-label');
+  const grids   = scroll?.querySelectorAll('.shop-grid');
+  if (!scroll || grids.length < 2) return;
+  const PAD = 6;
+  function draw9slice(cv, w, h) {
+    if (!cv) return;
+    const d = dpr || window.devicePixelRatio || 1;
+    cv.width  = Math.round(w * d); cv.height = Math.round(h * d);
+    cv.style.width = w+'px'; cv.style.height = h+'px';
+    const c = cv.getContext('2d'); c.clearRect(0,0,cv.width,cv.height);
+    c.imageSmoothingEnabled = false;
+    const SL=2,SR=2,ST=2,SB=2,SW=16,SH=48,ES=2;
+    const SMH=SW-SL-SR, SMV=SH-ST-SB;
+    const ew=SL*ES*d, eh=ST*ES*d;
+    const TW=cv.width, TH=cv.height, DW=TW-ew*2, DH=TH-eh*2;
+    const img=_shopBg2Img;
+    c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+    c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+    c.drawImage(img,SL+SMH,0,SR,ST,TW-ew,0,ew,eh);
+    c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+    c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+    c.drawImage(img,SL+SMH,ST,SR,SMV,TW-ew,eh,ew,DH);
+    c.drawImage(img,0,ST+SMV,SL,SB,0,TH-eh,ew,eh);
+    c.drawImage(img,SL,ST+SMV,SMH,SB,ew,TH-eh,DW,eh);
+    c.drawImage(img,SL+SMH,ST+SMV,SR,SB,TW-ew,TH-eh,ew,eh);
+  }
+  // 种子区
+  const seedCv = document.getElementById('shop-seed-canvas');
+  const seedLabel = labels[0]; const seedGrid2 = grids[0];
+  if (seedCv && seedLabel && seedGrid2) {
+    const r1 = seedLabel.getBoundingClientRect();
+    const r2 = seedGrid2.getBoundingClientRect();
+    const sr = scroll.getBoundingClientRect();
+    const top  = r1.top  - sr.top  - PAD + scroll.scrollTop;
+    const left = r1.left - sr.left - PAD;
+    const w = Math.max(r1.width, r2.width) + PAD*2;
+    const h = (r2.bottom - r1.top) + PAD*2;
+    seedCv.style.top  = top  + 'px';
+    seedCv.style.left = left + 'px';
+    draw9slice(seedCv, w, h);
+  }
+  // 背包区
+  const bagCv = document.getElementById('shop-bag-canvas');
+  const bagLabel = labels[1]; const bagGrid2 = grids[1];
+  if (bagCv && bagLabel && bagGrid2) {
+    const r1 = bagLabel.getBoundingClientRect();
+    const r2 = bagGrid2.getBoundingClientRect();
+    const sr = scroll.getBoundingClientRect();
+    const top  = r1.top  - sr.top  - PAD + scroll.scrollTop;
+    const left = r1.left - sr.left - PAD;
+    const w = Math.max(r1.width, r2.width) + PAD*2;
+    const h = (r2.bottom - r1.top) + PAD*2;
+    bagCv.style.top  = top  + 'px';
+    bagCv.style.left = left + 'px';
+    draw9slice(bagCv, w, h);
+  }
+}
 // selectedBagSlot: 当前选中的背包格子索引（null=无选中）
 let selectedBagSlot = null;
 let selectedExtSlot = null; // 当前选中的扩展格索引（0-4）
