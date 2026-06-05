@@ -562,7 +562,7 @@ canvas { display:block; }
   cursor:pointer; image-rendering:pixelated;
 }
 .shop-section-label { position:relative; z-index:1; font-size:12px; color:#4a2123; letter-spacing:2px; font-weight:bold;
-  margin-top:6px; padding-top:6px; border-top:1px solid #8b5e20; width:100%; }
+  margin-top:6px; padding-top:6px; width:100%; }
 .shop-section-label:first-of-type { margin-top:0; padding-top:0; border-top:none; }
 .shop-grid-label { position:relative; z-index:1; }
 .shop-grid {
@@ -757,7 +757,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.205</div>
+<div id="splash-version">版本号：v0.0.3.206</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -978,8 +978,7 @@ canvas { display:block; }
         <span id="shop-title-text">桃源杂货铺</span>
       </div>
       <div id="shop-scroll">
-            <canvas id="shop-seed-canvas" style="position:absolute;pointer-events:none;image-rendering:pixelated;z-index:0;"></canvas>
-            <canvas id="shop-bag-canvas" style="position:absolute;pointer-events:none;image-rendering:pixelated;z-index:0;"></canvas>
+            <!-- 分割区底板已移除 -->
             <div class="shop-section-label shop-grid-label">种子</div>
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="openTrade('buy','seed_potato',50)" data-item="seed_potato">
@@ -2971,7 +2970,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.205',
+    version: '0.0.3.206',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
