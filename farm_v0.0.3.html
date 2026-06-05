@@ -978,7 +978,8 @@ canvas { display:block; }
         <span id="shop-title-text">桃源杂货铺</span>
       </div>
       <div id="shop-scroll">
-            <!-- 分割区底板已移除 -->
+            <canvas id="shop-seed-canvas" style="position:absolute;pointer-events:none;image-rendering:pixelated;z-index:0;"></canvas>
+            <canvas id="shop-bag-canvas" style="position:absolute;pointer-events:none;image-rendering:pixelated;z-index:0;"></canvas>
             <div class="shop-section-label shop-grid-label">种子</div>
       <div class="shop-grid">
         <div class="sitem-wrap" onclick="openTrade('buy','seed_potato',50)" data-item="seed_potato">
