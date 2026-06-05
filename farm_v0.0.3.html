@@ -535,8 +535,14 @@ canvas { display:block; }
 }
 #shop-title-text {
   position:relative; z-index:1;
-  font-size:16px; color:#3a1a08; letter-spacing:3px;
+  font-size:20px; letter-spacing:3px;
   padding:4px 16px; line-height:1; font-weight:bold;
+  /* 初始样式使用背包参数 */
+  font-size:20px;
+  color:#fffee8;
+  text-shadow:
+    -2px -2px 0 #461507, 2px -2px 0 #461507, -2px 2px 0 #461507, 2px 2px 0 #461507,
+    -2px 0 0 #461507, 2px 0 0 #461507, 0 -2px 0 #461507, 0 2px 0 #461507;
 }
 /* 商店内容区：可滚动，固定最大高度（同 bag-slots） */
 #shop-scroll {
@@ -751,7 +757,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.204</div>
+<div id="splash-version">版本号：v0.0.3.205</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2965,7 +2971,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.204',
+    version: '0.0.3.205',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3789,6 +3795,7 @@ const shopDbg = {
   shopTitleLeft: 138, shopTitleTop: -1,
   shopTitleTextLeft: 0, shopTitleTextTop: 0,
   shopTitleMT: -33, shopTitleFS: 20,
+  shopTitleStroke: 2, shopTitleColor: '#fffee8',
   shopBgPadW: 48, shopBgPadH: -4,
   shopCols: 7,
   shopCloseRight: -31, shopCloseTop: -31,
@@ -4592,6 +4599,20 @@ function applyShopDbg(key, val) {
   if (key === 'shopTitleFS') {
     const tt = document.getElementById('shop-title-text');
     if (tt) tt.style.fontSize = shopDbg.shopTitleFS+'px';
+  }
+  if (key === 'shopTitleStroke') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) {
+      const s = parseFloat(shopDbg.shopTitleStroke) || 0;
+      const c = '#461507';
+      tt.style.textShadow = s <= 0 ? 'none' :
+        `${-s}px ${-s}px 0 ${c}, ${s}px ${-s}px 0 ${c}, ${-s}px ${s}px 0 ${c}, ${s}px ${s}px 0 ${c},`+
+        `${-s}px 0 0 ${c}, ${s}px 0 0 ${c}, 0 ${-s}px 0 ${c}, 0 ${s}px 0 ${c}`;
+    }
+  }
+  if (key === 'shopTitleColor') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) tt.style.color = shopDbg.shopTitleColor || '#fffee8';
   }
   if (key === 'shopCloseRight') {
     const btn = document.getElementById('shop-close-btn');
