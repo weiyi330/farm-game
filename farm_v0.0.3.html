@@ -751,7 +751,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.206</div>
+<div id="splash-version">版本号：v0.0.3.207</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -3019,7 +3019,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.206',
+    version: '0.0.3.207',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3559,9 +3559,9 @@ function drawShopTitle() {
 // 商店底板绘制
 function drawShopBg() {
   const inner = document.getElementById('shop-inner');
-  const cv01 = document.getElementById('shop-canvas'); // 大底板(canvas-01)
-  const cv02 = document.getElementById('shop-slots-canvas'); // 格子区(canvas-02)
-  const cv03 = document.getElementById('shop-extra-canvas'); // 分割区(canvas-03)
+  const cv01 = document.getElementById('shop-canvas'); // 大底板(canvas-01, slot01)
+  const cv02 = document.getElementById('shop-slots-canvas'); // 内容区(canvas-02, slot02)
+  const cv03 = document.getElementById('shop-extra-canvas'); // 分割区(canvas-03, slot03)
   
   if (!inner || !cv01 || !cv02 || !cv03) return;
   
@@ -3569,17 +3569,25 @@ function drawShopBg() {
   const title  = document.getElementById('shop-title-wrap');
   if (!scroll || !title) return;
   
-  // 内容区高度
-  if (shopDbg.shopBagScrollH) scroll.style.maxHeight = shopDbg.shopBagScrollH + 'px';
-  
-  // 内容区实际尺寸
-  const contentW = shopDbg.shopContentW || 400;
-  const contentH = shopDbg.shopContentH || 300;
+  // 商城内容滑动区高度
   const scrollH = Math.min(scroll.scrollHeight, window.innerHeight - 160);
   
-  // 统一DPI
-  const dpr = window.devicePixelRatio || 1;
+  // 大底板尺寸（slot01）
+  const PAD_W01 = shopDbg.shopSlot01PadW !== undefined ? shopDbg.shopSlot01PadW : 30;
+  const PAD_H01 = shopDbg.shopSlot01PadH !== undefined ? shopDbg.shopSlot01PadH : 46;
+  const W01 = Math.max(scroll.offsetWidth, 180) + PAD_W01;
+  const H01 = title.offsetHeight + scrollH + PAD_H01;
   
+  // 内容区底板尺寸（slot02）
+  const PAD_W02 = shopDbg.shopSlot02PadW !== undefined ? shopDbg.shopSlot02PadW : 16;
+  const PAD_H02 = shopDbg.shopSlot02PadH !== undefined ? shopDbg.shopSlot02PadH : 82;
+  const W02 = Math.max(scroll.offsetWidth, 180) + PAD_W02;
+  const H02 = scrollH + PAD_H02;
+  
+  // 分割区底板尺寸（slot03）
+  const PAD_W03 = shopDbg.shopSlot03PadW !== undefined ? shopDbg.shopSlot03PadW : 29;
+  
+  const dpr = window.devicePixelRatio || 1;  
   // ================================================
   // 1. 绘制大底板 (slot01 - 48×48, corner=3)
   // ================================================
@@ -3595,25 +3603,93 @@ function drawShopBg() {
   cv01.style.left = ((shopDbg.shopSlot01DX || 0) - (W01 - inner.offsetWidth) / 2) + 'px';
   cv01.style.top = ((shopDbg.shopSlot01DY || 0) - 24) + 'px';
   
+  // 1. 设置canvas尺寸
+  cv01.width  = Math.round(W01 * dpr);
+  cv01.height = Math.round(H01 * dpr);
+  cv01.style.width  = W01 + 'px';
+  cv01.style.height = H01 + 'px';
+  cv01.style.top  = '-24px';
+  cv01.style.left = -((W01 - inner.offsetWidth) / 2) + 'px';
+  
+  cv02.width  = Math.round(W02 * dpr);
+  cv02.height = Math.round(H02 * dpr);
+  cv02.style.width  = W02 + 'px';
+  cv02.style.height = H02 + 'px';
+  cv02.style.left = ((shopDbg.shopSlot02DX || 0) + 20) + 'px';
+  cv02.style.top = ((shopDbg.shopSlot02DY || 0) + title.offsetHeight + 30) + 'px';
+  
+  cv03.width  = Math.round(W02 * dpr + PAD_W03);
+  cv03.height = Math.round(H02 * dpr);
+  cv03.style.width  = (W02 + PAD_W03) + 'px';
+  cv03.style.height = H02 + 'px';
+  cv03.style.left = (inner.offsetWidth - (W02 + PAD_W03)) / 2 + 'px';
+  cv03.style.top = ((shopDbg.shopContentY || 0) + title.offsetHeight + 30) + 'px';
+  
+  // 2. 绘制slot01大底板
   const c01 = cv01.getContext('2d');
   c01.clearRect(0, 0, cv01.width, cv01.height);
-  
   if (_bagFrameImg.complete && _bagFrameImg.naturalWidth) {
     c01.imageSmoothingEnabled = false;
-    const SL01=3, SR01=3, ST01=3, SB01=3, SW01=48, SH01=48, EDGE_SCALE=2;
-    const SMH01=SW01-SL01-SR01, SMV01=SH01-ST01-SB01;
-    const ew01=Math.round(SL01*EDGE_SCALE*dpr), eh01=Math.round(ST01*EDGE_SCALE*dpr);
-    const totalW01=cv01.width, totalH01=cv01.height;
-    const DW01=totalW01-ew01*2, DH01=totalH01-eh01*2;
-    
-    c01.drawImage(_bagFrameImg,0,0,SL01,ST01,0,0,ew01,eh01);
-    c01.drawImage(_bagFrameImg,SL01,0,SMH01,ST01,ew01,0,DW01,eh01);
-    c01.drawImage(_bagFrameImg,SL01+SMH01,0,SR01,ST01,totalW01-ew01,0,ew01,eh01);
-    c01.drawImage(_bagFrameImg,0,ST01,SL01,SMV01,0,eh01,ew01,DH01);
-    c01.drawImage(_bagFrameImg,SL01,ST01,SMH01,SMV01,ew01,eh01,DW01,DH01);
-    c01.drawImage(_bagFrameImg,SL01+SMH01,ST01,SR01,SMV01,totalW01-ew01,eh01,ew01,DH01);
-    c01.drawImage(_bagFrameImg,0,ST01+SMV01,SL01,SB01,0,totalH01-eh01,ew01,eh01);
-    c01.drawImage(_bagFrameImg,SL01,ST01+SMV01,SMH01,SB01,ew01,totalH01-eh01,DW01,eh01);
+    const SL=3, SR=3, ST=3, SB=3, SW=48, SH=48, EDGE_SCALE=2;
+    const SMH=SW-SL-SR, SMV=SH-ST-SB;
+    const ew=Math.round(SL*EDGE_SCALE*dpr), eh=Math.round(ST*EDGE_SCALE*dpr);
+    const totalW=cv01.width, totalH=cv01.height;
+    const DW=totalW-ew*2, DH=totalH-eh*2;
+    const img=_bagFrameImg;
+    // 九宫格绘制
+    c01.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+    c01.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+    c01.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
+    c01.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+    c01.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+    c01.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
+    c01.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
+    c01.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
+    c01.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
+  }
+  
+  // 3. 绘制slot02内容区底板
+  const c02 = cv02.getContext('2d');
+  c02.clearRect(0, 0, cv02.width, cv02.height);
+  if (_bagContentImg.complete && _bagContentImg.naturalWidth) {
+    c02.imageSmoothingEnabled = false;
+    const SL=2, SR=2, ST=2, SB=2, SW=16, SH=48, EDGE_SCALE=2;
+    const SMH=SW-SL-SR, SMV=SH-ST-SB;
+    const ew=Math.round(SL*EDGE_SCALE*dpr), eh=Math.round(ST*EDGE_SCALE*dpr);
+    const totalW=cv02.width, totalH=cv02.height;
+    const DW=totalW-ew*2, DH=totalH-eh*2;
+    const img=_bagContentImg;
+    c02.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+    c02.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+    c02.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
+    c02.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+    c02.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+    c02.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
+    c02.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
+    c02.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
+    c02.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
+  }
+  
+  // 4. 绘制slot03分割区底板
+  const c03 = cv03.getContext('2d');
+  c03.clearRect(0, 0, cv03.width, cv03.height);
+  if (_shopBg2Img.complete && _shopBg2Img.naturalWidth) {
+    c03.imageSmoothingEnabled = false;
+    const SL=2, SR=2, ST=2, SB=2, SW=16, SH=48, EDGE_SCALE=2;
+    const SMH=SW-SL-SR, SMV=SH-ST-SB;
+    const ew=Math.round(SL*EDGE_SCALE*dpr), eh=Math.round(ST*EDGE_SCALE*dpr);
+    const totalW=cv03.width, totalH=cv03.height;
+    const DW=totalW-ew*2, DH=totalH-eh*2;
+    const img=_shopBg2Img;
+    c03.drawImage(img,0,0,SL,ST,0,0,ew,eh);
+    c03.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
+    c03.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
+    c03.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
+    c03.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
+    c03.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
+    c03.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
+    c03.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
+    c03.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
   }
   
   // ================================================
@@ -3695,9 +3771,11 @@ function drawShopBg() {
     tCv.style.left = shopDbg.shopTitleLeft + 'px';
     tCv.style.top  = shopDbg.shopTitleTop  + 'px';
   }
-  c.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
-  // 绘制种子区和背包区的 slot03 底板
-  drawShopSectionBgs(dpr);
+  
+  // 还需要绘制种子区和背包区的 slot03 分区底板
+  if (_shopBg2Img.complete && _shopBg2Img.naturalWidth) {
+    drawShopSectionBgs(dpr);
+  }
 }
 
 // 绘制种子区 / 背包区分区底板（common_slot03）
@@ -4763,16 +4841,8 @@ function applyShopDbg(key, val) {
     }
   }
   
-  // 商店内容区参数
+  // 商店内容区参数（不再设置shop-inner尺寸，仅用于底板计算）
   if (key === 'shopContentW' || key === 'shopContentH' || key === 'shopContentY') {
-    // 更新商店内容区
-    const shopInner = document.getElementById('shop-inner');
-    if (shopInner) {
-      shopInner.style.width = (shopDbg.shopContentW || 400) + 'px';
-      shopInner.style.height = (shopDbg.shopContentH || 300) + 'px';
-      shopInner.style.transform = `translateY(${shopDbg.shopContentY || 0}px)`;
-    }
-    
     if (shopOpen) {
       setTimeout(drawShopBg, 50);
     }
