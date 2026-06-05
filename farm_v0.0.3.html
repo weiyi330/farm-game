@@ -751,7 +751,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.205</div>
+<div id="splash-version">版本号：v0.0.3.206</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -857,33 +857,73 @@ canvas { display:block; }
       <input class="dbg-slider" type="range" min="-80" max="80" value="0" oninput="applyDbg('bag2DY',this.value)" onchange="applyDbg('bag2DY',this.value)">
       <input class="dbg-val" type="number" id="dv-bag2DY" value="32" onchange="applyDbg('bag2DY',this.value)"></div>
 
-    <div class="dbg-group-title">🏪 商店商品底框</div>
-    <div class="dbg-row"><span class="dbg-label">框尺寸</span>
-      <input class="dbg-slider" type="range" min="24" max="64" value="41" oninput="applyDbg('shopItemFrameSize',this.value)" onchange="applyDbg('shopItemFrameSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopItemFrameSize" value="41" onchange="applyDbg('shopItemFrameSize',this.value)"></div>
-    <div class="dbg-row"><span class="dbg-label">图标居中缩放</span>
-      <input class="dbg-slider" type="range" min="1" max="200" value="100" oninput="applyDbg('shopItemIconScale',this.value)" onchange="applyDbg('shopItemIconScale',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopItemIconScale" value="100" onchange="applyDbg('shopItemIconScale',this.value)"></div>
-    <div class="dbg-row"><span class="dbg-label">框透明度</span>
-      <input class="dbg-slider" type="range" min="0" max="100" value="100" oninput="applyDbg('shopItemFrameAlpha',this.value)" onchange="applyDbg('shopItemFrameAlpha',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopItemFrameAlpha" value="100" onchange="applyDbg('shopItemFrameAlpha',this.value)"></div>
+    <!-- 移除所有背包设置，专注于商店UI -->
+    
+    <div class="dbg-group-title">🏪 商店底板01（大底板）</div>
+    <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
+      <input class="dbg-slider" type="range" min="0" max="200" value="30" oninput="applyDbg('shopSlot01PadW',this.value)" onchange="applyDbg('shopSlot01PadW',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot01PadW" value="30" onchange="applyDbg('shopSlot01PadW',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">高度内边距</span>
+      <input class="dbg-slider" type="range" min="-100" max="200" value="46" oninput="applyDbg('shopSlot01PadH',this.value)" onchange="applyDbg('shopSlot01PadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot01PadH" value="46" onchange="applyDbg('shopSlot01PadH',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">左右偏移</span>
+      <input class="dbg-slider" type="range" min="-200" max="200" value="0" oninput="applyDbg('shopSlot01DX',this.value)" onchange="applyDbg('shopSlot01DX',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot01DX" value="0" onchange="applyDbg('shopSlot01DX',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">上下偏移</span>
+      <input class="dbg-slider" type="range" min="-200" max="200" value="0" oninput="applyDbg('shopSlot01DY',this.value)" onchange="applyDbg('shopSlot01DY',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot01DY" value="0" onchange="applyDbg('shopSlot01DY',this.value)"></div>
 
-    <div class="dbg-group-title">🏪 商店设置</div>
-    <div class="dbg-row"><span class="dbg-label">商品框尺寸</span>
-      <input class="dbg-slider" type="range" min="24" max="64" value="41" oninput="applyDbg('shopSlotSize',this.value)" onchange="applyDbg('shopSlotSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopSlotSize" value="41" onchange="applyDbg('shopSlotSize',this.value)"></div>
-    <div class="dbg-row"><span class="dbg-label">商品框间距</span>
-      <input class="dbg-slider" type="range" min="0" max="20" value="4" oninput="applyDbg('shopSlotGap',this.value)" onchange="applyDbg('shopSlotGap',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopSlotGap" value="4" onchange="applyDbg('shopSlotGap',this.value)"></div>
-    <div class="dbg-row"><span class="dbg-label">商品图标尺寸</span>
-      <input class="dbg-slider" type="range" min="16" max="48" value="32" oninput="applyDbg('shopItemIconSize',this.value)" onchange="applyDbg('shopItemIconSize',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopItemIconSize" value="32" onchange="applyDbg('shopItemIconSize',this.value)"></div>
-    <div class="dbg-row"><span class="dbg-label">价格水平偏移</span>
-      <input class="dbg-slider" type="range" min="-20" max="20" value="0" oninput="applyDbg('shopPriceX',this.value)" onchange="applyDbg('shopPriceX',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopPriceX" value="0" onchange="applyDbg('shopPriceX',this.value)"></div>
-    <div class="dbg-row"><span class="dbg-label">价格垂直偏移</span>
-      <input class="dbg-slider" type="range" min="-20" max="20" value="0" oninput="applyDbg('shopPriceY',this.value)" onchange="applyDbg('shopPriceY',this.value)">
-      <input class="dbg-val" type="number" id="dv-shopPriceY" value="0" onchange="applyDbg('shopPriceY',this.value)"></div>
+    <div class="dbg-group-title">🏪 商店底板02（内容区）</div>
+    <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
+      <input class="dbg-slider" type="range" min="0" max="200" value="16" oninput="applyDbg('shopSlot02PadW',this.value)" onchange="applyDbg('shopSlot02PadW',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot02PadW" value="16" onchange="applyDbg('shopSlot02PadW',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">高度内边距</span>
+      <input class="dbg-slider" type="range" min="-100" max="200" value="82" oninput="applyDbg('shopSlot02PadH',this.value)" onchange="applyDbg('shopSlot02PadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot02PadH" value="82" onchange="applyDbg('shopSlot02PadH',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">左右偏移</span>
+      <input class="dbg-slider" type="range" min="-200" max="200" value="0" oninput="applyDbg('shopSlot02DX',this.value)" onchange="applyDbg('shopSlot02DX',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot02DX" value="0" onchange="applyDbg('shopSlot02DX',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">上下偏移</span>
+      <input class="dbg-slider" type="range" min="-200" max="200" value="0" oninput="applyDbg('shopSlot02DY',this.value)" onchange="applyDbg('shopSlot02DY',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot02DY" value="0" onchange="applyDbg('shopSlot02DY',this.value)"></div>
+
+    <div class="dbg-group-title">🏪 商店底板03（分割区）</div>
+    <div class="dbg-row"><span class="dbg-label">宽度内边距</span>
+      <input class="dbg-slider" type="range" min="0" max="200" value="29" oninput="applyDbg('shopSlot03PadW',this.value)" onchange="applyDbg('shopSlot03PadW',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot03PadW" value="29" onchange="applyDbg('shopSlot03PadW',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">高度内边距</span>
+      <input class="dbg-slider" type="range" min="-100" max="200" value="11" oninput="applyDbg('shopSlot03PadH',this.value)" onchange="applyDbg('shopSlot03PadH',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopSlot03PadH" value="11" onchange="applyDbg('shopSlot03PadH',this.value)"></div>
+
+    <div class="dbg-group-title">🏪 商店布局</div>
+    <div class="dbg-row"><span class="dbg-label">内容区宽度</span>
+      <input class="dbg-slider" type="range" min="200" max="800" value="400" oninput="applyDbg('shopContentW',this.value)" onchange="applyDbg('shopContentW',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopContentW" value="400" onchange="applyDbg('shopContentW',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">内容区高度</span>
+      <input class="dbg-slider" type="range" min="200" max="600" value="300" oninput="applyDbg('shopContentH',this.value)" onchange="applyDbg('shopContentH',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopContentH" value="300" onchange="applyDbg('shopContentH',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">内容区上偏移</span>
+      <input class="dbg-slider" type="range" min="-200" max="200" value="0" oninput="applyDbg('shopContentY',this.value)" onchange="applyDbg('shopContentY',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopContentY" value="0" onchange="applyDbg('shopContentY',this.value)"></div>
+
+    <div class="dbg-group-title">🏪 商店标题</div>
+    <div class="dbg-row"><span class="dbg-label">标题X偏移</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="0" oninput="applyDbg('shopTitleTextLeft',this.value)" onchange="applyDbg('shopTitleTextLeft',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopTitleTextLeft" value="0" onchange="applyDbg('shopTitleTextLeft',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">标题Y偏移</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="0" oninput="applyDbg('shopTitleTextTop',this.value)" onchange="applyDbg('shopTitleTextTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopTitleTextTop" value="0" onchange="applyDbg('shopTitleTextTop',this.value)"></div>
+
+    <div class="dbg-group-title">🏪 关闭按钮</div>
+    <div class="dbg-row"><span class="dbg-label">按钮大小</span>
+      <input class="dbg-slider" type="range" min="10" max="60" value="36" oninput="applyDbg('shopCloseSize',this.value)" onchange="applyDbg('shopCloseSize',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopCloseSize" value="36" onchange="applyDbg('shopCloseSize',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">按钮右偏移</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="-31" oninput="applyDbg('shopCloseRight',this.value)" onchange="applyDbg('shopCloseRight',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopCloseRight" value="-31" onchange="applyDbg('shopCloseRight',this.value)"></div>
+    <div class="dbg-row"><span class="dbg-label">按钮上偏移</span>
+      <input class="dbg-slider" type="range" min="-100" max="100" value="-31" oninput="applyDbg('shopCloseTop',this.value)" onchange="applyDbg('shopCloseTop',this.value)">
+      <input class="dbg-val" type="number" id="dv-shopCloseTop" value="-31" onchange="applyDbg('shopCloseTop',this.value)"></div>
     <button class="dbg-apply-btn" onclick="exportDbgValues()">📋 导出当前参数</button>
     <div id="dbg-export-out" style="font-size:9px;color:#aaa;word-break:break-all;display:none;"></div>
   </div>
@@ -974,8 +1014,13 @@ canvas { display:block; }
 
   <div id="shop-panel">
     <div id="shop-inner">
+      <!-- 三层底板 canvas -->
       <canvas id="shop-canvas"></canvas>
+      <canvas id="shop-slots-canvas"></canvas>
+      <canvas id="shop-extra-canvas"></canvas>
+      
       <canvas class="panel-close-btn" id="shop-close-btn" width="36" height="36" onclick="closeShop()" style="image-rendering:pixelated;"></canvas>
+      
       <div id="shop-title-wrap">
         <canvas id="shop-title-canvas"></canvas>
         <span id="shop-title-text">桃源杂货铺</span>
@@ -2974,7 +3019,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.205',
+    version: '0.0.3.206',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3514,27 +3559,135 @@ function drawShopTitle() {
 // 商店底板绘制
 function drawShopBg() {
   const inner = document.getElementById('shop-inner');
-  const cv = document.getElementById('shop-canvas');
-  if (!cv || !inner) return;
+  const cv01 = document.getElementById('shop-canvas'); // 大底板(canvas-01)
+  const cv02 = document.getElementById('shop-slots-canvas'); // 格子区(canvas-02)
+  const cv03 = document.getElementById('shop-extra-canvas'); // 分割区(canvas-03)
+  
+  if (!inner || !cv01 || !cv02 || !cv03) return;
+  
   const scroll = document.getElementById('shop-scroll');
   const title  = document.getElementById('shop-title-wrap');
   if (!scroll || !title) return;
-  const PAD_W = shopDbg.shopBgPadW !== undefined ? shopDbg.shopBgPadW : 48;
-  const PAD_H = shopDbg.shopBgPadH !== undefined ? shopDbg.shopBgPadH : 80;
-  // 商城内容滑动区高度
+  
+  // 内容区高度
   if (shopDbg.shopBagScrollH) scroll.style.maxHeight = shopDbg.shopBagScrollH + 'px';
-  const W = Math.max(scroll.offsetWidth, 180) + PAD_W;
-  // 用 scrollHeight 获取实际内容高度（不受 max-height 截断）
+  
+  // 内容区实际尺寸
+  const contentW = shopDbg.shopContentW || 400;
+  const contentH = shopDbg.shopContentH || 300;
   const scrollH = Math.min(scroll.scrollHeight, window.innerHeight - 160);
-  const H = title.offsetHeight + scrollH + PAD_H;
+  
+  // 统一DPI
   const dpr = window.devicePixelRatio || 1;
-  cv.width  = Math.round(W * dpr);
-  cv.height = Math.round(H * dpr);
-  cv.style.width  = W + 'px';
-  cv.style.height = H + 'px';
-  cv.style.top  = '-24px';
-  cv.style.left = -((W - inner.offsetWidth) / 2) + 'px';
-  // 同步重绘标题底板
+  
+  // ================================================
+  // 1. 绘制大底板 (slot01 - 48×48, corner=3)
+  // ================================================
+  const padW01 = shopDbg.shopSlot01PadW || 30;
+  const padH01 = shopDbg.shopSlot01PadH || 46;
+  const W01 = contentW + padW01;
+  const H01 = title.offsetHeight + scrollH + padH01;
+  
+  cv01.width = Math.round(W01 * dpr);
+  cv01.height = Math.round(H01 * dpr);
+  cv01.style.width = W01 + 'px';
+  cv01.style.height = H01 + 'px';
+  cv01.style.left = ((shopDbg.shopSlot01DX || 0) - (W01 - inner.offsetWidth) / 2) + 'px';
+  cv01.style.top = ((shopDbg.shopSlot01DY || 0) - 24) + 'px';
+  
+  const c01 = cv01.getContext('2d');
+  c01.clearRect(0, 0, cv01.width, cv01.height);
+  
+  if (_bagFrameImg.complete && _bagFrameImg.naturalWidth) {
+    c01.imageSmoothingEnabled = false;
+    const SL01=3, SR01=3, ST01=3, SB01=3, SW01=48, SH01=48, EDGE_SCALE=2;
+    const SMH01=SW01-SL01-SR01, SMV01=SH01-ST01-SB01;
+    const ew01=Math.round(SL01*EDGE_SCALE*dpr), eh01=Math.round(ST01*EDGE_SCALE*dpr);
+    const totalW01=cv01.width, totalH01=cv01.height;
+    const DW01=totalW01-ew01*2, DH01=totalH01-eh01*2;
+    
+    c01.drawImage(_bagFrameImg,0,0,SL01,ST01,0,0,ew01,eh01);
+    c01.drawImage(_bagFrameImg,SL01,0,SMH01,ST01,ew01,0,DW01,eh01);
+    c01.drawImage(_bagFrameImg,SL01+SMH01,0,SR01,ST01,totalW01-ew01,0,ew01,eh01);
+    c01.drawImage(_bagFrameImg,0,ST01,SL01,SMV01,0,eh01,ew01,DH01);
+    c01.drawImage(_bagFrameImg,SL01,ST01,SMH01,SMV01,ew01,eh01,DW01,DH01);
+    c01.drawImage(_bagFrameImg,SL01+SMH01,ST01,SR01,SMV01,totalW01-ew01,eh01,ew01,DH01);
+    c01.drawImage(_bagFrameImg,0,ST01+SMV01,SL01,SB01,0,totalH01-eh01,ew01,eh01);
+    c01.drawImage(_bagFrameImg,SL01,ST01+SMV01,SMH01,SB01,ew01,totalH01-eh01,DW01,eh01);
+  }
+  
+  // ================================================
+  // 2. 绘制格子区底板 (slot02 - 16×48, corner=2)
+  // ================================================
+  const padW02 = shopDbg.shopSlot02PadW || 16;
+  const padH02 = shopDbg.shopSlot02PadH || 82;
+  const W02 = contentW + padW02;
+  const H02 = scrollH + padH02;
+  
+  cv02.width = Math.round(W02 * dpr);
+  cv02.height = Math.round(H02 * dpr);
+  cv02.style.width = W02 + 'px';
+  cv02.style.height = H02 + 'px';
+  cv02.style.left = ((shopDbg.shopSlot02DX || 0) + 20) + 'px';
+  cv02.style.top = ((shopDbg.shopSlot02DY || 0) + title.offsetHeight + 30) + 'px';
+  
+  const c02 = cv02.getContext('2d');
+  c02.clearRect(0, 0, cv02.width, cv02.height);
+  
+  if (_bagContentImg.complete && _bagContentImg.naturalWidth) {
+    c02.imageSmoothingEnabled = false;
+    const SL02=2, SR02=2, ST02=2, SB02=2, SW02=16, SH02=48, EDGE_SCALE=2;
+    const SMH02=SW02-SL02-SR02, SMV02=SH02-ST02-SB02;
+    const ew02=Math.round(SL02*EDGE_SCALE*dpr), eh02=Math.round(ST02*EDGE_SCALE*dpr);
+    const totalW02=cv02.width, totalH02=cv02.height;
+    const DW02=totalW02-ew02*2, DH02=totalH02-eh02*2;
+    
+    c02.drawImage(_bagContentImg,0,0,SL02,ST02,0,0,ew02,eh02);
+    c02.drawImage(_bagContentImg,SL02,0,SMH02,ST02,ew02,0,DW02,eh02);
+    c02.drawImage(_bagContentImg,SL02+SMH02,0,SR02,ST02,totalW02-ew02,0,ew02,eh02);
+    c02.drawImage(_bagContentImg,0,ST02,SL02,SMV02,0,eh02,ew02,DH02);
+    c02.drawImage(_bagContentImg,SL02,ST02,SMH02,SMV02,ew02,eh02,DW02,DH02);
+    c02.drawImage(_bagContentImg,SL02+SMH02,ST02,SR02,SMV02,totalW02-ew02,eh02,ew02,DH02);
+    c02.drawImage(_bagContentImg,0,ST02+SMV02,SL02,SB02,0,totalH02-eh02,ew02,eh02);
+    c02.drawImage(_bagContentImg,SL02,ST02+SMV02,SMH02,SB02,ew02,totalH02-eh02,DW02,eh02);
+  }
+  
+  // ================================================
+  // 3. 绘制分割区底板 (slot03 - 16×48, corner=2)
+  // ================================================
+  const padW03 = shopDbg.shopSlot03PadW || 29;
+  const padH03 = shopDbg.shopSlot03PadH || 11;
+  const W03 = contentW + padW03;
+  
+  cv03.width = Math.round(W03 * dpr);
+  cv03.height = Math.round(H02 * dpr);
+  cv03.style.width = W03 + 'px';
+  cv03.style.height = H02 + 'px';
+  cv03.style.left = (contentW - W03) / 2 + 'px';
+  cv03.style.top = ((shopDbg.shopContentY || 0) + title.offsetHeight + 30) + 'px';
+  
+  const c03 = cv03.getContext('2d');
+  c03.clearRect(0, 0, cv03.width, cv03.height);
+  
+  if (_shopBg2Img.complete && _shopBg2Img.naturalWidth) {
+    c03.imageSmoothingEnabled = false;
+    const SL03=2, SR03=2, ST03=2, SB03=2, SW03=16, SH03=48, EDGE_SCALE=2;
+    const SMH03=SW03-SL03-SR03, SMV03=SH03-ST03-SB03;
+    const ew03=Math.round(SL03*EDGE_SCALE*dpr), eh03=Math.round(ST03*EDGE_SCALE*dpr);
+    const totalW03=cv03.width, totalH03=cv03.height;
+    const DW03=totalW03-ew03*2, DH03=totalH03-eh03*2;
+    
+    c03.drawImage(_shopBg2Img,0,0,SL03,ST03,0,0,ew03,eh03);
+    c03.drawImage(_shopBg2Img,SL03,0,SMH03,ST03,ew03,0,DW03,eh03);
+    c03.drawImage(_shopBg2Img,SL03+SMH03,0,SR03,ST03,totalW03-ew03,0,ew03,eh03);
+    c03.drawImage(_shopBg2Img,0,ST03,SL03,SMV03,0,eh03,ew03,DH03);
+    c03.drawImage(_shopBg2Img,SL03,ST03,SMH03,SMV03,ew03,eh03,DW03,DH03);
+    c03.drawImage(_shopBg2Img,SL03+SMH03,ST03,SR03,SMV03,totalW03-ew03,eh03,ew03,DH03);
+    c03.drawImage(_shopBg2Img,0,ST03+SMV03,SL03,SB03,0,totalH03-eh03,ew03,eh03);
+    c03.drawImage(_shopBg2Img,SL03,ST03+SMV03,SMH03,SB03,ew03,totalH03-eh03,DW03,eh03);
+  }
+  
+  // 标题底板同步
   const tCv = document.getElementById('shop-title-canvas');
   const tWrap = document.getElementById('shop-title-wrap');
   if (tWrap && tCv && tWrap.offsetWidth > 0) {
@@ -3542,26 +3695,6 @@ function drawShopBg() {
     tCv.style.left = shopDbg.shopTitleLeft + 'px';
     tCv.style.top  = shopDbg.shopTitleTop  + 'px';
   }
-  const c = cv.getContext('2d');
-  c.clearRect(0, 0, cv.width, cv.height);
-  if (!_bagFrameImg.complete || !_bagFrameImg.naturalWidth) return;
-  c.imageSmoothingEnabled = false;
-  // common_slot02: 16x48, corner=2 （外层底板）
-  // common_slot01: 48x48, corner=3 (大底板)
-  const SL=3, SR=3, ST=3, SB=3, SW=48, SH=48, EDGE_SCALE=2;
-  const SMH=SW-SL-SR, SMV=SH-ST-SB;
-  const ew=Math.round(SL*EDGE_SCALE*dpr), eh=Math.round(ST*EDGE_SCALE*dpr);
-  const totalW=cv.width, totalH=cv.height;
-  const DW=totalW-ew*2, DH=totalH-eh*2;
-  const img=_bagFrameImg;
-  c.drawImage(img,0,0,SL,ST,0,0,ew,eh);
-  c.drawImage(img,SL,0,SMH,ST,ew,0,DW,eh);
-  c.drawImage(img,SL+SMH,0,SR,ST,totalW-ew,0,ew,eh);
-  c.drawImage(img,0,ST,SL,SMV,0,eh,ew,DH);
-  c.drawImage(img,SL,ST,SMH,SMV,ew,eh,DW,DH);
-  c.drawImage(img,SL+SMH,ST,SR,SMV,totalW-ew,eh,ew,DH);
-  c.drawImage(img,0,ST+SMV,SL,SB,0,totalH-eh,ew,eh);
-  c.drawImage(img,SL,ST+SMV,SMH,SB,ew,totalH-eh,DW,eh);
   c.drawImage(img,SL+SMH,ST+SMV,SR,SB,totalW-ew,totalH-eh,ew,eh);
   // 绘制种子区和背包区的 slot03 底板
   drawShopSectionBgs(dpr);
@@ -3795,29 +3928,34 @@ const shopDbg = {
   // 商店面板位置
   shopOffX: 115, shopOffY: -42,
   shopBagOffX: 35, shopBagOffY: -27, shopBagScale: 1,
-  // 商店标题
-  shopTitleW: 150, shopTitleH: 31,
-  shopTitleLeft: 138, shopTitleTop: -1,
-  shopTitleTextLeft: 0, shopTitleTextTop: 0,
-  shopTitleMT: -33, shopTitleFS: 20,
-  // 商店底板（使用slot01-04资源）
-  shopBgPadW: 48, shopBgPadH: -4,
-  shopSlot01PadW: 30, shopSlot01PadH: 46,  // 大底板
-  shopSlot02PadW: 16, shopSlot02PadH: 82,  // 内容区
-  shopSlot03PadW: 29, shopSlot03PadH: 11,  // 分割区
-  shopSlotSize: 41,  // 道具框尺寸
-  shopSlotGap: 4,    // 道具框间距
+  
+  // 商店底板（使用slot01-03资源，完整三层）
+  shopSlot01DX: 0, shopSlot01DY: 0,    // 大底板偏移
+  shopSlot01PadW: 30, shopSlot01PadH: 46,  // 大底板内边距
+  
+  shopSlot02DX: 0, shopSlot02DY: 0,    // 内容区偏移
+  shopSlot02PadW: 16, shopSlot02PadH: 82,  // 内容区内边距
+  
+  shopSlot03PadW: 29, shopSlot03PadH: 11,  // 分割区内边距
+  
   // 商店布局
+  shopContentW: 400, shopContentH: 300, // 内容区尺寸
+  shopContentY: 0,                      // 内容区上偏移
   shopCols: 7,
-  shopCloseRight: -31, shopCloseTop: -31,
   shopBagRight: 20,
   shopBagScrollH: 224,
-  // 商店商品图标
+  
+  // 商店标题（与背包标题统一参数）
+  shopTitleW: 83, shopTitleH: 30,      // 背包标题尺寸
+  shopTitleLeft: 0, shopTitleTop: -1,  // 背包标题位置
+  shopTitleMT: -33, shopTitleFS: 20,   // 背包标题字号
+  shopTitleStroke: 2, shopTitleColor: '#fffee8', // 背包标题样式
+  
+  // 商店关闭按钮
+  shopCloseSize: 36, shopCloseRight: -31, shopCloseTop: -31,
+  
+  // 商店价格位置（兼容保留）
   shopCoinSize: 20, shopCoinDX: -8, shopCoinDY: -10,
-  shopItemIconSize: 32,  // 商品图标尺寸
-  shopItemFrameSize: 41, // 商品框尺寸
-  // 商店价格位置
-  shopPriceX: 0, shopPriceY: 0,
 };
 
 const dbgParams = {
@@ -4618,69 +4756,66 @@ function applyShopDbg(key, val) {
     if (wrap) wrap.style.marginTop = shopDbg.shopTitleMT+'px';
   }
   
-  // 商店商品底框参数
-  if (key === 'shopSlotSize' || key === 'shopItemFrameSize' || key === 'shopItemIconSize' || key === 'shopItemIconScale' || key === 'shopItemFrameAlpha' || key === 'shopSlotGap') {
-    // 更新所有商店商品
-    const slotSize = shopDbg.shopItemFrameSize || 41;
-    const iconSize = shopDbg.shopItemIconSize || 32;
-    const iconScale = (shopDbg.shopItemIconScale || 100) / 100;
-    const frameAlpha = (shopDbg.shopItemFrameAlpha || 100) / 100;
-    
-    // 更新商品容器
-    document.querySelectorAll('.sitem').forEach(item => {
-      item.style.width = slotSize + 'px';
-      item.style.height = slotSize + 'px';
-    });
-    
-    // 更新商品底框
-    document.querySelectorAll('.sitem-bg').forEach(cv => {
-      drawSlotCanvas(cv, slotSize, slotSize, frameAlpha);
-    });
-    
-    // 更新商品图标（需要重新计算图标位置）
-    document.querySelectorAll('.sitem-icon').forEach(icon => {
-      const currentStyle = icon.style.cssText;
-      const bgMatch = currentStyle.match(/background:url\('([^']+)'\) no-repeat (-?\d+)px (-?\d+)px \/ ([\d\.]+)px ([\d\.]+)px/);
-      if (bgMatch) {
-        const [_, url, bgX, bgY, bgTotalW, bgTotalH] = bgMatch;
-        const scaleFactor = iconSize / 32; // 基准尺寸是32px
-        const scaledBgTotalW = parseFloat(bgTotalW) * scaleFactor;
-        const scaledBgTotalH = parseFloat(bgTotalH) * scaleFactor;
-        const scaledBgX = parseFloat(bgX) * scaleFactor;
-        const scaledBgY = parseFloat(bgY) * scaleFactor;
-        
-        icon.style.cssText = `display:inline-block;width:${iconSize * iconScale}px;height:${iconSize * iconScale}px;overflow:hidden;background:url('${url}') no-repeat ${scaledBgX}px ${scaledBgY}px / ${scaledBgTotalW}px ${scaledBgTotalH}px;image-rendering:pixelated;transform:scale(${iconScale});transform-origin:center;`;
-      }
-    });
-    
-    // 更新包装器间距
-    const slotGap = shopDbg.shopSlotGap || 4;
-    document.querySelectorAll('.sitem-wrap').forEach(wrap => {
-      wrap.style.gap = slotGap + 'px';
-    });
-    
-    setTimeout(() => {
-      if (shopOpen) drawShopBg();
-    }, 30);
+  // 商店底板参数
+  if (key.startsWith('shopSlot01') || key.startsWith('shopSlot02') || key.startsWith('shopSlot03')) {
+    if (shopOpen) {
+      setTimeout(drawShopBg, 30);
+    }
   }
   
-  // 商店价格位置
-  if (key === 'shopPriceX' || key === 'shopPriceY') {
-    const priceX = shopDbg.shopPriceX || 0;
-    const priceY = shopDbg.shopPriceY || 0;
-    
-    document.querySelectorAll('.sitem-price').forEach(priceEl => {
-      priceEl.style.transform = `translate(${priceX}px, ${priceY}px)`;
-    });
-    
-    // 更新出售页面
-    const sellGrid = document.getElementById('sellGrid');
-    if (sellGrid) {
-      sellGrid.querySelectorAll('.sitem-price span span').forEach(span => {
-        span.style.marginLeft = priceX + 'px';
-        span.style.marginTop = priceY + 'px';
-      });
+  // 商店内容区参数
+  if (key === 'shopContentW' || key === 'shopContentH' || key === 'shopContentY') {
+    // 更新商店内容区
+    const shopInner = document.getElementById('shop-inner');
+    if (shopInner) {
+      shopInner.style.width = (shopDbg.shopContentW || 400) + 'px';
+      shopInner.style.height = (shopDbg.shopContentH || 300) + 'px';
+      shopInner.style.transform = `translateY(${shopDbg.shopContentY || 0}px)`;
     }
+    
+    if (shopOpen) {
+      setTimeout(drawShopBg, 50);
+    }
+  }
+  
+  // 商店标题文字样式（与背包统一）
+  if (key === 'shopTitleFS') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) tt.style.fontSize = (shopDbg.shopTitleFS || 20) + 'px';
+  }
+  if (key === 'shopTitleStroke') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) {
+      const s = parseFloat(shopDbg.shopTitleStroke) || 0;
+      const c = '#461507';
+      tt.style.textShadow = s <= 0 ? 'none' :
+        `${-s}px ${-s}px 0 ${c}, ${s}px ${-s}px 0 ${c}, ${-s}px ${s}px 0 ${c}, ${s}px ${s}px 0 ${c},`+
+        `${-s}px 0 0 ${c}, ${s}px 0 0 ${c}, 0 ${-s}px 0 ${c}, 0 ${s}px 0 ${c}`;
+    }
+  }
+  if (key === 'shopTitleColor') {
+    const tt = document.getElementById('shop-title-text');
+    if (tt) tt.style.color = shopDbg.shopTitleColor || '#fffee8';
+  }
+  
+  // 商店关闭按钮
+  if (key === 'shopCloseSize') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) { 
+      btn.style.width = (shopDbg.shopCloseSize || 36) + 'px'; 
+      btn.style.height = (shopDbg.shopCloseSize || 36) + 'px'; 
+      btn.setAttribute('width', shopDbg.shopCloseSize || 36); 
+      btn.setAttribute('height', shopDbg.shopCloseSize || 36); 
+      drawPanelCloseBtn('shop-close-btn'); 
+    }
+  }
+  if (key === 'shopCloseRight') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) btn.style.right = (shopDbg.shopCloseRight || -31) + 'px';
+  }
+  if (key === 'shopCloseTop') {
+    const btn = document.getElementById('shop-close-btn');
+    if (btn) btn.style.top = (shopDbg.shopCloseTop || -31) + 'px';
   }
   if (key === 'shopTitleFS') {
     const tt = document.getElementById('shop-title-text');
