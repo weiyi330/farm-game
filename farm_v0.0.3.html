@@ -751,7 +751,7 @@ canvas { display:block; }
 </div>
 
 <!-- ── 版本号条（始终显示）── -->
-<div id="splash-version">版本号：v0.0.3.204</div>
+<div id="splash-version">版本号：v0.0.3.205</div>
 
 <!-- ── 游戏主体 ── -->
 <div id="game-wrap">
@@ -2974,7 +2974,7 @@ function getSaveData(slot) {
 
 function buildSavePayload() {
   return {
-    version: '0.0.3.204',
+    version: '0.0.3.205',
     savedAt: Date.now(),
     day, seasonIdx, coins,
     tileMap: tileMap.map(r=>[...r]),
@@ -3989,50 +3989,10 @@ function applyDbg(key, val) {
   if (key.startsWith('bag1') || key.startsWith('bag2') || key.startsWith('bag3')) {
     setTimeout(drawBagBg, 30);
   }
-  if (key === 'shopSlotSize' || key === 'shopItemFrameSize' || key === 'shopItemIconSize' || key === 'shopItemIconScale' || key === 'shopItemFrameAlpha' || key === 'shopSlotGap') {
-    // 更新所有商店商品
-    const slotSize = shopDbg.shopItemFrameSize || 41;
-    const iconSize = shopDbg.shopItemIconSize || 32;
-    const iconScale = (shopDbg.shopItemIconScale || 100) / 100;
-    const frameAlpha = (shopDbg.shopItemFrameAlpha || 100) / 100;
-    const slotGap = shopDbg.shopSlotGap || 4;
-    
-    // 更新商品容器
-    document.querySelectorAll('.sitem').forEach(item => {
-      item.style.width = slotSize + 'px';
-      item.style.height = slotSize + 'px';
-    });
-    
-    // 更新商品图标
-    document.querySelectorAll('.sitem-icon').forEach(icon => {
-      const currentStyle = icon.style.cssText;
-      // 提取已有的background-url坐标
-      const bgMatch = currentStyle.match(/background:url\('([^']+)'\) no-repeat (-?\d+)px (-?\d+)px \/ ([\d\.]+)px ([\d\.]+)px/);
-      if (bgMatch) {
-        const [_, url, bgX, bgY, bgTotalW, bgTotalH] = bgMatch;
-        const scaleFactor = iconSize / 32; // 基准尺寸是32px
-        const scaledBgTotalW = parseFloat(bgTotalW) * scaleFactor;
-        const scaledBgTotalH = parseFloat(bgTotalH) * scaleFactor;
-        const scaledBgX = parseFloat(bgX) * scaleFactor;
-        const scaledBgY = parseFloat(bgY) * scaleFactor;
-        
-        icon.style.cssText = `display:inline-block;width:${iconSize * iconScale}px;height:${iconSize * iconScale}px;overflow:hidden;background:url('${url}') no-repeat ${scaledBgX}px ${scaledBgY}px / ${scaledBgTotalW}px ${scaledBgTotalH}px;image-rendering:pixelated;transform:scale(${iconScale});transform-origin:center;`;
-      }
-    });
-    
-    // 更新商品底框
-    document.querySelectorAll('.sitem-bg').forEach(cv => {
-      drawSlotCanvas(cv, slotSize, slotSize, frameAlpha);
-    });
-    
-    // 更新包装器间距
-    document.querySelectorAll('.sitem-wrap').forEach(wrap => {
-      wrap.style.gap = slotGap + 'px';
-    });
-    
-    setTimeout(() => {
-      if (shopOpen) drawShopBg();
-    }, 30);
+  // 商店参数转发到applyShopDbg函数
+  if (key.startsWith('shop')) {
+    applyShopDbg(key, val);
+    return;
   }
   if (key === 'bagSlotSize') {
     const sz = dbgParams.bagSlotSize || 41;
